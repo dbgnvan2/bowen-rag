@@ -1,0 +1,23 @@
+{
+  "skill_name": "rag-document-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Search for information about family therapy techniques and approaches used by therapists. What does the book say about how to conduct family therapy sessions?",
+      "expected_output": "Should return relevant sections from chapters about family psychotherapy methods, techniques, and clinical approaches. Results should show specific therapeutic methods discussed.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "How does schizophrenia affect family relationships and dynamics? What do these chapters say about the connection between schizophrenia and family systems?",
+      "expected_output": "Should return sections discussing schizophrenia's impact on families, family concepts of schizophrenia, and family relationship patterns. Should reference chapters on family relationships in schizophrenia.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "What information is provided about alcoholism and how it relates to family therapy? How should therapists approach families dealing with alcoholism?",
+      "expected_output": "Should return relevant sections from the chapter on alcoholism and family, including treatment approaches and family dynamics in alcoholic families.",
+      "files": []
+    }
+  ]
+}

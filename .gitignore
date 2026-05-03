@@ -1,0 +1,24 @@
+# User documents — never commit
+source_files/
+
+# Generated outputs
+outputs/
+
+# Old dense matrix (replaced by .npz)
+rag-document-search/references/tfidf_matrix.npy
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# macOS
+.DS_Store

@@ -1,0 +1,92 @@
+{
+  "eval_1": {
+    "prompt": "Search for information about family therapy techniques and approaches used by therapists. What does the book say about how to conduct family therapy sessions?",
+    "num_results": 3,
+    "results": [
+      {
+        "id": 1274,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter10_Family Therapy and_Family_Group_Therapy",
+        "text": "The A therapist thinks of several different kinds of family techniques. Designation of the kind of family therapy is determined more by who\nattends the family sessions than by theory and method. Most family\ntherapists think of individual therapy when one family member attends the\nsessions, of couples therapy when both spouses are present, of family\ntherapy or conjoint family therapy for parents and child, and of family\ngroup therapy when the entire family is present.",
+        "preview": "The A therapist thinks of several different kinds of family techniques. Designation of the kind of family therapy is determined more by who\nattends th...",
+        "relevance_score": 0.625605785046098,
+        "relevance_percent": 62
+      },
+      {
+        "id": 2038,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter14_Family Therapy After_Twenty_Years",
+        "text": "MacGregor (1964)\nand his group made a major effort to perfect this during his work in\n\n--- PDF page 334 ---\nGalveston in the early 1960s. He now teaches and trains family therapists\nwith the team approach. Some version of the family therapy team approach\nis now used in most centers that do family therapy . In the broad spectrum of\nfamily therapy , co-therapist therapy exists as one of the major innovations\nand developmen ts in family therapy . It is used both as a method and\ntechnique.",
+        "preview": "MacGregor (1964)\nand his group made a major effort to perfect this during his work in\n\n--- PDF page 334 ---\nGalveston in the early 1960s. He now teach...",
+        "relevance_score": 0.5964905208016174,
+        "relevance_percent": 59
+      },
+      {
+        "id": 2379,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter16_Theory_in_the_Practice_of_Psychotherapy",
+        "text": "Family therapy has also\nattracted therapists who were never successful at individual therapy , but\nwho find a place in one of the numerous kinds of group thera py methods\nbeing used in family therapy . These admitted overstatements convey some\nidea of the many  kinds of family  therapy methods and techniques that are in\nuse. Group therapy has long acted as though it did not have a theory .",
+        "preview": "Family therapy has also\nattracted therapists who were never successful at individual therapy , but\nwho find a place in one of the numerous kinds of gr...",
+        "relevance_score": 0.5946892025262721,
+        "relevance_percent": 59
+      }
+    ]
+  },
+  "eval_2": {
+    "prompt": "How does schizophrenia affect family relationships and dynamics? What do these chapters say about the connection between schizophrenia and family systems?",
+    "num_results": 3,
+    "results": [
+      {
+        "id": 3777,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter22_Toward_the_Differentiation_of_Self_in_One_s_Family_of_Origin",
+        "text": "In The Etiology of Schizophrenia, ed. D. Jackson, pp. 323\u2013345. New York: Basic Books. Lidz, T., Fleck, S., and Cornelison, A.R. (1965). Schizophrenia and the Family. New York:\nInternational Universities Press. Limentani, D. (1956). Symbiotic identification in schizophrenia. Psychiatry 19:231\u2013236. Macgregor, R., Richie, A., Serrano, A., and Schuster, F. (1964). Multiple Impact Therapy\nwith Families. New York: McGraw-Hill. Mahler, M. (1952). On child psychosis and schizophrenia.",
+        "preview": "In The Etiology of Schizophrenia, ed. D. Jackson, pp. 323\u2013345. New York: Basic Books. Lidz, T., Fleck, S., and Cornelison, A.R. (1965). Schizophrenia ...",
+        "relevance_score": 0.47589014321817313,
+        "relevance_percent": 47
+      },
+      {
+        "id": 3764,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter22_Toward_the_Differentiation_of_Self_in_One_s_Family_of_Origin",
+        "text": "(1959a). Family relationships in schizophrenia. In Schizophrenia\u2014An\nIntegrated Approach, ed. A. Auerback, pp. 147\u2013178. New York: Ronald. [chapter 3]\nBowen, M. (1960). A family concept of schizophrenia. In The Etiology of Schizophrenia,\ned. D.D. Jackson, pp.346\u2013372. New York: Basic Books. [chapter 4]\nBowen, M. (1961). Family psychotherapy. American Journal of Orthopsychiatry 31:40\u201360. [chapter 5]\nBowen, M. (1965). Family psychotherapy with schizophrenia in the hospital and in private\npractice.",
+        "preview": "(1959a). Family relationships in schizophrenia. In Schizophrenia\u2014An\nIntegrated Approach, ed. A. Auerback, pp. 147\u2013178. New York: Ronald. [chapter 3]\nB...",
+        "relevance_score": 0.4492551189438646,
+        "relevance_percent": 44
+      },
+      {
+        "id": 2777,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter17_An_Interview_With_Murray_Bowen",
+        "text": "At\none extreme was a nationally known expert in schizophrenia research who\nhad been impressed with my research until we found these new findings\nwere also present in families without schizophrenia. He suggested the\nschizophrenia research be termin ated because the findings were not specific\nfor schizophrenia. Others were  stimulated to do research on \u201cnormal\u201d\n\n--- PDF page 448 ---\nfamilies to verify if the relationship patterns were also there.",
+        "preview": "At\none extreme was a nationally known expert in schizophrenia research who\nhad been impressed with my research until we found these new findings\nwere ...",
+        "relevance_score": 0.43214244676790564,
+        "relevance_percent": 43
+      }
+    ]
+  },
+  "eval_3": {
+    "prompt": "What information is provided about alcoholism and how it relates to family therapy? How should therapists approach families dealing with alcoholism?",
+    "num_results": 3,
+    "results": [
+      {
+        "id": 1443,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter10_Family Therapy and_Family_Group_Therapy",
+        "text": "This approach avoids polarized\npositions and attempts to work out the issues in family therapy . Therapists also use a variety of ways in dealing with drug prescriptions. Most therapists minimize or avoid the use of drugs. But with nonmedical\ntherapists, families easily assume he would prescribe drugs if he were a\nphysician. The author attem pts to stay as close to the midline as possible in each of\nthese areas.",
+        "preview": "This approach avoids polarized\npositions and attempts to work out the issues in family therapy . Therapists also use a variety of ways in dealing with...",
+        "relevance_score": 0.5753556067387305,
+        "relevance_percent": 57
+      },
+      {
+        "id": 2038,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter14_Family Therapy After_Twenty_Years",
+        "text": "MacGregor (1964)\nand his group made a major effort to perfect this during his work in\n\n--- PDF page 334 ---\nGalveston in the early 1960s. He now teaches and trains family therapists\nwith the team approach. Some version of the family therapy team approach\nis now used in most centers that do family therapy . In the broad spectrum of\nfamily therapy , co-therapist therapy exists as one of the major innovations\nand developmen ts in family therapy . It is used both as a method and\ntechnique.",
+        "preview": "MacGregor (1964)\nand his group made a major effort to perfect this during his work in\n\n--- PDF page 334 ---\nGalveston in the early 1960s. He now teach...",
+        "relevance_score": 0.4851340168527871,
+        "relevance_percent": 48
+      },
+      {
+        "id": 1989,
+        "doc_name": "Family Therapy in_Clinical_Practice_Chapter14_Family Therapy After_Twenty_Years",
+        "text": "He sees family therapy as a technique to facilitate his\npsychotherapy with the patie nt, and he speaks of indications and\ncontraindications for family therapy . It is impossible to know how many\nindividual therapists now do occasional family intervi ews. They\ncharacteristically do not do formal reports about their work. Therapists towa rd the Z end of the scale use theory and techni ques that\nare quite different.",
+        "preview": "He sees family therapy as a technique to facilitate his\npsychotherapy with the patie nt, and he speaks of indications and\ncontraindications for family...",
+        "relevance_score": 0.4259102022111583,
+        "relevance_percent": 42
+      }
+    ]
+  }
+}

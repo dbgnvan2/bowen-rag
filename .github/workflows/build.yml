@@ -1,0 +1,67 @@
+name: Build macOS App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-14   # Apple Silicon (arm64)
+            arch: arm64
+          - runner: macos-13   # Intel (x86_64)
+            arch: x86_64
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build app
+        run: |
+          pyinstaller \
+            --name "Bowen RAG" \
+            --windowed \
+            --onedir \
+            --add-data "rag-document-search/scripts:rag-document-search/scripts" \
+            --add-data "rag-document-search/references:rag-document-search/references" \
+            --add-data "process_transcripts.py:." \
+            --hidden-import scipy.sparse \
+            --hidden-import scipy._lib.messagestream \
+            --hidden-import sklearn.feature_extraction.text \
+            --hidden-import sklearn.metrics.pairwise \
+            --hidden-import sklearn.utils._cython_blas \
+            --hidden-import sklearn.neighbors._typedefs \
+            bowen_rag_gui.py
+
+      - name: Package for distribution
+        run: |
+          mkdir -p dist_pkg
+          cp -r "dist/Bowen RAG.app" dist_pkg/
+          cp RAG_SEARCH_GUIDE.md dist_pkg/
+          cd dist_pkg && zip -r "../BowenRAG-${{ matrix.arch }}.zip" .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BowenRAG-${{ matrix.arch }}
+          path: BowenRAG-${{ matrix.arch }}.zip
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BowenRAG-${{ matrix.arch }}.zip

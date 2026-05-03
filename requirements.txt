@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-learn
+anthropic
+openai
+requests
+PyPDF2
