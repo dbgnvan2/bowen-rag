@@ -18,6 +18,12 @@ from scipy import sparse as sp_sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+try:
+    from sentence_transformers import SentenceTransformer
+    EMBEDDING_AVAILABLE = True
+except ImportError:
+    EMBEDDING_AVAILABLE = False
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
 if getattr(sys, 'frozen', False):
     # Running as a PyInstaller bundle (.app)
@@ -38,11 +44,15 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 SOURCE_DIR.mkdir(parents=True, exist_ok=True)
 
 CLAUDE_MODELS = [
-    "claude-opus-4-6",
+    # Current
+    "claude-opus-4-7",
     "claude-sonnet-4-6",
-    "claude-haiku-4-5-20251001",
+    "claude-haiku-4-5",
+    # Legacy
+    "claude-opus-4-6",
     "claude-opus-4-5",
     "claude-sonnet-4-5",
+    "claude-opus-4-1",
 ]
 
 OPENAI_MODELS = [
@@ -177,8 +187,10 @@ def help_btn(parent, text: str, bg: str) -> tk.Label:
 class IndexManager:
     def __init__(self):
         self.chunks: list  = []
-        self.matrix        = None   # np.ndarray (N, features)
+        self.matrix        = None   # np.ndarray (N, tfidf_features)
         self.vectorizer    = None   # TfidfVectorizer, fitted
+        self.embed_matrix  = None   # np.ndarray (N, 384), sentence embeddings
+        self.embed_model   = None   # SentenceTransformer — loaded lazily
         self.loaded        = False
 
     def load(self, refs_dir: Path = REFS_DIR) -> dict:
@@ -213,7 +225,16 @@ class IndexManager:
             self._doc_chunk_ids.setdefault(c["doc_name"], []).append(i)
 
         docs = len(set(c["doc_name"] for c in self.chunks))
-        return {"chunks": len(self.chunks), "documents": docs}
+
+        embed_npy = refs_dir / "embed_matrix.npy"
+        if EMBEDDING_AVAILABLE and embed_npy.exists():
+            self.embed_matrix = np.load(str(embed_npy))
+        else:
+            self.embed_matrix = None
+            self.embed_model  = None
+
+        return {"chunks": len(self.chunks), "documents": docs,
+                "embeddings": self.embed_matrix is not None}
 
     def get_context_window(self, chunk_id: int, window: int = 2) -> list:
         """Return ordered texts of chunks within ±window of chunk_id in the same doc."""
@@ -226,6 +247,57 @@ class IndexManager:
         start = max(0, pos - window)
         end   = min(len(doc_ids), pos + window + 1)
         return [self.chunks[doc_ids[j]]["text"] for j in range(start, end)]
+
+    # ── Embedding index ───────────────────────────────────────────────────────
+
+    def build_embeddings(self, refs_dir: Path, log_fn=None) -> int:
+        if not EMBEDDING_AVAILABLE:
+            raise RuntimeError("Run: pip install sentence-transformers")
+        if not self.loaded:
+            raise RuntimeError("Load the TF-IDF index first.")
+
+        def _log(msg):
+            if log_fn:
+                log_fn(msg)
+
+        _log("Loading model all-MiniLM-L6-v2 (downloads ~90 MB on first run)…\n")
+        model  = SentenceTransformer("all-MiniLM-L6-v2")
+        texts  = [c["text"] for c in self.chunks]
+        _log(f"Encoding {len(texts):,} chunks — this may take a few minutes on CPU…\n")
+        vecs   = model.encode(texts, show_progress_bar=False, batch_size=64)
+        out    = refs_dir / "embed_matrix.npy"
+        refs_dir.mkdir(parents=True, exist_ok=True)
+        np.save(str(out), vecs)
+        self.embed_matrix = vecs
+        self.embed_model  = model
+        _log(f"Saved {len(texts):,} embeddings to {out}\n")
+        return len(texts)
+
+    def embedding_search(self, query: str, top_k: int) -> list:
+        if not self.loaded:
+            return []
+        if self.embed_matrix is None:
+            raise RuntimeError(
+                "Embedding index not built. Click 'Build Embeddings' in the Index tab.")
+        if self.embed_model is None:
+            self.embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+        qvec    = self.embed_model.encode([query])
+        raw     = cosine_similarity(qvec, self.embed_matrix)[0]
+        boosted = np.array([
+            raw[i] * authority_boost(self.chunks[i]["doc_name"])
+            for i in range(len(self.chunks))
+        ])
+        idx = boosted.argsort()[::-1][:top_k]
+        return [
+            {**self.chunks[i],
+             "score":       float(boosted[i]),
+             "score_label": (f"{boosted[i]*100:.0f}% ✦"
+                             if authority_boost(self.chunks[i]["doc_name"]) > 1.0
+                             else f"{boosted[i]*100:.0f}%"),
+             "mode":        "embedding"}
+            for i in idx if boosted[i] > 0
+        ]
 
     # ── Search ────────────────────────────────────────────────────────────────
 
@@ -464,6 +536,76 @@ class LLMClient:
         return r.choices[0].message.content
 
     @staticmethod
+    def call_claude_chat(messages: list, api_key: str, model: str,
+                         system: str, on_chunk=None) -> str:
+        try:
+            import anthropic
+        except ImportError:
+            raise RuntimeError("Run: pip install anthropic")
+        client = anthropic.Anthropic(api_key=api_key)
+        if on_chunk:
+            buf = []
+            with client.messages.stream(
+                model=model, max_tokens=16000, system=system, messages=messages
+            ) as stream:
+                for token in stream.text_stream:
+                    buf.append(token)
+                    on_chunk(token)
+            return "".join(buf)
+        r = client.messages.create(
+            model=model, max_tokens=16000, system=system, messages=messages)
+        return r.content[0].text
+
+    @staticmethod
+    def call_openai_chat(messages: list, api_key: str, model: str,
+                         system: str, on_chunk=None) -> str:
+        try:
+            import openai
+        except ImportError:
+            raise RuntimeError("Run: pip install openai")
+        client = openai.OpenAI(api_key=api_key)
+        full = [{"role": "system", "content": system}] + messages
+        if on_chunk:
+            buf = []
+            with client.chat.completions.create(
+                model=model, max_tokens=16000, messages=full, stream=True
+            ) as stream:
+                for chunk in stream:
+                    t = chunk.choices[0].delta.content or ""
+                    if t:
+                        buf.append(t)
+                        on_chunk(t)
+            return "".join(buf)
+        r = client.chat.completions.create(model=model, max_tokens=16000, messages=full)
+        return r.choices[0].message.content
+
+    @staticmethod
+    def call_ollama_chat(messages: list, url: str, model: str,
+                         system: str, on_chunk=None) -> str:
+        try:
+            import requests as req
+        except ImportError:
+            raise RuntimeError("Run: pip install requests")
+        full    = [{"role": "system", "content": system}] + messages
+        payload = {"model": model, "messages": full, "stream": bool(on_chunk)}
+        r = req.post(f"{url.rstrip('/')}/api/chat",
+                     json=payload, stream=bool(on_chunk), timeout=300)
+        r.raise_for_status()
+        if on_chunk:
+            buf = []
+            for line in r.iter_lines():
+                if line:
+                    d = json.loads(line)
+                    t = d.get("message", {}).get("content", "")
+                    if t:
+                        buf.append(t)
+                        on_chunk(t)
+                    if d.get("done"):
+                        break
+            return "".join(buf)
+        return r.json().get("message", {}).get("content", "")
+
+    @staticmethod
     def list_ollama_models(url: str) -> list:
         try:
             import requests as req
@@ -491,15 +633,38 @@ class App:
         self.checked_vars:   list  = []   # tk.BooleanVar per result row
         self._staged_chunks: list  = []   # chunks sent from Search → Report
         self._last_report:   str   = ""
+        self._chat_history:  list  = []   # {role, content} turns for chat tab
 
         # Settings
         self.provider    = tk.StringVar(value="openai")
         self.claude_key  = tk.StringVar()
-        self.claude_mdl  = tk.StringVar(value="claude-opus-4-6")
+        self.claude_mdl  = tk.StringVar(value="claude-opus-4-7")
         self.openai_key  = tk.StringVar()
         self.openai_mdl  = tk.StringVar(value="gpt-4o")
         self.ollama_url  = tk.StringVar(value="http://localhost:11434")
         self.ollama_mdl  = tk.StringVar(value="qwen3.5:latest")
+
+        # Load .env — must happen before _build_notebook so combobox lists are ready
+        _env = self._load_dotenv()
+        if _env.get("ANTHROPIC_API_KEY"):
+            self.claude_key.set(_env["ANTHROPIC_API_KEY"])
+        if _env.get("OPENAI_API_KEY"):
+            self.openai_key.set(_env["OPENAI_API_KEY"])
+        if _env.get("ANTHROPIC_MODEL"):
+            self.claude_mdl.set(_env["ANTHROPIC_MODEL"])
+        if _env.get("OPENAI_MODEL"):
+            self.openai_mdl.set(_env["OPENAI_MODEL"])
+        if _env.get("OLLAMA_URL"):
+            self.ollama_url.set(_env["OLLAMA_URL"])
+        if _env.get("OLLAMA_MODEL"):
+            self.ollama_mdl.set(_env["OLLAMA_MODEL"])
+        if _env.get("LLM_PROVIDER"):
+            self.provider.set(_env["LLM_PROVIDER"])
+
+        extra_claude = [m.strip() for m in _env.get("CLAUDE_EXTRA_MODELS", "").split(",") if m.strip()]
+        extra_oai    = [m.strip() for m in _env.get("OPENAI_EXTRA_MODELS",  "").split(",") if m.strip()]
+        self._claude_models = list(dict.fromkeys(CLAUDE_MODELS + extra_claude))
+        self._openai_models = list(dict.fromkeys(OPENAI_MODELS + extra_oai))
         self.top_k       = tk.IntVar(value=15)
         self.srch_mode   = tk.StringVar(value="top-docs")
         self.index_stats = tk.StringVar(value="Loading index…")
@@ -518,6 +683,60 @@ class App:
 
         # Load index on a background thread
         threading.Thread(target=self._bg_load_index, daemon=True).start()
+
+    # ── .env loader ────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _load_dotenv() -> dict:
+        env_path = BASE_DIR / ".env"
+        result: dict = {}
+        if not env_path.exists():
+            return result
+        for raw in env_path.read_text(encoding="utf-8").splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            result[k.strip()] = v.strip().strip('"').strip("'")
+        return result
+
+    def _save_dotenv(self):
+        env_path = BASE_DIR / ".env"
+        # Read existing lines so we can update in-place without clobbering other vars
+        if env_path.exists():
+            lines = env_path.read_text(encoding="utf-8").splitlines()
+        else:
+            lines = []
+
+        updates = {
+            "ANTHROPIC_API_KEY": self.claude_key.get(),
+            "ANTHROPIC_MODEL":   self.claude_mdl.get(),
+            "OPENAI_API_KEY":    self.openai_key.get(),
+            "OPENAI_MODEL":      self.openai_mdl.get(),
+            "LLM_PROVIDER":      self.provider.get(),
+        }
+
+        written = set()
+        new_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("#") or "=" not in stripped:
+                new_lines.append(line)
+                continue
+            k = stripped.partition("=")[0].strip()
+            if k in updates:
+                new_lines.append(f"{k}={updates[k]}")
+                written.add(k)
+            else:
+                new_lines.append(line)
+
+        for k, v in updates.items():
+            if k not in written and v:
+                new_lines.append(f"{k}={v}")
+
+        env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+        if hasattr(self, "_test_lbl"):
+            self._test_lbl.config(text=f"Saved to {env_path}", foreground="green")
 
     # ── Theme ──────────────────────────────────────────────────────────────────
 
@@ -599,6 +818,7 @@ class App:
         self._tab_index()
         self._tab_llm()
         self._tab_report()
+        self._tab_chat()
 
         self._nb.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
@@ -661,10 +881,15 @@ class App:
             "• Both — merges Semantic and Keyword results.",
             self._bg).pack(side="left", padx=2)
 
-        for label, val in [("Top Docs  (1 result per document)", "top-docs"),
-                            ("Semantic (TF-IDF)",                 "semantic"),
-                            ("Keyword",                           "keyword"),
-                            ("Both",                              "both")]:
+        modes = [
+            ("Top Docs  (1 result per document)", "top-docs"),
+            ("Semantic  (TF-IDF)",                "semantic"),
+            ("Keyword",                           "keyword"),
+            ("Both",                              "both"),
+        ]
+        if EMBEDDING_AVAILABLE:
+            modes.append(("Embedding  (sentence-transformers)", "embedding"))
+        for label, val in modes:
             ttk.Radiobutton(lf, text=label, variable=self.srch_mode,
                             value=val).pack(anchor="w")
 
@@ -761,6 +986,12 @@ class App:
             results = self.index.semantic_search(query, k)
         elif mode == "keyword":
             results = self.index.keyword_search(query, k)
+        elif mode == "embedding":
+            try:
+                results = self.index.embedding_search(query, k)
+            except RuntimeError as e:
+                self._set_status(str(e))
+                return
         else:
             results = self.index.combined_search(query, k)
 
@@ -917,6 +1148,9 @@ class App:
                    command=self._import_and_rebuild).pack(side="left", padx=4)
         ttk.Button(btn_row, text="Rebuild Index  (all .txt + .pdf)",
                    command=self._rebuild_index).pack(side="left", padx=4)
+        if EMBEDDING_AVAILABLE:
+            ttk.Button(btn_row, text="Build Embeddings",
+                       command=self._build_embeddings).pack(side="left", padx=4)
 
         self._idx_stat_lbl = ttk.Label(cf, text="", style="Info.TLabel")
         self._idx_stat_lbl.grid(row=4, column=0, columnspan=3, sticky="w")
@@ -955,6 +1189,10 @@ class App:
 
     def _on_index_loaded(self, stats: dict):
         msg = f"✓  {stats['documents']} documents  ·  {stats['chunks']:,} chunks"
+        if stats.get("embeddings"):
+            msg += "  ·  embeddings loaded"
+        elif EMBEDDING_AVAILABLE:
+            msg += "  ·  no embeddings (Build Embeddings to enable)"
         self.index_stats.set(msg)
         if hasattr(self, "_idx_stat_lbl"):
             self._idx_stat_lbl.config(text=msg)
@@ -1071,6 +1309,37 @@ class App:
         self._log(f"\n[{_ts()}] Rebuild complete. Reloading index…\n")
         threading.Thread(target=self._bg_load_index, daemon=True).start()
 
+    def _build_embeddings(self):
+        if not self.index.loaded:
+            messagebox.showerror("Error", "Load the index first.")
+            return
+        out = Path(self._idx_var.get())
+        self._log(f"\n[{_ts()}] Building embedding index…\n")
+        self._progress.start(10)
+        self._set_status("Building embeddings…")
+
+        def _work():
+            try:
+                n = self.index.build_embeddings(
+                    out,
+                    log_fn=lambda msg: self.root.after(0, self._log, msg)
+                )
+                self.root.after(0, self._progress.stop)
+                self.root.after(0, self._set_status, f"Embeddings built ({n:,} chunks).")
+                self.root.after(0, self._log, f"[{_ts()}] Done — {n:,} embeddings.\n")
+                # Refresh the index stats label to reflect embeddings now loaded
+                msg = self.index_stats.get().split("  ·  no embeddings")[0]
+                msg += "  ·  embeddings loaded"
+                self.root.after(0, self.index_stats.set, msg)
+                if hasattr(self, "_idx_stat_lbl"):
+                    self.root.after(0, self._idx_stat_lbl.config, {"text": msg})
+            except Exception as e:
+                self.root.after(0, self._log, f"\n[EXCEPTION] {e}\n")
+                self.root.after(0, self._progress.stop)
+                self.root.after(0, self._set_status, "Embedding build failed.")
+
+        threading.Thread(target=_work, daemon=True).start()
+
     def _log(self, text: str):
         if not hasattr(self, "_build_log"):
             return
@@ -1120,7 +1389,7 @@ class App:
         ttk.Label(self._openai_pane, text="Model:").grid(
             row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Combobox(self._openai_pane, textvariable=self.openai_mdl,
-                     values=OPENAI_MODELS, width=25).grid(
+                     values=self._openai_models, width=25).grid(
             row=1, column=1, sticky="w", pady=(8, 0))
 
         # Claude
@@ -1139,8 +1408,10 @@ class App:
         ttk.Label(self._claude_pane, text="Model:").grid(
             row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Combobox(self._claude_pane, textvariable=self.claude_mdl,
-                     values=CLAUDE_MODELS, width=35).grid(
+                     values=self._claude_models, width=35).grid(
             row=1, column=1, sticky="w", pady=(8, 0))
+        ttk.Button(self._claude_pane, text="Save to .env",
+                   command=self._save_dotenv).grid(row=2, column=1, sticky="w", pady=(10, 0))
 
         # Ollama
         self._ollama_pane = ttk.LabelFrame(f, text="Ollama Settings", padding=12)
@@ -1278,8 +1549,11 @@ class App:
 
         ttk.Label(r2, text="Mode:").pack(side="left")
         self._rpt_mode = tk.StringVar(value="top-docs")
+        _rpt_modes = ["top-docs (recommended)", "semantic", "keyword", "both"]
+        if EMBEDDING_AVAILABLE:
+            _rpt_modes.append("embedding")
         ttk.Combobox(r2, textvariable=self._rpt_mode,
-                     values=["top-docs (recommended)", "semantic", "keyword", "both"],
+                     values=_rpt_modes,
                      width=22).pack(side="left", padx=(4, 0))
         help_btn(r2,
             "How documents are retrieved and ranked:\n\n"
@@ -1387,6 +1661,8 @@ class App:
             return self.index.semantic_search(query, k)
         if mode == "keyword":
             return self.index.keyword_search(query, k)
+        if mode == "embedding":
+            return self.index.embedding_search(query, k)
         return self.index.combined_search(query, k)
 
     def _generate_report(self):
@@ -1425,21 +1701,26 @@ class App:
                     existing.add(t)
 
         # Show reference list
+        # Assign stable reference numbers (sorted for determinism)
+        ref_map = {name: i + 1 for i, name in enumerate(sorted(docs))}
+
         refs_numbered = "\n".join(
-            f"{i+1}. {name}" for i, name in enumerate(sorted(docs)))
+            f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         self._ref_box.config(state="normal")
         self._ref_box.delete("1.0", "end")
         self._ref_box.insert("1.0", refs_numbered)
         self._ref_box.config(state="disabled")
 
-        # Build context — each doc's texts are already the expanded window
+        # Build context with numbered headers so the LLM can cite by number
         context_parts = []
         for doc_name, texts in docs.items():
+            num     = ref_map[doc_name]
             combined = "\n…\n".join(texts)
-            context_parts.append(f"### [{doc_name}]\n{combined}")
+            context_parts.append(f"### [{num}] {doc_name}\n{combined}")
         context = "\n\n---\n\n".join(context_parts)
 
-        refs_md   = "\n".join(f"- {n}" for n in sorted(docs))
+        refs_md   = "\n".join(
+            f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         target_wc = self._rpt_words.get()
 
         prompt = f"""Write a detailed report on the following topic using ONLY the source excerpts provided below.
@@ -1458,8 +1739,8 @@ class App:
 
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
-- **Every factual claim must be cited** immediately after the claim using [Document Name].
-- **Do not paraphrase without attribution.** If you summarise a source's position, cite it.
+- **Every factual claim must be cited** immediately after the claim using the reference number in brackets, e.g. [1] or [3]. Use the numbers shown in the source headers above — do NOT use document names in citations.
+- **Do not paraphrase without attribution.** If you summarise a source's position, cite it by number.
 - If sources disagree or use different language for the same idea, quote both and note the difference — do not resolve it yourself.
 - Write at least {target_wc} words. Develop each section fully using evidence from the excerpts.
 
@@ -1475,7 +1756,7 @@ Produce a well-structured Markdown report with these sections, each developed in
 6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
 7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
 8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
-9. **References** — numbered list of every source document used
+9. **References** — reproduce the numbered reference list below verbatim
 
 Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** for key terms from the sources.
 
@@ -1560,6 +1841,217 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
             self.root.clipboard_clear()
             self.root.clipboard_append(content)
             self._set_status("Report copied to clipboard.")
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # TAB 5  —  Chat
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def _tab_chat(self):
+        f = ttk.Frame(self._nb)
+        self._nb.add(f, text="  Chat  ")
+        f.columnconfigure(0, weight=3)
+        f.columnconfigure(1, weight=1)
+        f.rowconfigure(0, weight=1)
+
+        # ── Left: conversation + input ────────────────────────────────────────
+        left = ttk.Frame(f)
+        left.grid(row=0, column=0, sticky="nsew", padx=(8, 4), pady=8)
+        left.columnconfigure(0, weight=1)
+        left.rowconfigure(0, weight=1)
+
+        conv_lf = ttk.LabelFrame(left, text="Conversation", padding=4)
+        conv_lf.grid(row=0, column=0, sticky="nsew", pady=(0, 6))
+        conv_lf.columnconfigure(0, weight=1)
+        conv_lf.rowconfigure(0, weight=1)
+
+        self._chat_display = scrolledtext.ScrolledText(
+            conv_lf, font=("Helvetica", 12), wrap="word",
+            state="disabled", relief="flat", bg="#fafafa")
+        self._chat_display.grid(row=0, column=0, sticky="nsew")
+
+        self._chat_display.tag_configure(
+            "you",      font=("Helvetica", 12, "bold"), foreground="#1d4ed8", spacing1=14)
+        self._chat_display.tag_configure(
+            "asst_lbl", font=("Helvetica", 12, "bold"), foreground="#374151", spacing1=10)
+        self._chat_display.tag_configure(
+            "assistant",font=("Helvetica", 12),         foreground="#1a1a2e")
+        self._chat_display.tag_configure(
+            "meta",     font=("Helvetica", 10),         foreground="#9ca3af", spacing1=4)
+        self._chat_display.tag_configure(
+            "error",    foreground="#dc2626")
+
+        # Input
+        self._chat_input = tk.Text(
+            left, height=3, font=("Helvetica", 12),
+            wrap="word", relief="solid", borderwidth=1)
+        self._chat_input.grid(row=1, column=0, sticky="ew")
+        self._chat_input.bind("<Return>",         self._chat_on_return)
+        self._chat_input.bind("<Control-Return>", lambda e: self._send_chat())
+
+        # Controls
+        ctrl = ttk.Frame(left)
+        ctrl.grid(row=2, column=0, sticky="ew", pady=(6, 0))
+
+        ttk.Button(ctrl, text="Send", style="Accent.TButton",
+                   command=self._send_chat).pack(side="left")
+        ttk.Label(ctrl, text="  Mode:").pack(side="left")
+        self._chat_mode = tk.StringVar(
+            value="embedding" if EMBEDDING_AVAILABLE else "top-docs")
+        _chat_modes = ["top-docs", "semantic", "keyword", "both"]
+        if EMBEDDING_AVAILABLE:
+            _chat_modes.insert(0, "embedding")
+        ttk.Combobox(ctrl, textvariable=self._chat_mode,
+                     values=_chat_modes, width=16).pack(side="left", padx=4)
+        ttk.Label(ctrl, text="  Chunks:").pack(side="left")
+        self._chat_k = tk.IntVar(value=12)
+        ttk.Spinbox(ctrl, from_=3, to=50, textvariable=self._chat_k,
+                    width=4).pack(side="left", padx=4)
+        ttk.Button(ctrl, text="Clear Chat",
+                   command=self._clear_chat).pack(side="right")
+        ttk.Label(ctrl, text="Enter = send  ·  Shift+Enter = newline",
+                  foreground="#9ca3af",
+                  font=("Helvetica", 10)).pack(side="right", padx=8)
+
+        # ── Right: sources panel ──────────────────────────────────────────────
+        src_lf = ttk.LabelFrame(f, text="Sources  (last retrieval)", padding=6)
+        src_lf.grid(row=0, column=1, sticky="nsew", padx=(0, 8), pady=8)
+        src_lf.columnconfigure(0, weight=1)
+        src_lf.rowconfigure(0, weight=1)
+
+        self._chat_src = scrolledtext.ScrolledText(
+            src_lf, font=("Helvetica", 10), wrap="word",
+            state="disabled", relief="flat", bg="#f8f9fa")
+        self._chat_src.grid(row=0, column=0, sticky="nsew")
+
+    def _chat_on_return(self, event):
+        if event.state & 0x1:   # Shift held — insert newline normally
+            return
+        self._send_chat()
+        return "break"
+
+    def _chat_write(self, tag: str, text: str):
+        self._chat_display.config(state="normal")
+        self._chat_display.insert("end", text, tag)
+        self._chat_display.see("end")
+        self._chat_display.config(state="disabled")
+
+    def _chat_stream_token(self, token: str):
+        self._chat_display.config(state="normal")
+        self._chat_display.insert("end", token, "assistant")
+        self._chat_display.see("end")
+        self._chat_display.config(state="disabled")
+
+    def _clear_chat(self):
+        self._chat_history = []
+        self._chat_display.config(state="normal")
+        self._chat_display.delete("1.0", "end")
+        self._chat_display.config(state="disabled")
+        self._chat_src.config(state="normal")
+        self._chat_src.delete("1.0", "end")
+        self._chat_src.config(state="disabled")
+
+    def _send_chat(self):
+        msg = self._chat_input.get("1.0", "end-1c").strip()
+        if not msg:
+            return
+        if not self.index.loaded:
+            self._chat_write("error", "Index not loaded — rebuild it in the Index tab.\n")
+            return
+
+        self._chat_input.delete("1.0", "end")
+        self._chat_write("you", f"You:  {msg}\n")
+
+        # Retrieve chunks
+        mode = self._chat_mode.get()
+        k    = self._chat_k.get()
+        try:
+            if mode == "top-docs":
+                chunks = self.index.top_docs_search(msg, top_chunks=300, top_docs=k)
+            elif mode == "semantic":
+                chunks = self.index.semantic_search(msg, k)
+            elif mode == "keyword":
+                chunks = self.index.keyword_search(msg, k)
+            elif mode == "embedding":
+                chunks = self.index.embedding_search(msg, k)
+            else:
+                chunks = self.index.combined_search(msg, k)
+        except RuntimeError as e:
+            self._chat_write("error", f"Search error: {e}\n")
+            return
+
+        # Update sources panel
+        doc_names = sorted(set(c["doc_name"] for c in chunks))
+        src_text  = "\n".join(f"• {d}" for d in doc_names)
+        self._chat_src.config(state="normal")
+        self._chat_src.delete("1.0", "end")
+        self._chat_src.insert("1.0", src_text)
+        self._chat_src.config(state="disabled")
+
+        meta = f"  [{len(chunks)} chunks · {len(doc_names)} docs · {mode}]\n"
+        self._chat_write("meta", meta)
+
+        # Build context block
+        docs: dict = {}
+        for c in chunks:
+            cid = c.get("id")
+            txts = (self.index.get_context_window(cid, window=1)
+                    if cid is not None and hasattr(self.index, "_doc_chunk_ids")
+                    else [c["text"]])
+            seen = set(docs.get(c["doc_name"], []))
+            for t in txts:
+                if t not in seen:
+                    docs.setdefault(c["doc_name"], []).append(t)
+                    seen.add(t)
+
+        context = "\n\n---\n\n".join(
+            f"### [{dn}]\n" + "\n…\n".join(txts)
+            for dn, txts in docs.items()
+        )
+        # Current turn: history (bare Q&A) + this question with fresh chunks
+        current_content = (
+            f"[Retrieved {len(chunks)} chunks from {len(docs)} documents]\n\n"
+            f"{context}\n\n---\nQuestion: {msg}"
+        )
+        messages_to_send = self._chat_history + [{"role": "user", "content": current_content}]
+
+        # Start streaming response
+        self._chat_write("asst_lbl", "\nAssistant:  ")
+        self._set_status("Thinking…")
+
+        def _on_token(t: str):
+            self.root.after(0, self._chat_stream_token, t)
+
+        def _work():
+            try:
+                sys_p = self._get_system_prompt()
+                p     = self.provider.get()
+                if p == "claude":
+                    if not self.claude_key.get():
+                        raise RuntimeError("Claude API key not set — go to LLM Settings.")
+                    result = self.llm.call_claude_chat(
+                        messages_to_send, self.claude_key.get(),
+                        self.claude_mdl.get(), sys_p, _on_token)
+                elif p == "openai":
+                    if not self.openai_key.get():
+                        raise RuntimeError("OpenAI API key not set — go to LLM Settings.")
+                    result = self.llm.call_openai_chat(
+                        messages_to_send, self.openai_key.get(),
+                        self.openai_mdl.get(), sys_p, _on_token)
+                else:
+                    result = self.llm.call_ollama_chat(
+                        messages_to_send, self.ollama_url.get(),
+                        self.ollama_mdl.get(), sys_p, _on_token)
+
+                # Store only bare question + answer — no chunks in history
+                self._chat_history.append({"role": "user",      "content": msg})
+                self._chat_history.append({"role": "assistant", "content": result})
+                self.root.after(0, self._chat_write, "assistant", "\n\n")
+                self.root.after(0, self._set_status, "Ready.")
+            except Exception as e:
+                self.root.after(0, self._chat_write, "error", f"\n[Error: {e}]\n\n")
+                self.root.after(0, self._set_status, f"Chat error: {e}")
+
+        threading.Thread(target=_work, daemon=True).start()
 
     # ── Helpers ────────────────────────────────────────────────────────────────
 

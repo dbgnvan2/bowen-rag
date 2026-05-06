@@ -1,65 +1,58 @@
 ---
 name: rag-document-search
 description: |
-  Search a collection of text documents using natural language queries. This skill finds relevant sections across multiple documents by matching your question against the document content. Use this whenever you need to find information from a document library—for example, "What does this say about schizophrenia?", "Find sections on family therapy techniques", or "How are alcoholism and family dynamics discussed?". The skill works best with topical queries and returns full relevant sections ranked by relevance.
-compatibility: Requires Python 3.8+, numpy, sklearn
+  Search a collection of Bowen Family Systems Theory documents using natural language queries. Finds relevant passages across the corpus using TF-IDF or sentence-transformer embeddings, with authority boosting for primary Bowen/Kerr sources. Use this whenever you need to find information from the document library — e.g. "What does Bowen say about triangles?", "Find passages on differentiation of self", or "How is emotional cutoff described clinically?". Returns ranked chunks with source attribution.
+compatibility: "Python 3.8+, numpy, scipy, scikit-learn. Optional: sentence-transformers (enables embedding search mode)"
 ---
 
-# RAG Document Search Skill
+# RAG Document Search
 
-This skill lets you search a collection of documents using natural language questions. Instead of keyword matching, it understands the semantic meaning of your query and finds the most relevant sections across all documents.
+Searches the Bowen Family Systems Theory document corpus using natural language. Two retrieval modes are available:
 
-## How it works
+- **TF-IDF** — fast word-frequency matching; good for exact terminology
+- **Embedding** — sentence-transformer semantic search; finds conceptual matches regardless of exact wording (requires `embed_matrix.npy` to be built via the GUI)
 
-1. Documents are preprocessed into semantic chunks
-2. Each chunk is converted to a vector embedding
-3. Your query is converted to the same embedding space
-4. Chunks are ranked by similarity to your query
-5. Top matching sections are returned with full context
+## Scripts
 
-## Using the skill
+### `build_index.py`
 
-When you need to search documents, simply ask your question in natural language:
+Processes source documents and builds the TF-IDF search index.
 
-**Example queries:**
-- "What approaches do therapists use for family therapy?"
-- "How does schizophrenia affect family relationships?"
-- "What does the book say about treating alcoholism?"
-- "Find information about the role of fathers in family therapy"
+```bash
+python3 scripts/build_index.py /path/to/source_files/ references/
+```
 
-## What you'll get back
+Writes to `references/`:
+- `chunk_metadata.json` — chunk text and document metadata
+- `tfidf_matrix.npz` — sparse TF-IDF matrix
+- `vectorizer.json` — vocabulary and IDF weights
 
-Results include:
-- **Chapter name** — where the content is from
-- **Relevance score** — how well it matches your query (0-100%)
-- **Full section** — the complete paragraph or section containing the answer
-- **Context** — surrounding sentences to help understand the excerpt
+Chunking strategy: documents with `## Section N –` headings (transcript format) are split at headings. All others use overlapping word-count chunks (~1500 chars, 200-char overlap).
 
-## Token cost
+### `semantic_search.py`
 
-**One-time setup (first time skill is used):**
-- Loading and indexing all documents: ~15,000-25,000 tokens
-- This happens automatically on first use
+CLI search against the TF-IDF index.
 
-**Per search:**
-- Query processing and ranking: ~3,000-8,000 tokens
-- Depends on number of documents and result count
+```bash
+python3 scripts/semantic_search.py references/ "your query" 5
+```
 
-After the first search, subsequent searches are much more efficient because the document chunks are cached locally.
+**Note:** currently loads `tfidf_matrix.npy` (old dense format). `build_index.py` now writes `tfidf_matrix.npz` (sparse). Needs updating to use `scipy.sparse.load_npz`. The GUI (`IndexManager`) handles both formats.
 
-## Limitations
+## References directory
 
-- Works best with topical or semantic queries (not boolean logic like "A AND NOT B")
-- Returns sections as they appear in the original documents; some context may be cut off at chunk boundaries
-- Search quality depends on how clearly your question is phrased
+| File | Description |
+|---|---|
+| `chunk_metadata.json` | Required — chunk text + doc metadata |
+| `tfidf_matrix.npz` | Required — TF-IDF vectors |
+| `vectorizer.json` | Required — vocabulary |
+| `embed_matrix.npy` | Optional — sentence-transformer embeddings; enables Embedding search mode in GUI |
 
----
+## Test runner
 
-## Implementation Notes
+```bash
+cd rag-document-search
+python3 test_skill.py
+```
 
-The skill uses these files:
-- `scripts/build_index.py` — Processes documents and builds the search index
-- `scripts/semantic_search.py` — Handles search queries and ranking
-- `references/chunk_metadata.json` — Cached chunk data (auto-generated on first use)
-
-You don't need to run these manually — they execute automatically when needed.
+Runs 3 sample queries and writes results to `test_results.json`.
