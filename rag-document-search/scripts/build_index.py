@@ -56,8 +56,20 @@ class DocumentIndexer:
                         content = f.read()
                     documents.append((filepath.stem, content))
                     print(f"  Note: read {filepath.name} as UTF-16")
-                except Exception as e:
-                    print(f"Error reading {filepath}: {e}")
+                except Exception:
+                    try:
+                        with open(filepath, 'r', encoding='utf-16', errors='replace') as f:
+                            content = f.read()
+                        documents.append((filepath.stem, content))
+                        print(f"  Note: read {filepath.name} as UTF-16 with replacement characters (file may be truncated)")
+                    except Exception:
+                        try:
+                            with open(filepath, 'r', encoding='latin-1') as f:
+                                content = f.read()
+                            documents.append((filepath.stem, content))
+                            print(f"  Note: read {filepath.name} as latin-1 fallback")
+                        except Exception as e:
+                            print(f"Error reading {filepath}: {e}")
             except Exception as e:
                 print(f"Error reading {filepath}: {e}")
 

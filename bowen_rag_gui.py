@@ -75,32 +75,45 @@ OLLAMA_MODELS = [
 # ── Authority tiers ────────────────────────────────────────────────────────────
 # Patterns matched against doc_name (case-insensitive prefix/substring).
 # Multiplier applied to raw TF-IDF score before ranking.
-AUTHORITY_TIERS = [
-    # Tier 1 — Primary Bowen & Kerr sources (3.0×)
-    ("Family Therapy in_Clinical_Practice_Chapter",  3.0),  # FTCP book chapters
-    ("Bowen Basic Series Tape",                       3.0),  # Bowen lecture tapes
-    ("BOWEN-KERR INTERVIEW SERIES",                   3.0),  # Bowen-Kerr interviews
-    ("Bowen Family Systems Theory",                   3.0),  # Bowen theory docs
+_AUTHORITY_TIERS_DEFAULT = [
+    ("Family Therapy in_Clinical_Practice_Chapter",  3.0),
+    ("Family Evaluation",                             3.0),
+    ("Bowen Basic Series Tape",                       3.0),
+    ("BOWEN-KERR INTERVIEW SERIES",                   3.0),
+    ("Bowen Family Systems Theory",                   3.0),
     ("Bowen on Triangles",                            3.0),
     ("Bowen Theory and Therapy",                      3.0),
-    ("Chronic Anxiety and Defining",                  3.0),  # Kerr Atlantic article
-    ("Cancer and the Emotional System",               3.0),  # Kerr
+    ("Chronic Anxiety and Defining",                  3.0),
+    ("Cancer and the Emotional System",               3.0),
     ("Family and Society Kerr",                       3.0),
     ("Family as a System Kerr",                       3.0),
     ("Family Systems and Therapy Kerr",               3.0),
-    ("Physical Illness as the Family Emotional",      3.0),  # Kerr
-    ("Psychotherapy Past Present Future",             3.0),  # Bowen
-    # Tier 2 — Family Systems Journal & Family Center Reports (1.3×)
-    ("Copy of ",                                      1.3),  # FSJ article PDFs
+    ("Physical Illness as the Family Emotional",      3.0),
+    ("Psychotherapy Past Present Future",             3.0),
+    ("Copy of ",                                      1.3),
     ("Family Center Reports",                         1.3),
-    # Tier 3 — Other named theorist papers (1.15×)
     ("Papero",                                        1.15),
     ("Friedman",                                      1.15),
     ("Fogarty",                                       1.15),
     ("Guerin",                                        1.15),
     ("Toman",                                         1.15),
-    # Everything else stays at 1.0×
 ]
+
+def _load_authority_tiers() -> list:
+    config = BASE_DIR / "authority_tiers.yml"
+    if not config.exists():
+        return _AUTHORITY_TIERS_DEFAULT
+    try:
+        import yaml
+        with open(config, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return [(t["pattern"], float(t["multiplier"]))
+                for t in data.get("tiers", []) if "pattern" in t]
+    except Exception as e:
+        print(f"Warning: could not load authority_tiers.yml ({e}); using defaults.")
+        return _AUTHORITY_TIERS_DEFAULT
+
+AUTHORITY_TIERS = _load_authority_tiers()
 
 def authority_boost(doc_name: str) -> float:
     dn = doc_name.lower()
@@ -264,7 +277,8 @@ class IndexManager:
         model  = SentenceTransformer("all-MiniLM-L6-v2")
         texts  = [c["text"] for c in self.chunks]
         _log(f"Encoding {len(texts):,} chunks — this may take a few minutes on CPU…\n")
-        vecs   = model.encode(texts, show_progress_bar=False, batch_size=64)
+        vecs   = model.encode(texts, show_progress_bar=False, batch_size=32,
+                              convert_to_numpy=True)
         out    = refs_dir / "embed_matrix.npy"
         refs_dir.mkdir(parents=True, exist_ok=True)
         np.save(str(out), vecs)
@@ -281,6 +295,11 @@ class IndexManager:
                 "Embedding index not built. Click 'Build Embeddings' in the Index tab.")
         if self.embed_model is None:
             self.embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+        if len(self.embed_matrix) != len(self.chunks):
+            raise RuntimeError(
+                f"Embedding index is stale ({len(self.embed_matrix)} embeddings vs "
+                f"{len(self.chunks)} chunks). Click 'Build Embeddings' in the Index tab.")
 
         qvec    = self.embed_model.encode([query])
         raw     = cosine_similarity(qvec, self.embed_matrix)[0]
@@ -1975,7 +1994,7 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                 chunks = self.index.embedding_search(msg, k)
             else:
                 chunks = self.index.combined_search(msg, k)
-        except RuntimeError as e:
+        except Exception as e:
             self._chat_write("error", f"Search error: {e}\n")
             return
 
