@@ -610,97 +610,87 @@ def _result_card(result: dict, checkbox_key: str):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# UI helpers
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _lp(label: str, help_text: str):
-    """Render a bold label + visible ? popover button on one line."""
-    la, ha = st.columns([5, 1])
-    la.markdown(f"**{label}**")
-    with ha:
-        with st.popover("?", use_container_width=True):
-            st.write(help_text)
-
-
-def _cb_lp(label: str, help_text: str, **kwargs) -> bool:
-    """Checkbox with a ? popover button to its right."""
-    cb_col, hp_col = st.columns([5, 1])
-    with cb_col:
-        val = st.checkbox(label, **kwargs)
-    with hp_col:
-        with st.popover("?", use_container_width=True):
-            st.write(help_text)
-    return val
-
-
-# ══════════════════════════════════════════════════════════════════════════════
 # Pages
 # ══════════════════════════════════════════════════════════════════════════════
 
 def page_search(idx: IndexManager):
     st.header("Search")
 
-    ctrl, results_col = st.columns([1, 2])
+    # ── Query (full width so help= icon renders) ─────────────────────────────
+    query = st.text_area(
+        "Query", height=80, placeholder="Enter your search query…",
+        help="Enter keywords or a natural-language question about Bowen theory."
+    )
 
-    with ctrl:
-        _lp("Query",
-            "Enter keywords or a natural-language question. "
-            "The index will be searched for matching passages.")
-        query = st.text_area("Query", height=100, placeholder="Enter your search query…",
-                             label_visibility="collapsed")
+    # ── Options bar ──────────────────────────────────────────────────────────
+    mode_options = [
+        ("Top Docs (recommended)", "top-docs"),
+        ("Semantic (TF-IDF)",      "semantic"),
+        ("Keyword",                "keyword"),
+        ("Both",                   "both"),
+    ]
+    if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
+        mode_options.append(("Embedding", "embedding"))
+    if EMBEDDING_AVAILABLE and BM25_AVAILABLE and idx.embed_matrix is not None:
+        mode_options.append(("Hybrid (BM25 + Embedding)", "hybrid"))
 
-        mode_options = [
-            ("Top Docs (recommended)", "top-docs"),
-            ("Semantic (TF-IDF)",      "semantic"),
-            ("Keyword",                "keyword"),
-            ("Both",                   "both"),
-        ]
-        if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
-            mode_options.append(("Embedding", "embedding"))
-        if EMBEDDING_AVAILABLE and BM25_AVAILABLE and idx.embed_matrix is not None:
-            mode_options.append(("Hybrid (BM25 + Embedding)", "hybrid"))
+    mode_labels = [m[0] for m in mode_options]
+    mode_values = [m[1] for m in mode_options]
+    default_mode = st.session_state.get("default_search_mode", "hybrid")
+    default_idx  = mode_values.index(default_mode) if default_mode in mode_values else 0
 
-        mode_labels = [m[0] for m in mode_options]
-        mode_values = [m[1] for m in mode_options]
-        default_mode = st.session_state.get("default_search_mode", "hybrid")
-        default_idx  = mode_values.index(default_mode) if default_mode in mode_values else 0
-
-        _lp("Mode",
-            "**Top Docs** — aggregates chunk scores per document; best for most queries.\n\n"
-            "**Semantic (TF-IDF)** — cosine similarity on term frequencies; fast, exact-vocabulary.\n\n"
-            "**Keyword** — counts exact word matches with stemming; good for names and specific terms.\n\n"
-            "**Both** — merges semantic and keyword results.\n\n"
-            "**Embedding** — sentence-transformer vectors; finds conceptual matches regardless of wording.\n\n"
-            "**Hybrid** — combines BM25 and embedding via Reciprocal Rank Fusion; usually best overall.")
-        mode_idx = st.selectbox("Mode", range(len(mode_labels)),
-                                format_func=lambda i: mode_labels[i],
-                                index=default_idx, label_visibility="collapsed")
+    oc1, oc2, oc3, oc4, oc5 = st.columns([2, 1, 1, 1, 1])
+    with oc1:
+        mode_idx = st.selectbox(
+            "Mode", range(len(mode_labels)),
+            format_func=lambda i: mode_labels[i],
+            index=default_idx,
+            help=(
+                "**Top Docs** — aggregates per document; best for most queries.\n\n"
+                "**Semantic** — TF-IDF cosine similarity; fast, exact-vocabulary.\n\n"
+                "**Keyword** — exact word matching with stemming; good for names.\n\n"
+                "**Both** — merges semantic + keyword.\n\n"
+                "**Embedding** — conceptual similarity regardless of exact wording.\n\n"
+                "**Hybrid** — BM25 + Embedding via Reciprocal Rank Fusion; usually best overall."
+            ),
+        )
         mode = mode_values[mode_idx]
-
-        _lp("Results", "Maximum number of results to return.")
-        top_k = st.number_input("Results", min_value=1, max_value=200, value=15,
-                                label_visibility="collapsed")
-
-        use_boost = _cb_lp("Authority boost", value=True,
-                           help_text="Multiplies scores for primary Bowen/Kerr sources (3×), "
-                                     "FSJ articles (1.3×), and other named theorists (1.15×). "
-                                     "Keeps the most authoritative sources at the top.")
-
-        _lp("Author filter", "Narrow results to a specific author.")
+    with oc2:
+        top_k = st.number_input(
+            "Results", min_value=1, max_value=200, value=15,
+            help="Maximum number of results to return."
+        )
+    with oc3:
+        use_boost = st.checkbox(
+            "Authority boost", value=True,
+            help=(
+                "Multiplies scores for primary Bowen/Kerr sources (3×), "
+                "FSJ articles (1.3×), and other named theorists (1.15×)."
+            ),
+        )
+    with oc4:
         authors       = ["All authors"] + all_known_authors()
-        author_filter = st.selectbox("Author filter", authors, label_visibility="collapsed")
-
+        author_filter = st.selectbox(
+            "Author filter", authors,
+            help="Narrow results to a specific author."
+        )
+    with oc5:
+        st.write("")
         search_clicked = st.button("Search", type="primary", use_container_width=True)
 
-        st.divider()
-
-        staged = st.session_state.get("staged_chunks", [])
-        if staged:
-            st.success(f"{len(staged)} chunks staged for Report")
+    # ── Staged chunks notice ──────────────────────────────────────────────────
+    staged = st.session_state.get("staged_chunks", [])
+    if staged:
+        sc1, sc2 = st.columns([3, 1])
+        sc1.success(f"{len(staged)} chunks staged for Report")
+        with sc2:
             if st.button("Clear staged", use_container_width=True):
                 st.session_state.staged_chunks = []
                 st.rerun()
 
+    st.divider()
+
+    # ── Run search ────────────────────────────────────────────────────────────
     if search_clicked and query.strip():
         st.session_state.last_search_query = query.strip()
         with st.spinner("Searching…"):
@@ -725,54 +715,54 @@ def page_search(idx: IndexManager):
         if author_filter != "All authors":
             results = [r for r in results if doc_author(r["doc_name"]) == author_filter]
 
-        # Clear old checkbox state before storing new results
         for key in list(st.session_state.keys()):
             if key.startswith("sel_"):
                 del st.session_state[key]
 
         st.session_state.search_results = results
 
-    with results_col:
-        results = st.session_state.get("search_results", [])
-        if not results:
-            st.info("Run a search to see results.")
-        else:
-            sel_col1, sel_col2, sel_col3 = st.columns(3)
-            with sel_col1:
-                if st.button("Select All"):
-                    for i, r in enumerate(results):
-                        st.session_state[f"sel_{r.get('id', i)}"] = True
-                    st.rerun()
-            with sel_col2:
-                if st.button("Clear selection"):
-                    for i, r in enumerate(results):
-                        st.session_state[f"sel_{r.get('id', i)}"] = False
-                    st.rerun()
-            with sel_col3:
-                if st.button("Stage selected for Report", type="primary",
-                             help="Mark checked results to be merged with fresh retrieval "
-                                  "when you generate a Report. Useful for hand-picking key passages."):
-                    selected = [results[i] for i, r in enumerate(results)
-                                if st.session_state.get(f"sel_{r.get('id', i)}", False)]
-                    if selected:
-                        st.session_state.staged_chunks = selected
-                        st.success(f"{len(selected)} chunks staged.")
-                    else:
-                        st.warning("Select at least one result first.")
+    # ── Results ───────────────────────────────────────────────────────────────
+    results = st.session_state.get("search_results", [])
+    if not results:
+        st.info("Run a search to see results.")
+    else:
+        sel_col1, sel_col2, sel_col3 = st.columns(3)
+        with sel_col1:
+            if st.button("Select All"):
+                for i, r in enumerate(results):
+                    st.session_state[f"sel_{r.get('id', i)}"] = True
+                st.rerun()
+        with sel_col2:
+            if st.button("Clear selection"):
+                for i, r in enumerate(results):
+                    st.session_state[f"sel_{r.get('id', i)}"] = False
+                st.rerun()
+        with sel_col3:
+            if st.button(
+                "Stage selected for Report", type="primary",
+                help="Save checked results to merge into a Report alongside fresh retrieval.",
+            ):
+                selected = [results[i] for i, r in enumerate(results)
+                            if st.session_state.get(f"sel_{r.get('id', i)}", False)]
+                if selected:
+                    st.session_state.staged_chunks = selected
+                    st.success(f"{len(selected)} chunks staged.")
+                else:
+                    st.warning("Select at least one result first.")
 
-            st.caption(f"{len(results)} results")
-            st.divider()
+        st.caption(f"{len(results)} results")
+        st.divider()
 
-            for i, result in enumerate(results):
-                cb_key = f"sel_{result.get('id', i)}"
-                _result_card(result, cb_key)
+        for i, result in enumerate(results):
+            cb_key = f"sel_{result.get('id', i)}"
+            _result_card(result, cb_key)
 
 
 def page_chat(idx: IndexManager):
     st.header("Chat")
 
-    # Controls in a compact row
-    c1, c2, c3, c4, c5, c6 = st.columns([2, 1, 1, 1, 1, 0.4])
+    # Controls in a compact row (full-width columns so help= icons render)
+    c1, c2, c3, c4, c5 = st.columns([2, 1, 1, 1, 1])
     with c1:
         chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
@@ -781,31 +771,36 @@ def page_chat(idx: IndexManager):
                 chat_mode_opts.insert(1, "hybrid")
         default_mode     = st.session_state.get("default_search_mode", "hybrid")
         chat_default_idx = chat_mode_opts.index(default_mode) if default_mode in chat_mode_opts else 0
-        chat_mode = st.selectbox("Mode", chat_mode_opts, index=chat_default_idx,
-                                 label_visibility="collapsed", key="chat_mode_sel")
+        chat_mode = st.selectbox(
+            "Mode", chat_mode_opts, index=chat_default_idx, key="chat_mode_sel",
+            help=(
+                "How source chunks are retrieved per question.\n\n"
+                "**Hybrid** — BM25 + Embedding; best overall.\n\n"
+                "**Top Docs** — fastest.\n\n"
+                "**Keyword** — good for names and specific terms."
+            ),
+        )
     with c2:
-        chat_k = st.number_input("Chunks", min_value=3, max_value=100, value=12,
-                                 label_visibility="collapsed", key="chat_k_inp")
+        chat_k = st.number_input(
+            "Chunks", min_value=3, max_value=100, value=12, key="chat_k_inp",
+            help="Number of source passages retrieved per question. More = broader context but slower.",
+        )
     with c3:
-        chat_boost = st.checkbox("Boost", value=True, key="chat_boost_cb")
+        chat_boost = st.checkbox(
+            "Boost", value=True, key="chat_boost_cb",
+            help="Apply authority weighting so primary Bowen/Kerr sources rank higher.",
+        )
     with c4:
         chat_authors = ["All authors"] + all_known_authors()
-        chat_author  = st.selectbox("Author", chat_authors, label_visibility="collapsed",
-                                    key="chat_author_sel")
+        chat_author  = st.selectbox(
+            "Author", chat_authors, key="chat_author_sel",
+            help="Restrict retrieved chunks to a specific author's works.",
+        )
     with c5:
-        if st.button("Clear chat"):
+        st.write("")
+        if st.button("Clear chat", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
-    with c6:
-        with st.popover("?"):
-            st.markdown(
-                "**Mode** — how source chunks are retrieved. "
-                "Hybrid (BM25 + Embedding) is usually best.\n\n"
-                "**Chunks** — how many source passages are retrieved per question. "
-                "More = broader context but slower.\n\n"
-                "**Boost** — apply authority weighting so primary Bowen/Kerr sources rank higher.\n\n"
-                "**Author** — restrict retrieved chunks to a specific author's works."
-            )
 
     # Display history
     for msg in st.session_state.chat_history:
@@ -898,23 +893,23 @@ def page_chat(idx: IndexManager):
 def page_report(idx: IndexManager):
     st.header("Report Generator")
 
-    _lp("Topic / Question",
-        "The question or topic the report will address. "
-        "Pre-filled from your last search query. "
-        "Be specific — the more precise the question, the more focused the report.")
-    query = st.text_area("Topic / Question", height=80,
-                         value=st.session_state.get("last_search_query", ""),
-                         placeholder='e.g. "What does Bowen theory say about triangles?"',
-                         label_visibility="collapsed")
+    query = st.text_area(
+        "Topic / Question", height=80,
+        value=st.session_state.get("last_search_query", ""),
+        placeholder='e.g. "What does Bowen theory say about triangles?"',
+        help="The question or topic the report will address. Pre-filled from your last search.",
+    )
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        _lp("Retrieve top",
-            "How many source chunks to retrieve and pass to the LLM. "
-            "More chunks = broader coverage but slower and costlier. "
-            "30 is a good default; increase to 50+ for broad topics.")
-        rpt_k = st.number_input("Retrieve top", min_value=5, max_value=150, value=30,
-                                label_visibility="collapsed")
+        rpt_k = st.number_input(
+            "Retrieve top", min_value=5, max_value=150, value=30,
+            help=(
+                "How many source chunks to retrieve and pass to the LLM. "
+                "More = broader coverage but slower and costlier. "
+                "30 is a good starting point; use 50+ for broad topics."
+            ),
+        )
         st.session_state.rpt_k = rpt_k
     with c2:
         rpt_mode_opts = ["top-docs (recommended)", "semantic", "keyword", "both"]
@@ -925,35 +920,41 @@ def page_report(idx: IndexManager):
         default_mode    = st.session_state.get("default_search_mode", "hybrid")
         rpt_mode_values = [o.split(" ")[0] for o in rpt_mode_opts]
         rpt_default_idx = rpt_mode_values.index(default_mode) if default_mode in rpt_mode_values else 0
-        _lp("Mode",
-            "Search method used to retrieve source chunks for the report.\n\n"
-            "**Hybrid** — best overall coverage (requires embedding index).\n\n"
-            "**Top Docs** — fast; good for well-indexed topics.\n\n"
-            "**Semantic** — exact-vocabulary TF-IDF matching.\n\n"
-            "**Keyword** — good for names and specific terms.")
-        rpt_mode = st.selectbox("Mode", rpt_mode_opts, index=rpt_default_idx,
-                                label_visibility="collapsed")
+        rpt_mode = st.selectbox(
+            "Mode", rpt_mode_opts, index=rpt_default_idx,
+            help=(
+                "Search method used to retrieve source chunks.\n\n"
+                "**Hybrid** — best overall coverage.\n\n"
+                "**Top Docs** — fast; good for well-indexed topics.\n\n"
+                "**Keyword** — good for names and specific terms."
+            ),
+        )
         st.session_state.rpt_mode = rpt_mode.split(" ")[0]
     with c3:
-        _lp("Target words",
-            "Approximate minimum word count for the generated report. "
-            "The LLM will aim to meet this length. "
-            "2000 is a solid research summary; 4000+ for a deep dive.")
-        target_words = st.number_input("Target words", min_value=500,
-                                       max_value=10000, value=2000, step=500,
-                                       label_visibility="collapsed")
+        target_words = st.number_input(
+            "Target words", min_value=500, max_value=10000, value=2000, step=500,
+            help=(
+                "Approximate minimum word count for the generated report. "
+                "2000 is a solid summary; 4000+ for a deep dive."
+            ),
+        )
     with c4:
-        _lp("Chunks per source",
-            "How many text chunks from each source document are included as context, "
-            "using a sliding window around the top-scoring chunk. "
-            "Higher values give more context per document but increase LLM input size.")
-        cpd = st.number_input("Chunks per source", min_value=1, max_value=20, value=5,
-                              label_visibility="collapsed")
+        cpd = st.number_input(
+            "Chunks per source", min_value=1, max_value=20, value=5,
+            help=(
+                "How many text chunks from each document are included as context "
+                "(sliding window around the top chunk). "
+                "Higher = more context per document but larger LLM input."
+            ),
+        )
 
-    rpt_boost = _cb_lp("Authority boost", value=True,
-                       help_text="Apply authority weighting when retrieving chunks. "
-                                 "Primary Bowen/Kerr sources are ranked 3× higher, "
-                                 "FSJ articles 1.3×, and other named theorists 1.15×.")
+    rpt_boost = st.checkbox(
+        "Authority boost", value=True,
+        help=(
+            "Apply authority weighting when retrieving chunks. "
+            "Primary Bowen/Kerr sources 3×, FSJ articles 1.3×, other named theorists 1.15×."
+        ),
+    )
     st.session_state.rpt_boost = rpt_boost
 
     staged = st.session_state.get("staged_chunks", [])
