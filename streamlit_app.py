@@ -5,9 +5,14 @@ Same backend as the desktop app; designed for Railway deployment.
 """
 
 import json
+import logging
 import os
 import re
 from pathlib import Path
+
+# Suppress verbose startup logs from PyTorch / transformers / sentence-transformers
+for _noisy in ("transformers", "sentence_transformers", "torch", "filelock", "urllib3"):
+    logging.getLogger(_noisy).setLevel(logging.ERROR)
 
 import numpy as np
 import streamlit as st
