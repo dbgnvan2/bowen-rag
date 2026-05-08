@@ -616,31 +616,31 @@ def _result_card(result: dict, checkbox_key: str):
 def page_search(idx: IndexManager):
     st.header("Search")
 
-    # ── Query (full width so help= icon renders) ─────────────────────────────
-    query = st.text_area(
-        "Query", height=80, placeholder="Enter your search query…",
-        help="Enter keywords or a natural-language question about Bowen theory."
-    )
+    # 40% controls panel | 60% results — wide enough for help= icons to render
+    ctrl, results_col = st.columns([2, 3])
 
-    # ── Options bar ──────────────────────────────────────────────────────────
-    mode_options = [
-        ("Top Docs (recommended)", "top-docs"),
-        ("Semantic (TF-IDF)",      "semantic"),
-        ("Keyword",                "keyword"),
-        ("Both",                   "both"),
-    ]
-    if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
-        mode_options.append(("Embedding", "embedding"))
-    if EMBEDDING_AVAILABLE and BM25_AVAILABLE and idx.embed_matrix is not None:
-        mode_options.append(("Hybrid (BM25 + Embedding)", "hybrid"))
+    with ctrl:
+        query = st.text_area(
+            "Query", height=100, placeholder="Enter your search query…",
+            help="Enter keywords or a natural-language question about Bowen theory.",
+        )
 
-    mode_labels = [m[0] for m in mode_options]
-    mode_values = [m[1] for m in mode_options]
-    default_mode = st.session_state.get("default_search_mode", "hybrid")
-    default_idx  = mode_values.index(default_mode) if default_mode in mode_values else 0
+        mode_options = [
+            ("Top Docs (recommended)", "top-docs"),
+            ("Semantic (TF-IDF)",      "semantic"),
+            ("Keyword",                "keyword"),
+            ("Both",                   "both"),
+        ]
+        if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
+            mode_options.append(("Embedding", "embedding"))
+        if EMBEDDING_AVAILABLE and BM25_AVAILABLE and idx.embed_matrix is not None:
+            mode_options.append(("Hybrid (BM25 + Embedding)", "hybrid"))
 
-    oc1, oc2, oc3, oc4, oc5 = st.columns([2, 1, 1, 1, 1])
-    with oc1:
+        mode_labels = [m[0] for m in mode_options]
+        mode_values = [m[1] for m in mode_options]
+        default_mode = st.session_state.get("default_search_mode", "hybrid")
+        default_idx  = mode_values.index(default_mode) if default_mode in mode_values else 0
+
         mode_idx = st.selectbox(
             "Mode", range(len(mode_labels)),
             format_func=lambda i: mode_labels[i],
@@ -655,12 +655,11 @@ def page_search(idx: IndexManager):
             ),
         )
         mode = mode_values[mode_idx]
-    with oc2:
+
         top_k = st.number_input(
             "Results", min_value=1, max_value=200, value=15,
-            help="Maximum number of results to return."
+            help="Maximum number of results to return.",
         )
-    with oc3:
         use_boost = st.checkbox(
             "Authority boost", value=True,
             help=(
@@ -668,29 +667,23 @@ def page_search(idx: IndexManager):
                 "FSJ articles (1.3×), and other named theorists (1.15×)."
             ),
         )
-    with oc4:
+
         authors       = ["All authors"] + all_known_authors()
         author_filter = st.selectbox(
             "Author filter", authors,
-            help="Narrow results to a specific author."
+            help="Narrow results to a specific author.",
         )
-    with oc5:
-        st.write("")
+
         search_clicked = st.button("Search", type="primary", use_container_width=True)
 
-    # ── Staged chunks notice ──────────────────────────────────────────────────
-    staged = st.session_state.get("staged_chunks", [])
-    if staged:
-        sc1, sc2 = st.columns([3, 1])
-        sc1.success(f"{len(staged)} chunks staged for Report")
-        with sc2:
+        st.divider()
+        staged = st.session_state.get("staged_chunks", [])
+        if staged:
+            st.success(f"{len(staged)} chunks staged for Report")
             if st.button("Clear staged", use_container_width=True):
                 st.session_state.staged_chunks = []
                 st.rerun()
 
-    st.divider()
-
-    # ── Run search ────────────────────────────────────────────────────────────
     if search_clicked and query.strip():
         st.session_state.last_search_query = query.strip()
         with st.spinner("Searching…"):
@@ -721,41 +714,41 @@ def page_search(idx: IndexManager):
 
         st.session_state.search_results = results
 
-    # ── Results ───────────────────────────────────────────────────────────────
-    results = st.session_state.get("search_results", [])
-    if not results:
-        st.info("Run a search to see results.")
-    else:
-        sel_col1, sel_col2, sel_col3 = st.columns(3)
-        with sel_col1:
-            if st.button("Select All"):
-                for i, r in enumerate(results):
-                    st.session_state[f"sel_{r.get('id', i)}"] = True
-                st.rerun()
-        with sel_col2:
-            if st.button("Clear selection"):
-                for i, r in enumerate(results):
-                    st.session_state[f"sel_{r.get('id', i)}"] = False
-                st.rerun()
-        with sel_col3:
-            if st.button(
-                "Stage selected for Report", type="primary",
-                help="Save checked results to merge into a Report alongside fresh retrieval.",
-            ):
-                selected = [results[i] for i, r in enumerate(results)
-                            if st.session_state.get(f"sel_{r.get('id', i)}", False)]
-                if selected:
-                    st.session_state.staged_chunks = selected
-                    st.success(f"{len(selected)} chunks staged.")
-                else:
-                    st.warning("Select at least one result first.")
+    with results_col:
+        results = st.session_state.get("search_results", [])
+        if not results:
+            st.info("Run a search to see results.")
+        else:
+            sel_col1, sel_col2, sel_col3 = st.columns(3)
+            with sel_col1:
+                if st.button("Select All"):
+                    for i, r in enumerate(results):
+                        st.session_state[f"sel_{r.get('id', i)}"] = True
+                    st.rerun()
+            with sel_col2:
+                if st.button("Clear selection"):
+                    for i, r in enumerate(results):
+                        st.session_state[f"sel_{r.get('id', i)}"] = False
+                    st.rerun()
+            with sel_col3:
+                if st.button(
+                    "Stage selected for Report", type="primary",
+                    help="Save checked results to merge into a Report alongside fresh retrieval.",
+                ):
+                    selected = [results[i] for i, r in enumerate(results)
+                                if st.session_state.get(f"sel_{r.get('id', i)}", False)]
+                    if selected:
+                        st.session_state.staged_chunks = selected
+                        st.success(f"{len(selected)} chunks staged.")
+                    else:
+                        st.warning("Select at least one result first.")
 
-        st.caption(f"{len(results)} results")
-        st.divider()
+            st.caption(f"{len(results)} results")
+            st.divider()
 
-        for i, result in enumerate(results):
-            cb_key = f"sel_{result.get('id', i)}"
-            _result_card(result, cb_key)
+            for i, result in enumerate(results):
+                cb_key = f"sel_{result.get('id', i)}"
+                _result_card(result, cb_key)
 
 
 def page_chat(idx: IndexManager):
