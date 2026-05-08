@@ -11,8 +11,12 @@ import re
 from pathlib import Path
 
 # Suppress verbose startup logs from PyTorch / transformers / sentence-transformers
-for _noisy in ("transformers", "sentence_transformers", "torch", "filelock", "urllib3"):
+import warnings
+warnings.filterwarnings("ignore")
+for _noisy in ("transformers", "sentence_transformers", "torch", "filelock",
+               "urllib3", "huggingface_hub", "tqdm"):
     logging.getLogger(_noisy).setLevel(logging.ERROR)
+logging.getLogger("root").setLevel(logging.WARNING)
 
 import numpy as np
 import streamlit as st
