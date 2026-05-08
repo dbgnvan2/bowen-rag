@@ -10,8 +10,8 @@ outputs/
 # Old dense matrix (replaced by .npz)
 rag-document-search/references/tfidf_matrix.npy
 
-# Embedding matrix — large binary, built locally via "Build Embeddings" in the GUI
-rag-document-search/references/embed_matrix.npy
+# Embedding matrix — committed so Railway gets it (16 MB)
+# Rebuild locally with "Build Embeddings" then commit when corpus changes.
 
 # Python
 __pycache__/

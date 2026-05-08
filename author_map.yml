@@ -1,0 +1,131 @@
+# Author map — maps document filename patterns to author names.
+#
+# Patterns are matched case-insensitively as substrings of the document filename.
+# The FIRST matching pattern wins — order matters (specific before general).
+# Documents that match no pattern are labelled "Unknown".
+#
+# To add a new author: copy any entry, change pattern and author, restart the app.
+# No index rebuild required.
+
+authors:
+
+  # ── Your articles ────────────────────────────────────────────────────────
+  - pattern: "Galloway"
+    author: "Dave Galloway"
+
+  # ── Transcripts with explicit "- Author Name -" format ───────────────────
+  - pattern: "Kathleen Kerr"
+    author: "Kathleen Kerr"
+
+  - pattern: "Michael Kerr"
+    author: "Michael Kerr"
+
+  # ── Bowen–Kerr joint works (before individual Bowen/Kerr catches) ─────────
+  - pattern: "BOWEN-KERR INTERVIEW SERIES"
+    author: "Bowen & Kerr"
+
+  - pattern: "Family Evaluation"
+    author: "Kerr & Bowen"
+
+  # ── Papero works (before "Bowen" catches Papero's book title) ────────────
+  - pattern: "Bowen Family Systems Theory"
+    author: "Daniel Papero"
+
+  - pattern: "Papero"
+    author: "Daniel Papero"
+
+  - pattern: "Family Systems Therapy Papero"
+    author: "Daniel Papero"
+
+  # ── Primary Bowen works ───────────────────────────────────────────────────
+  - pattern: "Family Therapy in_Clinical_Practice"
+    author: "Murray Bowen"
+
+  - pattern: "Bowen Basic Series Tape"
+    author: "Murray Bowen"
+
+  - pattern: "Bowen on Triangles"
+    author: "Murray Bowen"
+
+  - pattern: "Psychotherapy Past Present Future"
+    author: "Murray Bowen"
+
+  - pattern: "Wisdom of the Ages"
+    author: "Murray Bowen"
+
+  - pattern: "A Family Concept of Schizophrenia Bowen"
+    author: "Murray Bowen"
+
+  - pattern: "Parents should not present a united front"
+    author: "Murray Bowen"
+
+  - pattern: "Two Distinct Approaches"
+    author: "Murray Bowen"
+
+  # ── Primary Kerr works (named Kerr in title but not "Kathleen/Michael") ───
+  - pattern: "Cancer and the Emotional System"
+    author: "Michael Kerr"
+
+  - pattern: "Chronic Anxiety and Defining"
+    author: "Michael Kerr"
+
+  - pattern: "Family and Society Kerr"
+    author: "Michael Kerr"
+
+  - pattern: "Family as a System Kerr"
+    author: "Michael Kerr"
+
+  - pattern: "Family Systems and Therapy Kerr"
+    author: "Michael Kerr"
+
+  - pattern: "Physical Illness as the Family Emotional"
+    author: "Michael Kerr"
+
+  - pattern: "Kerr"
+    author: "Michael Kerr"
+
+  # ── Other named theorists ─────────────────────────────────────────────────
+  - pattern: "Fogarty"
+    author: "Thomas Fogarty"
+
+  - pattern: "Fogerty"
+    author: "Thomas Fogarty"
+
+  - pattern: "Friedman"
+    author: "Edwin Friedman"
+
+  - pattern: "Guerin"
+    author: "Philip Guerin"
+
+  - pattern: "Toman"
+    author: "Walter Toman"
+
+  - pattern: "Bowen"
+    author: "Murray Bowen"
+
+  # ── Others with author-in-filename ───────────────────────────────────────
+  - pattern: "Heller"
+    author: "Heller"
+
+  - pattern: "Noone"
+    author: "Noone"
+
+  - pattern: "Beal"
+    author: "Beal"
+
+  - pattern: "Freeman"
+    author: "Freeman"
+
+  - pattern: "Carter"
+    author: "Carter"
+
+  - pattern: "Richardson"
+    author: "Richardson"
+
+  - pattern: "Gilbert"
+    author: "Gilbert"
+
+  - pattern: "Lorio"
+    author: "Lorio"
+
+  # Everything else → "Unknown" (no entry needed, handled in code)

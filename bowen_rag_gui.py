@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import importlib.util
 import json
+import re
 import threading
 import sys
 from pathlib import Path
@@ -23,6 +24,12 @@ try:
     EMBEDDING_AVAILABLE = True
 except ImportError:
     EMBEDDING_AVAILABLE = False
+
+try:
+    from rank_bm25 import BM25Okapi
+    BM25_AVAILABLE = True
+except ImportError:
+    BM25_AVAILABLE = False
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 if getattr(sys, 'frozen', False):
@@ -122,6 +129,36 @@ def authority_boost(doc_name: str) -> float:
             return mult
     return 1.0
 
+def _load_author_map() -> list:
+    config = BASE_DIR / "author_map.yml"
+    if not config.exists():
+        return []
+    try:
+        import yaml
+        with open(config, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        return [(a["pattern"], a["author"])
+                for a in data.get("authors", []) if "pattern" in a and "author" in a]
+    except Exception as e:
+        print(f"Warning: could not load author_map.yml ({e})")
+        return []
+
+AUTHOR_MAP = _load_author_map()
+
+def doc_author(doc_name: str) -> str:
+    dn = doc_name.lower()
+    for pattern, author in AUTHOR_MAP:
+        if pattern.lower() in dn:
+            return author
+    return "Unknown"
+
+def all_known_authors() -> list:
+    seen = []
+    for _, author in AUTHOR_MAP:
+        if author not in seen:
+            seen.append(author)
+    return seen
+
 SYSTEM_PROMPT = (
     "You are a research assistant helping analyse the Bowen Family Systems Theory literature. "
     "STRICT RULES — you must follow these without exception:\n"
@@ -202,6 +239,7 @@ class IndexManager:
         self.chunks: list  = []
         self.matrix        = None   # np.ndarray (N, tfidf_features)
         self.vectorizer    = None   # TfidfVectorizer, fitted
+        self.bm25          = None   # BM25Okapi index
         self.embed_matrix  = None   # np.ndarray (N, 384), sentence embeddings
         self.embed_model   = None   # SentenceTransformer — loaded lazily
         self.loaded        = False
@@ -246,6 +284,10 @@ class IndexManager:
             self.embed_matrix = None
             self.embed_model  = None
 
+        if BM25_AVAILABLE:
+            tokenized  = [self._tokenize(c["text"]) for c in self.chunks]
+            self.bm25  = BM25Okapi(tokenized)
+
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
 
@@ -287,7 +329,7 @@ class IndexManager:
         _log(f"Saved {len(texts):,} embeddings to {out}\n")
         return len(texts)
 
-    def embedding_search(self, query: str, top_k: int) -> list:
+    def embedding_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         if not self.loaded:
             return []
         if self.embed_matrix is None:
@@ -303,8 +345,9 @@ class IndexManager:
 
         qvec    = self.embed_model.encode([query])
         raw     = cosine_similarity(qvec, self.embed_matrix)[0]
+        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
         boosted = np.array([
-            raw[i] * authority_boost(self.chunks[i]["doc_name"])
+            raw[i] * boost_fn(self.chunks[i]["doc_name"])
             for i in range(len(self.chunks))
         ])
         idx = boosted.argsort()[::-1][:top_k]
@@ -312,7 +355,7 @@ class IndexManager:
             {**self.chunks[i],
              "score":       float(boosted[i]),
              "score_label": (f"{boosted[i]*100:.0f}% ✦"
-                             if authority_boost(self.chunks[i]["doc_name"]) > 1.0
+                             if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0
                              else f"{boosted[i]*100:.0f}%"),
              "mode":        "embedding"}
             for i in idx if boosted[i] > 0
@@ -320,24 +363,30 @@ class IndexManager:
 
     # ── Search ────────────────────────────────────────────────────────────────
 
-    def semantic_search(self, query: str, top_k: int) -> list:
+    def semantic_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         if not self.loaded:
             return []
-        qvec   = self.vectorizer.transform([query])
-        raw    = cosine_similarity(qvec, self.matrix)[0]
-        # Apply authority boost then re-rank
-        boosted = np.array([
-            raw[i] * authority_boost(self.chunks[i]["doc_name"])
+        qvec     = self.vectorizer.transform([query])
+        raw      = cosine_similarity(qvec, self.matrix)[0]
+        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
+        boosted  = np.array([
+            raw[i] * boost_fn(self.chunks[i]["doc_name"])
             for i in range(len(self.chunks))
         ])
         idx = boosted.argsort()[::-1][:top_k]
         return [
             {**self.chunks[i],
              "score":       float(boosted[i]),
-             "score_label": f"{boosted[i]*100:.0f}% ★" if authority_boost(self.chunks[i]["doc_name"]) > 1.0 else f"{boosted[i]*100:.0f}%",
+             "score_label": f"{boosted[i]*100:.0f}% ★" if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0 else f"{boosted[i]*100:.0f}%",
              "mode":        "semantic"}
             for i in idx if boosted[i] > 0
         ]
+
+    @staticmethod
+    def _tokenize(text: str) -> list:
+        """Tokenize text for BM25 — lowercase words, filter stops and very short tokens."""
+        return [w for w in re.split(r'\W+', text.lower())
+                if len(w) > 2 and w not in IndexManager._STOP]
 
     # Common English stop words + corpus-specific noise words
     _STOP = frozenset({
@@ -372,7 +421,7 @@ class IndexManager:
             variants.append(word[:-1])            # networks → network
         return variants
 
-    def keyword_search(self, query: str, top_k: int) -> list:
+    def keyword_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         if not self.loaded:
             return []
 
@@ -385,7 +434,7 @@ class IndexManager:
         # Expand each term with stem variants
         term_sets = [set(self._stems(t)) for t in raw_terms]
 
-        # Score: per document, count hits for any variant, then pick best chunk
+        boost_fn  = authority_boost if use_boost else (lambda _: 1.0)
         doc_best: dict = {}
         for c in self.chunks:
             tl   = c["text"].lower()
@@ -396,9 +445,9 @@ class IndexManager:
             if hits == 0:
                 continue
             dn      = c["doc_name"]
-            boost   = authority_boost(dn)
+            boost   = boost_fn(dn)
             score   = hits * boost
-            label   = f"{hits} hits" + (" ★" if boost > 1.0 else "")
+            label   = f"{hits} hits" + (" ★" if use_boost and authority_boost(dn) > 1.0 else "")
             if dn not in doc_best or score > doc_best[dn]["score"]:
                 doc_best[dn] = {**c, "score": score,
                                 "score_label": label, "mode": "keyword"}
@@ -406,15 +455,79 @@ class IndexManager:
         out = sorted(doc_best.values(), key=lambda x: x["score"], reverse=True)
         return out[:top_k]
 
-    def combined_search(self, query: str, top_k: int) -> list:
-        sem = {r["id"]: r for r in self.semantic_search(query, top_k)}
-        kw  = {r["id"]: r for r in self.keyword_search(query, top_k)}
+    def combined_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
+        sem = {r["id"]: r for r in self.semantic_search(query, top_k, use_boost=use_boost)}
+        kw  = {r["id"]: r for r in self.keyword_search(query, top_k, use_boost=use_boost)}
         merged = {**kw, **sem}   # semantic wins on overlap
         out = sorted(merged.values(), key=lambda x: x["score"], reverse=True)
         return out[:top_k]
 
+    def bm25_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
+        if not self.loaded or self.bm25 is None:
+            return []
+        tokens   = self._tokenize(query)
+        if not tokens:
+            return []
+        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
+        raw      = self.bm25.get_scores(tokens)
+        boosted  = np.array([raw[i] * boost_fn(self.chunks[i]["doc_name"])
+                             for i in range(len(self.chunks))])
+        idx = boosted.argsort()[::-1][:top_k]
+        return [
+            {**self.chunks[i],
+             "score":       float(boosted[i]),
+             "score_label": f"{boosted[i]:.2f} ★" if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0
+                            else f"{boosted[i]:.2f}",
+             "mode":        "bm25"}
+            for i in idx if boosted[i] > 0
+        ]
+
+    def hybrid_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
+        """Reciprocal Rank Fusion of BM25 + embedding search."""
+        if self.embed_matrix is None:
+            raise RuntimeError(
+                "Embedding index not built. Click 'Build Embeddings' in the Index tab.")
+        if len(self.embed_matrix) != len(self.chunks):
+            raise RuntimeError(
+                f"Embedding index is stale ({len(self.embed_matrix)} embeddings vs "
+                f"{len(self.chunks)} chunks). Click 'Build Embeddings' in the Index tab.")
+
+        # Pull more candidates than needed so fusion has room to rerank
+        pool = min(top_k * 4, len(self.chunks))
+
+        bm25_results  = self.bm25_search(query, pool, use_boost=use_boost)
+        embed_results = self.embedding_search(query, pool, use_boost=use_boost)
+
+        # Rank maps: chunk id → 0-based rank position
+        bm25_rank  = {r["id"]: i for i, r in enumerate(bm25_results)}
+        embed_rank = {r["id"]: i for i, r in enumerate(embed_results)}
+
+        # RRF with k=60 (standard constant — penalises low-ranked items smoothly)
+        K = 60
+        all_ids = set(bm25_rank) | set(embed_rank)
+        rrf = {cid: (1.0 / (K + bm25_rank[cid])  if cid in bm25_rank  else 0.0)
+                  + (1.0 / (K + embed_rank[cid]) if cid in embed_rank else 0.0)
+               for cid in all_ids}
+
+        top_ids = sorted(rrf, key=lambda x: rrf[x], reverse=True)[:top_k]
+
+        # Lookup table for chunk data (prefer embed result for display since it has score)
+        chunk_lookup = {r["id"]: r for r in embed_results + bm25_results}
+        max_rrf = 2.0 / K   # theoretical max (rank-0 in both lists)
+
+        results = []
+        for cid in top_ids:
+            base = chunk_lookup[cid].copy()
+            pct  = rrf[cid] / max_rrf * 100
+            boosted_flag = use_boost and authority_boost(base["doc_name"]) > 1.0
+            base["score"]       = rrf[cid]
+            base["score_label"] = f"{pct:.0f}% ⬡" + (" ★" if boosted_flag else "")
+            base["mode"]        = "hybrid"
+            results.append(base)
+        return results
+
     def top_docs_search(self, query: str, top_chunks: int = 300,
-                        top_docs: int = 30) -> list:
+                        top_docs: int = 30, use_boost: bool = True) -> list:
         """
         Score documents by summing their top-3 chunk scores (× authority boost),
         then return the best single chunk from each document as the representative.
@@ -424,8 +537,9 @@ class IndexManager:
         if not self.loaded:
             return []
 
-        qvec = self.vectorizer.transform([query])
-        raw  = cosine_similarity(qvec, self.matrix)[0]
+        qvec     = self.vectorizer.transform([query])
+        raw      = cosine_similarity(qvec, self.matrix)[0]
+        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
 
         # Group all above-zero chunks by document
         doc_chunks: dict = {}
@@ -440,11 +554,10 @@ class IndexManager:
         for dn, pairs in doc_chunks.items():
             pairs.sort(reverse=True)
             top3_sum  = sum(s for s, _ in pairs[:3])
-            agg_score = top3_sum * authority_boost(dn)
-            best_idx  = pairs[0][1]   # best single chunk for display
-            boost     = authority_boost(dn)
+            agg_score = top3_sum * boost_fn(dn)
+            best_idx  = pairs[0][1]
             label     = f"{agg_score*100:.0f}%"
-            if boost > 1.0:
+            if use_boost and authority_boost(dn) > 1.0:
                 label += " ★"
             doc_scores[dn] = {
                 **self.chunks[best_idx],
@@ -651,8 +764,9 @@ class App:
         self.search_results: list  = []
         self.checked_vars:   list  = []   # tk.BooleanVar per result row
         self._staged_chunks: list  = []   # chunks sent from Search → Report
-        self._last_report:   str   = ""
-        self._chat_history:  list  = []   # {role, content} turns for chat tab
+        self._last_report:      str  = ""
+        self._last_rpt_context: str  = ""   # full context sent to LLM for last report
+        self._chat_history:     list = []   # {role, content} turns for chat tab
 
         # Settings
         self.provider    = tk.StringVar(value="openai")
@@ -684,8 +798,11 @@ class App:
         extra_oai    = [m.strip() for m in _env.get("OPENAI_EXTRA_MODELS",  "").split(",") if m.strip()]
         self._claude_models = list(dict.fromkeys(CLAUDE_MODELS + extra_claude))
         self._openai_models = list(dict.fromkeys(OPENAI_MODELS + extra_oai))
-        self.top_k       = tk.IntVar(value=15)
-        self.srch_mode   = tk.StringVar(value="top-docs")
+        self.top_k          = tk.IntVar(value=15)
+        self.srch_mode      = tk.StringVar(value="top-docs")
+        self._use_boost     = tk.BooleanVar(value=True)
+        self._rpt_use_boost = tk.BooleanVar(value=True)
+        self._author_filter = tk.StringVar(value="All authors")
         self.index_stats = tk.StringVar(value="Loading index…")
         self._status     = tk.StringVar(value="Initializing…")
 
@@ -897,7 +1014,11 @@ class App:
             "corpus-wide words like 'bowen', 'family', 'theory' are ignored as "
             "they appear everywhere. Use this for specific terms, names, or "
             "phrases not well captured by TF-IDF. One result per document.\n\n"
-            "• Both — merges Semantic and Keyword results.",
+            "• Both — merges Semantic and Keyword results.\n\n"
+            "• Hybrid (BM25 + Embedding) — best of both worlds: BM25 finds exact "
+            "terms with length-normalized scoring; embedding finds conceptual matches "
+            "regardless of wording. Reciprocal Rank Fusion merges both lists. "
+            "Requires embeddings to be built.",
             self._bg).pack(side="left", padx=2)
 
         modes = [
@@ -908,6 +1029,8 @@ class App:
         ]
         if EMBEDDING_AVAILABLE:
             modes.append(("Embedding  (sentence-transformers)", "embedding"))
+        if EMBEDDING_AVAILABLE and BM25_AVAILABLE:
+            modes.append(("Hybrid  (BM25 + Embedding)",         "hybrid"))
         for label, val in modes:
             ttk.Radiobutton(lf, text=label, variable=self.srch_mode,
                             value=val).pack(anchor="w")
@@ -920,8 +1043,17 @@ class App:
         ttk.Spinbox(row, from_=1, to=200, textvariable=self.top_k,
                     width=5).pack(side="left", padx=4)
 
+        ttk.Separator(lf).pack(fill="x", pady=(8, 4))
+        ttk.Label(lf, text="Author filter:").pack(anchor="w")
+        _author_choices = ["All authors"] + all_known_authors()
+        self._srch_author_cb = ttk.Combobox(lf, textvariable=self._author_filter,
+                                             values=_author_choices, state="readonly", width=26)
+        self._srch_author_cb.pack(fill="x", pady=(2, 8))
+
         ttk.Button(lf, text="Search", style="Accent.TButton",
-                   command=self._do_search).pack(fill="x", pady=(12, 4))
+                   command=self._do_search).pack(fill="x", pady=(0, 4))
+        ttk.Checkbutton(lf, text="Authority boost (primary sources ranked higher)",
+                        variable=self._use_boost).pack(anchor="w", pady=(0, 4))
 
         ttk.Separator(lf).pack(fill="x", pady=6)
         ttk.Label(lf, text="Selection:").pack(anchor="w")
@@ -996,27 +1128,39 @@ class App:
             return
 
         self._set_status("Searching…")
-        mode = self.srch_mode.get()
-        k    = self.top_k.get()
+        mode  = self.srch_mode.get()
+        k     = self.top_k.get()
+        boost = self._use_boost.get()
 
         if mode == "top-docs":
-            results = self.index.top_docs_search(query, top_chunks=300, top_docs=k)
+            results = self.index.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=boost)
         elif mode == "semantic":
-            results = self.index.semantic_search(query, k)
+            results = self.index.semantic_search(query, k, use_boost=boost)
         elif mode == "keyword":
-            results = self.index.keyword_search(query, k)
+            results = self.index.keyword_search(query, k, use_boost=boost)
         elif mode == "embedding":
             try:
-                results = self.index.embedding_search(query, k)
+                results = self.index.embedding_search(query, k, use_boost=boost)
             except RuntimeError as e:
-                self._set_status(str(e))
+                messagebox.showerror("Embedding index required", str(e))
+                return
+        elif mode == "hybrid":
+            try:
+                results = self.index.hybrid_search(query, k, use_boost=boost)
+            except RuntimeError as e:
+                messagebox.showerror("Hybrid search requires embeddings", str(e))
                 return
         else:
-            results = self.index.combined_search(query, k)
+            results = self.index.combined_search(query, k, use_boost=boost)
+
+        author = self._author_filter.get()
+        if author and author != "All authors":
+            results = [r for r in results if doc_author(r["doc_name"]) == author]
 
         self.search_results = results
         self._render_results(results)
-        self._set_status(f"{len(results)} results for: \"{query}\"")
+        author_tag = f"  ·  {author}" if author and author != "All authors" else ""
+        self._set_status(f"{len(results)} results for: \"{query}\"{author_tag}")
 
     def _render_results(self, results: list):
         for w in self._inner.winfo_children():
@@ -1060,6 +1204,12 @@ class App:
             if mode_badge:
                 tk.Label(top, text=mode_badge, fg="#6b7280",
                          font=("Helvetica", 9), bg="white").pack(side="left", padx=2)
+
+            author_label = doc_author(res["doc_name"])
+            if author_label != "Unknown":
+                tk.Label(top, text=author_label, fg="white",
+                         bg="#7c3aed", font=("Helvetica", 9),
+                         padx=5, pady=2).pack(side="left", padx=2)
 
             tk.Label(top, text=res["doc_name"],
                      fg="#1d4ed8", font=("Helvetica", 11, "bold"), bg="white",
@@ -1571,6 +1721,8 @@ class App:
         _rpt_modes = ["top-docs (recommended)", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE:
             _rpt_modes.append("embedding")
+        if EMBEDDING_AVAILABLE and BM25_AVAILABLE:
+            _rpt_modes.append("hybrid")
         ttk.Combobox(r2, textvariable=self._rpt_mode,
                      values=_rpt_modes,
                      width=22).pack(side="left", padx=(4, 0))
@@ -1584,6 +1736,8 @@ class App:
             "specific terms not captured by TF-IDF.\n\n"
             "• both — merges semantic and keyword results.",
             self._bg).pack(side="left", padx=2)
+        ttk.Checkbutton(r2, text="Authority boost",
+                        variable=self._rpt_use_boost).pack(side="left", padx=(16, 0))
 
         # Row 3 — Target length + chunks per source
         r3 = tk.Frame(qf, bg=self._bg)
@@ -1632,6 +1786,8 @@ class App:
         ttk.Button(btn_row, text="Generate Report",
                    style="Accent.TButton",
                    command=self._generate_report).pack(side="left", padx=4)
+        ttk.Button(btn_row, text="Show chunks used",
+                   command=self._show_rpt_context).pack(side="left", padx=4)
         ttk.Button(btn_row, text="Clear staged chunks",
                    command=self._clear_staged).pack(side="left", padx=4)
         ttk.Button(btn_row, text="Save as .md",
@@ -1665,24 +1821,40 @@ class App:
         self._rpt_staged_lbl.config(text="")
 
     def _gather_chunks(self, query: str) -> list:
-        """Use staged chunks if available, else search fresh."""
-        if self._staged_chunks:
-            return self._staged_chunks
-
+        """Always retrieve fresh up to Retrieve-top; merge staged chunks in as additional context."""
         if not self.index.loaded:
             raise RuntimeError("Index not loaded.")
 
-        mode = self._rpt_mode.get()
-        k    = self._rpt_k.get()
+        mode      = self._rpt_mode.get()
+        k         = self._rpt_k.get()
+        use_boost = self._rpt_use_boost.get()
+
         if "top-docs" in mode:
-            return self.index.top_docs_search(query, top_chunks=300, top_docs=k)
-        if mode == "semantic":
-            return self.index.semantic_search(query, k)
-        if mode == "keyword":
-            return self.index.keyword_search(query, k)
-        if mode == "embedding":
-            return self.index.embedding_search(query, k)
-        return self.index.combined_search(query, k)
+            fresh = self.index.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=use_boost)
+        elif mode == "semantic":
+            fresh = self.index.semantic_search(query, k, use_boost=use_boost)
+        elif mode == "keyword":
+            fresh = self.index.keyword_search(query, k, use_boost=use_boost)
+        elif mode == "embedding":
+            fresh = self.index.embedding_search(query, k, use_boost=use_boost)
+        elif mode == "hybrid":
+            fresh = self.index.hybrid_search(query, k, use_boost=use_boost)
+        else:
+            fresh = self.index.combined_search(query, k, use_boost=use_boost)
+
+        if not self._staged_chunks:
+            return fresh
+
+        # Merge: staged chunks first (user-pinned), then fresh results, deduplicated by chunk id
+        seen: set = set()
+        merged: list = []
+        for c in self._staged_chunks + fresh:
+            key = c.get("id") if c.get("id") is not None else c.get("doc_name", "")
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(c)
+        return merged
 
     def _generate_report(self):
         query = self._rpt_q.get("1.0", "end-1c").strip()
@@ -1737,6 +1909,7 @@ class App:
             combined = "\n…\n".join(texts)
             context_parts.append(f"### [{num}] {doc_name}\n{combined}")
         context = "\n\n---\n\n".join(context_parts)
+        self._last_rpt_context = context
 
         refs_md   = "\n".join(
             f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
@@ -1861,6 +2034,63 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
             self.root.clipboard_append(content)
             self._set_status("Report copied to clipboard.")
 
+    def _show_rpt_context(self):
+        if not self._last_rpt_context:
+            messagebox.showinfo("No context yet", "Generate a report first.")
+            return
+        win = tk.Toplevel(self.root)
+        win.title("Chunks sent to LLM  —  last report")
+        win.geometry("960x740")
+        win.columnconfigure(0, weight=1)
+        win.rowconfigure(1, weight=1)
+
+        ttk.Label(win,
+                  text="Every passage sent to the LLM for the last report. "
+                       "Each block is one document reference — this is exactly what the model read.",
+                  font=("Helvetica", 11), foreground="#6b7280",
+                  wraplength=920).grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
+
+        st = scrolledtext.ScrolledText(win, font=("Helvetica", 11), wrap="word",
+                                        relief="flat", bg="#f8f9fa", padx=10, pady=6)
+        st.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 4))
+
+        st.tag_configure("doc_hdr",  font=("Helvetica", 12, "bold"), foreground="#1d4ed8",
+                         spacing1=14, spacing3=4)
+        st.tag_configure("body",     font=("Helvetica", 11), foreground="#1a1a2e",
+                         spacing1=2, spacing3=2)
+        st.tag_configure("ellipsis", font=("Helvetica", 10, "italic"), foreground="#9ca3af",
+                         spacing1=2, spacing3=2)
+        st.tag_configure("sep",      font=("Helvetica", 9), foreground="#d1d5db",
+                         spacing1=10, spacing3=10)
+
+        sections = re.split(r'\n\n---\n\n', self._last_rpt_context)
+        for i, section in enumerate(sections):
+            lines    = section.strip().split('\n', 1)
+            hdr_raw  = lines[0].lstrip('#').strip()   # "[N] Document Name"
+            body_raw = lines[1].strip() if len(lines) > 1 else ""
+
+            # Collapse excessive blank lines and tidy whitespace
+            body_clean = re.sub(r'\n{3,}', '\n\n', body_raw).strip()
+
+            # Split on continuation markers (…) from context-window joins
+            parts = re.split(r'\n…\n', body_clean)
+
+            st.insert("end", hdr_raw + "\n", "doc_hdr")
+            for j, part in enumerate(parts):
+                st.insert("end", part.strip() + "\n", "body")
+                if j < len(parts) - 1:
+                    st.insert("end", "  ···\n", "ellipsis")
+
+            if i < len(sections) - 1:
+                st.insert("end", "─" * 80 + "\n", "sep")
+
+        st.config(state="disabled")
+
+        ttk.Button(win, text="Copy raw context to clipboard",
+                   command=lambda: (win.clipboard_clear(),
+                                    win.clipboard_append(self._last_rpt_context))
+                   ).grid(row=2, column=0, sticky="w", padx=10, pady=(0, 8))
+
     # ══════════════════════════════════════════════════════════════════════════
     # TAB 5  —  Chat
     # ══════════════════════════════════════════════════════════════════════════
@@ -1919,12 +2149,19 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
         _chat_modes = ["top-docs", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE:
             _chat_modes.insert(0, "embedding")
+        if EMBEDDING_AVAILABLE and BM25_AVAILABLE:
+            _chat_modes.insert(1, "hybrid")
         ttk.Combobox(ctrl, textvariable=self._chat_mode,
                      values=_chat_modes, width=16).pack(side="left", padx=4)
         ttk.Label(ctrl, text="  Chunks:").pack(side="left")
         self._chat_k = tk.IntVar(value=12)
         ttk.Spinbox(ctrl, from_=3, to=50, textvariable=self._chat_k,
                     width=4).pack(side="left", padx=4)
+        ttk.Checkbutton(ctrl, text="Boost", variable=self._use_boost).pack(side="left", padx=(8, 0))
+        ttk.Label(ctrl, text="  Author:").pack(side="left")
+        ttk.Combobox(ctrl, textvariable=self._author_filter,
+                     values=["All authors"] + all_known_authors(),
+                     state="readonly", width=18).pack(side="left", padx=4)
         ttk.Button(ctrl, text="Clear Chat",
                    command=self._clear_chat).pack(side="right")
         ttk.Label(ctrl, text="Enter = send  ·  Shift+Enter = newline",
@@ -1939,8 +2176,16 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
 
         self._chat_src = scrolledtext.ScrolledText(
             src_lf, font=("Helvetica", 10), wrap="word",
-            state="disabled", relief="flat", bg="#f8f9fa")
+            state="disabled", relief="flat", bg="#f8f9fa", padx=6, pady=4)
         self._chat_src.grid(row=0, column=0, sticky="nsew")
+        self._chat_src.tag_configure("src_n",     font=("Helvetica", 10, "bold"),
+                                     foreground="#6b7280", spacing1=10)
+        self._chat_src.tag_configure("src_doc",   font=("Helvetica", 10, "bold"),
+                                     foreground="#1d4ed8")
+        self._chat_src.tag_configure("src_score", font=("Helvetica", 9),
+                                     foreground="#6b7280", spacing3=2)
+        self._chat_src.tag_configure("src_body",  font=("Helvetica", 10),
+                                     foreground="#374151", spacing3=6)
 
     def _chat_on_return(self, event):
         if event.state & 0x1:   # Shift held — insert newline normally
@@ -1981,29 +2226,49 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
         self._chat_write("you", f"You:  {msg}\n")
 
         # Retrieve chunks
-        mode = self._chat_mode.get()
-        k    = self._chat_k.get()
+        mode  = self._chat_mode.get()
+        k     = self._chat_k.get()
+        boost = self._use_boost.get()
         try:
             if mode == "top-docs":
-                chunks = self.index.top_docs_search(msg, top_chunks=300, top_docs=k)
+                chunks = self.index.top_docs_search(msg, top_chunks=300, top_docs=k, use_boost=boost)
             elif mode == "semantic":
-                chunks = self.index.semantic_search(msg, k)
+                chunks = self.index.semantic_search(msg, k, use_boost=boost)
             elif mode == "keyword":
-                chunks = self.index.keyword_search(msg, k)
+                chunks = self.index.keyword_search(msg, k, use_boost=boost)
             elif mode == "embedding":
-                chunks = self.index.embedding_search(msg, k)
+                chunks = self.index.embedding_search(msg, k, use_boost=boost)
+            elif mode == "hybrid":
+                chunks = self.index.hybrid_search(msg, k, use_boost=boost)
             else:
-                chunks = self.index.combined_search(msg, k)
+                chunks = self.index.combined_search(msg, k, use_boost=boost)
+        except RuntimeError as e:
+            self.root.after(0, messagebox.showerror, "Search mode unavailable", str(e))
+            self._chat_write("error", f"Search error: {e}\n")
+            return
         except Exception as e:
             self._chat_write("error", f"Search error: {e}\n")
             return
 
-        # Update sources panel
+        author = self._author_filter.get()
+        if author and author != "All authors":
+            chunks = [c for c in chunks if doc_author(c["doc_name"]) == author]
+            if not chunks:
+                self._chat_write("error", f"No chunks found for author: {author}\n")
+                return
+
+        # Update sources panel — styled: number, doc name, score, excerpt
         doc_names = sorted(set(c["doc_name"] for c in chunks))
-        src_text  = "\n".join(f"• {d}" for d in doc_names)
         self._chat_src.config(state="normal")
         self._chat_src.delete("1.0", "end")
-        self._chat_src.insert("1.0", src_text)
+        for i, c in enumerate(chunks, 1):
+            score_lbl = c.get("score_label", "")
+            excerpt   = re.sub(r'\s+', ' ', c["text"][:300]).strip()
+            self._chat_src.insert("end", f"{i}. ", "src_n")
+            self._chat_src.insert("end", c["doc_name"] + "\n", "src_doc")
+            if score_lbl:
+                self._chat_src.insert("end", f"   {score_lbl}\n", "src_score")
+            self._chat_src.insert("end", f"   {excerpt}…\n", "src_body")
         self._chat_src.config(state="disabled")
 
         meta = f"  [{len(chunks)} chunks · {len(doc_names)} docs · {mode}]\n"

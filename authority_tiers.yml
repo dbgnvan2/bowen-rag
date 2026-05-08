@@ -62,9 +62,13 @@ tiers:
     note: "Bowen"
 
   # ── Tier 2: Family Systems Journal & Family Center Reports (1.3×) ─────────
+  - pattern: "FSJ "
+    multiplier: 1.3
+    note: "FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')"
+
   - pattern: "Copy of "
     multiplier: 1.3
-    note: "FSJ article PDFs"
+    note: "FSJ article PDFs (legacy naming)"
 
   - pattern: "Family Center Reports"
     multiplier: 1.3

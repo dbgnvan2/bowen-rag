@@ -7,3 +7,5 @@ requests
 PyPDF2
 sentence-transformers
 pyyaml
+rank-bm25
+streamlit
