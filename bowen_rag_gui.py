@@ -79,6 +79,12 @@ OLLAMA_MODELS = [
     "mistral:latest",
 ]
 
+DEEPSEEK_MODELS = [
+    "deepseek-v4-flash",
+    "deepseek-v4-pro",
+]
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
+
 # ── Authority tiers ────────────────────────────────────────────────────────────
 # Patterns matched against doc_name (case-insensitive prefix/substring).
 # Multiplier applied to raw TF-IDF score before ranking.
@@ -738,6 +744,47 @@ class LLMClient:
         return r.json().get("message", {}).get("content", "")
 
     @staticmethod
+    def call_deepseek(prompt: str, api_key: str, model: str,
+                      system: str, on_chunk=None) -> str:
+        try:
+            import anthropic
+        except ImportError:
+            raise RuntimeError("Run: pip install anthropic")
+        client = anthropic.Anthropic(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+        msgs   = [{"role": "user", "content": prompt}]
+        if on_chunk:
+            buf = []
+            with client.messages.stream(
+                model=model, max_tokens=8000, system=system, messages=msgs
+            ) as stream:
+                for token in stream.text_stream:
+                    buf.append(token)
+                    on_chunk(token)
+            return "".join(buf)
+        r = client.messages.create(model=model, max_tokens=8000, system=system, messages=msgs)
+        return r.content[0].text
+
+    @staticmethod
+    def call_deepseek_chat(messages: list, api_key: str, model: str,
+                           system: str, on_chunk=None) -> str:
+        try:
+            import anthropic
+        except ImportError:
+            raise RuntimeError("Run: pip install anthropic")
+        client = anthropic.Anthropic(api_key=api_key, base_url=DEEPSEEK_BASE_URL)
+        if on_chunk:
+            buf = []
+            with client.messages.stream(
+                model=model, max_tokens=8000, system=system, messages=messages
+            ) as stream:
+                for token in stream.text_stream:
+                    buf.append(token)
+                    on_chunk(token)
+            return "".join(buf)
+        r = client.messages.create(model=model, max_tokens=8000, system=system, messages=messages)
+        return r.content[0].text
+
+    @staticmethod
     def list_ollama_models(url: str) -> list:
         try:
             import requests as req
@@ -769,13 +816,15 @@ class App:
         self._chat_history:     list = []   # {role, content} turns for chat tab
 
         # Settings
-        self.provider    = tk.StringVar(value="openai")
-        self.claude_key  = tk.StringVar()
-        self.claude_mdl  = tk.StringVar(value="claude-opus-4-7")
-        self.openai_key  = tk.StringVar()
-        self.openai_mdl  = tk.StringVar(value="gpt-4o")
-        self.ollama_url  = tk.StringVar(value="http://localhost:11434")
-        self.ollama_mdl  = tk.StringVar(value="qwen3.5:latest")
+        self.provider      = tk.StringVar(value="openai")
+        self.claude_key    = tk.StringVar()
+        self.claude_mdl    = tk.StringVar(value="claude-opus-4-7")
+        self.openai_key    = tk.StringVar()
+        self.openai_mdl    = tk.StringVar(value="gpt-4o")
+        self.ollama_url    = tk.StringVar(value="http://localhost:11434")
+        self.ollama_mdl    = tk.StringVar(value="qwen3.5:latest")
+        self.deepseek_key  = tk.StringVar()
+        self.deepseek_mdl  = tk.StringVar(value="deepseek-v4-flash")
 
         # Load .env — must happen before _build_notebook so combobox lists are ready
         _env = self._load_dotenv()
@@ -791,6 +840,10 @@ class App:
             self.ollama_url.set(_env["OLLAMA_URL"])
         if _env.get("OLLAMA_MODEL"):
             self.ollama_mdl.set(_env["OLLAMA_MODEL"])
+        if _env.get("DEEPSEEK_API_KEY"):
+            self.deepseek_key.set(_env["DEEPSEEK_API_KEY"])
+        if _env.get("DEEPSEEK_MODEL"):
+            self.deepseek_mdl.set(_env["DEEPSEEK_MODEL"])
         if _env.get("LLM_PROVIDER"):
             self.provider.set(_env["LLM_PROVIDER"])
 
@@ -1539,6 +1592,9 @@ class App:
         ttk.Radiobutton(pf, text="Ollama  (local · Qwen / Llama / Mistral / …)",
                         variable=self.provider, value="ollama",
                         command=self._toggle_provider).pack(anchor="w", pady=2)
+        ttk.Radiobutton(pf, text="DeepSeek  (cheap · fast)",
+                        variable=self.provider, value="deepseek",
+                        command=self._toggle_provider).pack(anchor="w", pady=2)
 
         # OpenAI
         self._openai_pane = ttk.LabelFrame(f, text="OpenAI Settings", padding=12)
@@ -1602,6 +1658,27 @@ class App:
                    command=self._fetch_ollama).grid(
             row=1, column=2, padx=4, pady=(8, 0))
 
+        # DeepSeek
+        self._deepseek_pane = ttk.LabelFrame(f, text="DeepSeek Settings", padding=12)
+        self._deepseek_pane.grid(row=2, column=0, sticky="ew", padx=8, pady=4)
+        self._deepseek_pane.columnconfigure(1, weight=1)
+
+        ttk.Label(self._deepseek_pane, text="API Key:").grid(
+            row=0, column=0, sticky="w", padx=(0, 8))
+        self._ds_key_entry = ttk.Entry(self._deepseek_pane, textvariable=self.deepseek_key,
+                                        show="•", width=55)
+        self._ds_key_entry.grid(row=0, column=1, sticky="ew")
+        ttk.Button(self._deepseek_pane, text="Show/Hide",
+                   command=lambda: self._ds_key_entry.config(
+                       show="" if self._ds_key_entry["show"] == "•" else "•")
+                   ).grid(row=0, column=2, padx=4)
+
+        ttk.Label(self._deepseek_pane, text="Model:").grid(
+            row=1, column=0, sticky="w", pady=(8, 0))
+        ttk.Combobox(self._deepseek_pane, textvariable=self.deepseek_mdl,
+                     values=DEEPSEEK_MODELS, width=25).grid(
+            row=1, column=1, sticky="w", pady=(8, 0))
+
         # System prompt
         sp = ttk.LabelFrame(f, text="System Prompt (used for all LLM calls)", padding=10)
         sp.grid(row=3, column=0, sticky="ew", padx=8, pady=4)
@@ -1624,9 +1701,10 @@ class App:
 
     def _toggle_provider(self):
         p = self.provider.get()
-        self._openai_pane.grid() if p == "openai" else self._openai_pane.grid_remove()
-        self._claude_pane.grid() if p == "claude" else self._claude_pane.grid_remove()
-        self._ollama_pane.grid() if p == "ollama" else self._ollama_pane.grid_remove()
+        self._openai_pane.grid()   if p == "openai"    else self._openai_pane.grid_remove()
+        self._claude_pane.grid()   if p == "claude"    else self._claude_pane.grid_remove()
+        self._ollama_pane.grid()   if p == "ollama"    else self._ollama_pane.grid_remove()
+        self._deepseek_pane.grid() if p == "deepseek"  else self._deepseek_pane.grid_remove()
 
     def _toggle_key(self):
         self._key_entry.config(
@@ -1658,6 +1736,10 @@ class App:
                     r = self.llm.call_claude(
                         "Reply with exactly: OK",
                         self.claude_key.get(), self.claude_mdl.get(), sys_p)
+                elif p == "deepseek":
+                    r = self.llm.call_deepseek(
+                        "Reply with exactly: OK",
+                        self.deepseek_key.get(), self.deepseek_mdl.get(), sys_p)
                 else:
                     r = self.llm.call_ollama(
                         "Reply with exactly: OK",
@@ -1982,6 +2064,12 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                     result = self.llm.call_claude(
                         prompt, self.claude_key.get(),
                         self.claude_mdl.get(), sys_p, _on_token)
+                elif p == "deepseek":
+                    if not self.deepseek_key.get():
+                        raise RuntimeError("DeepSeek API key not set — go to LLM Settings.")
+                    result = self.llm.call_deepseek(
+                        prompt, self.deepseek_key.get(),
+                        self.deepseek_mdl.get(), sys_p, _on_token)
                 else:
                     result = self.llm.call_ollama(
                         prompt, self.ollama_url.get(),
@@ -2321,6 +2409,12 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                     result = self.llm.call_openai_chat(
                         messages_to_send, self.openai_key.get(),
                         self.openai_mdl.get(), sys_p, _on_token)
+                elif p == "deepseek":
+                    if not self.deepseek_key.get():
+                        raise RuntimeError("DeepSeek API key not set — go to LLM Settings.")
+                    result = self.llm.call_deepseek_chat(
+                        messages_to_send, self.deepseek_key.get(),
+                        self.deepseek_mdl.get(), sys_p, _on_token)
                 else:
                     result = self.llm.call_ollama_chat(
                         messages_to_send, self.ollama_url.get(),

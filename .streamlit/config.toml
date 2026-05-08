@@ -2,6 +2,7 @@
 headless = true
 enableCORS = false
 enableXsrfProtection = true
+folderWatchBlacklist = ["torch"]
 
 [theme]
 primaryColor = "#2563eb"

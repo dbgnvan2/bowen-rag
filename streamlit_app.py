@@ -136,7 +136,9 @@ CLAUDE_MODELS = [
     "claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5",
     "claude-opus-4-6", "claude-opus-4-5", "claude-sonnet-4-5",
 ]
-OPENAI_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o1-mini"]
+OPENAI_MODELS    = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o1-mini"]
+DEEPSEEK_MODELS  = ["deepseek-v4-flash", "deepseek-v4-pro"]
+DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -442,6 +444,19 @@ def _llm_stream(messages: list, system: str):
                 if t:
                     yield t
 
+    elif provider == "deepseek":
+        key = ss.get("deepseek_key", "")
+        if not key:
+            raise RuntimeError("DeepSeek API key not set — go to Settings.")
+        import anthropic
+        client = anthropic.Anthropic(api_key=key, base_url=DEEPSEEK_BASE_URL)
+        with client.messages.stream(
+            model=ss.get("deepseek_model", "deepseek-v4-flash"),
+            max_tokens=8000, system=system, messages=messages
+        ) as s:
+            for token in s.text_stream:
+                yield token
+
     else:  # ollama
         import requests
         url   = ss.get("ollama_url", "http://localhost:11434")
@@ -486,6 +501,8 @@ def _init_session():
         "openai_model":    os.environ.get("OPENAI_MODEL", "gpt-4o"),
         "ollama_url":      os.environ.get("OLLAMA_URL", "http://localhost:11434"),
         "ollama_model":    os.environ.get("OLLAMA_MODEL", "qwen2.5:7b"),
+        "deepseek_key":    os.environ.get("DEEPSEEK_API_KEY", ""),
+        "deepseek_model":  os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash"),
         "system_prompt":   SYSTEM_PROMPT,
     }
     for k, v in defaults.items():
@@ -567,7 +584,7 @@ def _result_card(result: dict, checkbox_key: str):
 
     col_cb, col_body = st.columns([0.04, 0.96])
     with col_cb:
-        checked = st.checkbox("", key=checkbox_key, label_visibility="collapsed")
+        checked = st.checkbox("Select", key=checkbox_key, label_visibility="collapsed")
     with col_body:
         badges = (
             f'<span style="background:{color};color:white;padding:2px 8px;'
@@ -633,6 +650,7 @@ def page_search(idx: IndexManager):
                 st.rerun()
 
     if search_clicked and query.strip():
+        st.session_state.last_search_query = query.strip()
         with st.spinner("Searching…"):
             try:
                 if mode == "top-docs":
@@ -782,7 +800,8 @@ def page_chat(idx: IndexManager):
             f"[Retrieved {len(chunks)} chunks from {len(docs)} documents]\n\n"
             f"{context}\n\n---\nQuestion: {prompt}"
         )
-        messages_to_send = st.session_state.chat_history + [
+        messages_to_send = [{"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.chat_history] + [
             {"role": "user", "content": current_content}
         ]
 
@@ -814,6 +833,7 @@ def page_report(idx: IndexManager):
     st.header("Report Generator")
 
     query = st.text_area("Topic / Question", height=80,
+                         value=st.session_state.get("last_search_query", ""),
                          placeholder='e.g. "What does Bowen theory say about triangles?"')
 
     c1, c2, c3, c4 = st.columns(4)
@@ -963,8 +983,8 @@ def page_settings():
     st.header("Settings")
 
     st.subheader("LLM Provider")
-    provider = st.radio("Provider", ["claude", "openai", "ollama"],
-                        index=["claude", "openai", "ollama"].index(
+    provider = st.radio("Provider", ["claude", "openai", "deepseek", "ollama"],
+                        index=["claude", "openai", "deepseek", "ollama"].index(
                             st.session_state.get("provider", "claude")),
                         horizontal=True)
     st.session_state.provider = provider
@@ -990,6 +1010,18 @@ def page_settings():
                                  st.session_state.get("openai_model", "gpt-4o"))
                              if st.session_state.get("openai_model") in OPENAI_MODELS else 0)
         st.session_state.openai_model = model
+
+    elif provider == "deepseek":
+        st.subheader("DeepSeek")
+        key = st.text_input("API Key", value=st.session_state.get("deepseek_key", ""),
+                            type="password")
+        st.session_state.deepseek_key = key
+        model = st.selectbox("Model", DEEPSEEK_MODELS,
+                             index=DEEPSEEK_MODELS.index(
+                                 st.session_state.get("deepseek_model", "deepseek-v4-flash"))
+                             if st.session_state.get("deepseek_model") in DEEPSEEK_MODELS else 0)
+        st.session_state.deepseek_model = model
+        st.caption(f"Endpoint: {DEEPSEEK_BASE_URL}")
 
     else:
         st.subheader("Ollama (self-hosted)")
