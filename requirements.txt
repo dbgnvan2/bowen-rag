@@ -9,3 +9,4 @@ sentence-transformers
 pyyaml
 rank-bm25
 streamlit
+python-dotenv

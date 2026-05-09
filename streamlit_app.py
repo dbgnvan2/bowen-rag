@@ -10,6 +10,13 @@ import os
 import re
 from pathlib import Path
 
+# Load .env so local runs pick up API keys without manual export
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Suppress verbose startup logs from PyTorch / transformers / sentence-transformers
 import warnings
 warnings.filterwarnings("ignore")
