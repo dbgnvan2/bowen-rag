@@ -1230,23 +1230,48 @@ def main():
 
     idx = _get_index()
 
+    _NAV = [
+        ("Search",   "Find and browse source passages in the index. "
+                     "Check results and stage them to carry into a Report."),
+        ("Chat",     "Conversational Q&A with the literature. "
+                     "Ask follow-up questions; each turn retrieves fresh source chunks."),
+        ("Report",   "Generate a structured, cited research report on a topic. "
+                     "Best for getting a comprehensive, referenced answer. "
+                     "This is the core workflow for most users."),
+        ("Index",    "Admin — view index statistics (document count, chunk count, embedding status). "
+                     "Do not modify unless you are rebuilding the index."),
+        ("Settings", "Admin — configure the LLM provider, API keys, default search mode, "
+                     "and system prompt. Do not change unless you know what you are doing."),
+    ]
+
+    if "nav_page" not in st.session_state:
+        st.session_state["nav_page"] = "Search"
+
     with st.sidebar:
         st.markdown("### Bowen Theory RAG")
         if idx.loaded:
             docs = len(set(c["doc_name"] for c in idx.chunks))
             st.caption(f"{docs} documents · {len(idx.chunks):,} chunks")
         st.divider()
-        page = st.radio(
-            "Navigate", ["Search", "Chat", "Report", "Index", "Settings"],
-            label_visibility="collapsed",
-            help="**Search** — find and browse source passages.\n\n"
-                 "**Chat** — conversational Q&A with the literature.\n\n"
-                 "**Report** — generate a structured, cited report on a topic.\n\n"
-                 "**Index** — admin: view index statistics (do not change).\n\n"
-                 "**Settings** — admin: configure LLM provider and defaults (do not change unless you know what you are doing).",
-        )
+        for _name, _desc in _NAV:
+            _nc, _hc = st.columns([5, 1])
+            with _nc:
+                _selected = st.session_state["nav_page"] == _name
+                if st.button(
+                    ("▶ " if _selected else "") + _name,
+                    use_container_width=True,
+                    key=f"nav_{_name}",
+                    type="primary" if _selected else "secondary",
+                ):
+                    st.session_state["nav_page"] = _name
+                    st.rerun()
+            with _hc:
+                with st.popover("?", use_container_width=True):
+                    st.write(_desc)
         st.divider()
         st.caption("Bowen Family Systems Theory research tool")
+
+    page = st.session_state["nav_page"]
 
     if page == "Search":
         page_search(idx)
