@@ -758,8 +758,8 @@ def page_search(idx: IndexManager):
 def page_chat(idx: IndexManager):
     st.header("Chat")
 
-    # Two wide columns so help= icons render; chat input stays full-width below
-    cc1, cc2, cc3 = st.columns([2, 2, 1])
+    # Single compact row — all options on one line
+    cc1, cc2, cc3, cc4, cc5, cc6 = st.columns([3, 1, 1, 2, 1, 1])
 
     chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
     if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
@@ -770,36 +770,30 @@ def page_chat(idx: IndexManager):
     chat_default_idx = chat_mode_opts.index(default_mode) if default_mode in chat_mode_opts else 0
 
     with cc1:
-        chat_mode = st.selectbox(
-            "Mode", chat_mode_opts, index=chat_default_idx, key="chat_mode_sel",
-            help=(
-                "How source chunks are retrieved per question.\n\n"
-                "**Hybrid** — BM25 + Embedding via RRF; best overall.\n\n"
-                "**Top Docs** — fastest; good for well-known topics.\n\n"
-                "**Semantic** — TF-IDF cosine similarity.\n\n"
-                "**Keyword** — good for names and specific terms."
-            ),
-        )
-        chat_k = st.number_input(
-            "Chunks", min_value=3, max_value=100, value=12, key="chat_k_inp",
-            help="Number of source passages retrieved per question. More = broader context but slower.",
-        )
+        chat_mode = st.selectbox("Mode", chat_mode_opts, index=chat_default_idx,
+                                 key="chat_mode_sel", label_visibility="collapsed")
     with cc2:
-        chat_boost = st.checkbox(
-            "Authority boost", value=True, key="chat_boost_cb",
-            help="Apply authority weighting so primary Bowen/Kerr sources rank higher (3×).",
-        )
-        chat_authors = ["All authors"] + all_known_authors()
-        chat_author  = st.selectbox(
-            "Author filter", chat_authors, key="chat_author_sel",
-            help="Restrict retrieved chunks to a specific author's works.",
-        )
+        chat_k = st.number_input("Chunks", min_value=3, max_value=100, value=12,
+                                 key="chat_k_inp", label_visibility="collapsed")
     with cc3:
-        st.write("")
-        st.write("")
-        if st.button("Clear chat", use_container_width=True):
+        chat_boost = st.checkbox("Boost", value=True, key="chat_boost_cb")
+    with cc4:
+        chat_authors = ["All authors"] + all_known_authors()
+        chat_author  = st.selectbox("Author", chat_authors, key="chat_author_sel",
+                                    label_visibility="collapsed")
+    with cc5:
+        if st.button("Clear", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
+    with cc6:
+        with st.popover("? Help", use_container_width=True):
+            st.markdown(
+                "**Mode** — how source chunks are retrieved "
+                "(Hybrid = BM25 + Embedding, best overall).\n\n"
+                "**Chunks** — number of source passages retrieved per question.\n\n"
+                "**Boost** — apply authority weighting (primary sources rank 3× higher).\n\n"
+                "**Author** — restrict retrieval to a specific author's works."
+            )
 
     # Display history
     for msg in st.session_state.chat_history:
