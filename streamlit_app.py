@@ -1126,11 +1126,20 @@ def page_settings():
                         horizontal=True)
     st.session_state.provider = provider
 
+    def _key_input(label: str, ss_key: str):
+        existing = st.session_state.get(ss_key, "")
+        if existing:
+            st.caption(f"Key saved: ···{existing[-6:]}")
+        new_val = st.text_input(
+            label, value="", type="password",
+            placeholder="Paste new key to update…" if existing else "Paste key here…",
+        )
+        if new_val:
+            st.session_state[ss_key] = new_val
+
     if provider == "claude":
         st.subheader("Claude (Anthropic)")
-        key = st.text_input("API Key", value=st.session_state.get("claude_key", ""),
-                            type="password")
-        st.session_state.claude_key = key
+        _key_input("API Key", "claude_key")
         model = st.selectbox("Model", CLAUDE_MODELS,
                              index=CLAUDE_MODELS.index(
                                  st.session_state.get("claude_model", "claude-sonnet-4-6"))
@@ -1139,9 +1148,7 @@ def page_settings():
 
     elif provider == "openai":
         st.subheader("OpenAI")
-        key = st.text_input("API Key", value=st.session_state.get("openai_key", ""),
-                            type="password")
-        st.session_state.openai_key = key
+        _key_input("API Key", "openai_key")
         model = st.selectbox("Model", OPENAI_MODELS,
                              index=OPENAI_MODELS.index(
                                  st.session_state.get("openai_model", "gpt-4o"))
@@ -1150,9 +1157,7 @@ def page_settings():
 
     elif provider == "deepseek":
         st.subheader("DeepSeek")
-        key = st.text_input("API Key", value=st.session_state.get("deepseek_key", ""),
-                            type="password")
-        st.session_state.deepseek_key = key
+        _key_input("API Key", "deepseek_key")
         model = st.selectbox("Model", DEEPSEEK_MODELS,
                              index=DEEPSEEK_MODELS.index(
                                  st.session_state.get("deepseek_model", "deepseek-v4-flash"))
