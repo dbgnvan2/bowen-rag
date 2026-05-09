@@ -2,7 +2,7 @@
 headless = true
 enableCORS = false
 enableXsrfProtection = true
-folderWatchBlacklist = ["torch", "transformers", "sentence_transformers", "tqdm", "numpy"]
+fileWatcherType = "none"
 
 [theme]
 primaryColor = "#2563eb"
