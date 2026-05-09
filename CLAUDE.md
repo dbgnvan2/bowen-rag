@@ -8,11 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pip install -r requirements.txt
 ```
 
-`sentence-transformers` is included in requirements and enables the Embedding search mode. It pulls in PyTorch (~500 MB one-time download). The app runs without it — embedding options are simply hidden if the import fails.
+`sentence-transformers` is included in requirements and enables Embedding and Hybrid search modes. It pulls in PyTorch (~500 MB one-time download). The app runs without it — those search options are hidden if the import fails.
+
+`python-dotenv` is included and is used by both apps to load `.env` at startup.
 
 ## Environment / API keys
 
-Copy `.env.example` to `.env` and fill in your keys. The app reads this file at startup:
+Copy `.env.example` to `.env` and fill in your keys. Both apps read this file at startup:
 
 ```bash
 cp .env.example .env
@@ -24,21 +26,46 @@ Supported variables:
 |---|---|
 | `ANTHROPIC_API_KEY` | Claude API key |
 | `OPENAI_API_KEY` | OpenAI API key |
-| `LLM_PROVIDER` | Default provider: `claude`, `openai`, or `ollama` |
-| `ANTHROPIC_MODEL` | Default Claude model (e.g. `claude-opus-4-7`) |
+| `DEEPSEEK_API_KEY` | DeepSeek API key |
+| `LLM_PROVIDER` | Default provider: `claude`, `openai`, `deepseek`, or `ollama` |
+| `ANTHROPIC_MODEL` | Default Claude model (e.g. `claude-sonnet-4-6`) |
 | `OPENAI_MODEL` | Default OpenAI model |
+| `DEEPSEEK_MODEL` | Default DeepSeek model (default: `deepseek-v4-flash`) |
 | `OLLAMA_MODEL` | Default Ollama model |
 | `OLLAMA_URL` | Ollama server URL (default: `http://localhost:11434`) |
 | `CLAUDE_EXTRA_MODELS` | Comma-separated extra Claude model IDs added to the dropdown |
 | `OPENAI_EXTRA_MODELS` | Comma-separated extra OpenAI model IDs added to the dropdown |
 
-Keys can also be saved from inside the app: LLM tab → Claude Settings → **Save to .env**.
+The recommended default is `LLM_PROVIDER=deepseek` (cheapest, good quality).
 
-## Running the app
+## Running the desktop GUI
 
 ```bash
-./bowen_rag.sh          # launches GUI (starts Ollama if not running)
+./bowen_rag.sh          # launches tkinter GUI (starts Ollama if not running)
 python3 bowen_rag_gui.py  # launch directly without the shell wrapper
+```
+
+## Running the Streamlit web app (local)
+
+```bash
+./bowen_rag_web.sh      # starts Ollama if needed, then runs Streamlit on port 8501
+streamlit run streamlit_app.py  # launch directly
+```
+
+The web app is available at `http://localhost:8501`.
+
+## Railway deployment
+
+The Streamlit app is deployed to Railway. Push to `main` on GitHub triggers an automatic redeploy (usually 2–3 minutes).
+
+**Required Railway environment variables:**
+- `LLM_PROVIDER` — e.g. `deepseek`
+- `DEEPSEEK_API_KEY` — your DeepSeek key
+- `APP_PASSWORD` — optional; if set, users must enter this password to access the app
+
+The `Procfile` tells Railway how to start the app:
+```
+web: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --logger.level=warning
 ```
 
 ## Rebuilding the search index
@@ -57,19 +84,11 @@ After rebuilding the TF-IDF index, optionally build the semantic embedding index
 
 This encodes all chunks with `all-MiniLM-L6-v2` (sentence-transformers) and saves `embed_matrix.npy` alongside the TF-IDF files. First run downloads the model (~90 MB to `~/.cache/huggingface/`). Subsequent runs load from cache. Expect a few minutes on CPU for a large corpus.
 
-The embedding index is loaded automatically on startup if the file exists.
-
-## Manual search (no GUI)
-
-```bash
-python3 rag-document-search/scripts/semantic_search.py rag-document-search/references/ "your query" 5
-```
-
-**Note:** `semantic_search.py` attempts to load `tfidf_matrix.npy` (dense NumPy format), but `build_index.py` now saves `tfidf_matrix.npz` (sparse SciPy format). Running it directly from the CLI will fail until it is updated to use `scipy.sparse.load_npz`. The GUI (`IndexManager`) uses its own inline loading logic and is unaffected.
+The embedding index is required for Embedding and Hybrid search modes. It is loaded automatically on startup if the file exists. `embed_matrix.npy` (~16 MB) is committed to the repo so Railway gets it on deploy.
 
 ## Processing transcripts
 
-`process_transcripts.py` reads `*yaml.md` files from `~/transcripts/projects/` (recursively), strips YAML frontmatter, and writes clean `.txt` files to `source_files/`. Files without `## Section N –` headings are silently skipped — they haven't been section-formatted yet and aren't ready to index.
+`process_transcripts.py` reads `*yaml.md` files from `~/transcripts/projects/` (recursively), strips YAML frontmatter, and writes clean `.txt` files to `source_files/`. Files without `## Section N –` headings are silently skipped.
 
 ```bash
 python3 process_transcripts.py                        # default source and output dirs
@@ -102,24 +121,41 @@ pyinstaller --name "Bowen RAG" --windowed --onedir \
   bowen_rag_gui.py
 ```
 
-Note: including `sentence-transformers` in a PyInstaller bundle significantly increases bundle size (~500 MB+). Consider excluding it for distribution builds and documenting it as an optional install.
+Note: including `sentence-transformers` in a PyInstaller bundle significantly increases bundle size (~500 MB+). Consider excluding it for distribution builds.
 
 ## Architecture
 
-Everything runs in a single GUI file (`bowen_rag_gui.py`, ~2100 lines) built with tkinter. Four classes:
+There are two front-ends that share the same `IndexManager` backend logic:
 
-- **`IndexManager`** — loads the prebuilt TF-IDF index from `rag-document-search/references/` at startup. Exposes `semantic_search`, `keyword_search`, `combined_search`, `top_docs_search`, `embedding_search`, and `build_embeddings`. Also handles rebuilding the index in a background thread. The frozen-app path (`sys._MEIPASS`) and dev path diverge here: writable output goes to `~/Documents/BowenRAG/` in a bundle, next to the script otherwise.
+### Desktop GUI (`bowen_rag_gui.py`, ~2300 lines)
 
-- **`LLMClient`** — static methods for calling Claude (`anthropic` SDK), OpenAI, and Ollama. Streaming is supported for all three. Single-turn methods (`call_claude`, `call_openai`, `call_ollama`) are used by the Report tab. Multi-turn chat methods (`call_claude_chat`, `call_openai_chat`, `call_ollama_chat`) accept a full `messages` list and are used by the Chat tab. Provider selection and API keys are stored as tkinter `StringVar`s in `App`.
+Built with tkinter. Four classes:
+
+- **`IndexManager`** — loads the prebuilt TF-IDF index from `rag-document-search/references/` at startup. Exposes `semantic_search`, `keyword_search`, `combined_search`, `top_docs_search`, `embedding_search`, `bm25_search`, `hybrid_search`, and `build_embeddings`. Also handles rebuilding the index in a background thread.
+
+- **`LLMClient`** — static methods for calling Claude (`anthropic` SDK), OpenAI, DeepSeek (Anthropic SDK with custom `base_url`), and Ollama. Streaming is supported for all four. Single-turn methods are used by the Report tab; multi-turn chat methods accept a full `messages` list and are used by the Chat tab.
 
 - **`App`** — main window. Five notebook tabs:
   - **Search** — query + ranked results with checkboxes to stage excerpts for the report
   - **Index** — rebuild TF-IDF index, import transcripts, build embedding index
-  - **LLM Settings** — provider config (Claude / OpenAI / Ollama), model selection, system prompt editor, connection test, Save to .env
-  - **Report Generator** — one-shot report from staged or freshly retrieved chunks; cites sources by reference number
-  - **Chat** — multi-turn conversational interface; each turn retrieves fresh chunks, history carries only bare Q&A (not chunks)
+  - **LLM Settings** — provider config (Claude / OpenAI / DeepSeek / Ollama), model selection, system prompt editor, connection test, Save to .env
+  - **Report Generator** — one-shot report from staged or freshly retrieved chunks; cites sources by reference number; authority boost toggle; chunk audit expander
+  - **Chat** — multi-turn conversational interface; each turn retrieves fresh chunks, history carries only bare Q&A (not chunks); sources shown in expander
 
 - **`Tooltip`** — click-to-show helper widget, used on `?` buttons.
+
+### Streamlit web app (`streamlit_app.py`, ~1300 lines)
+
+Designed for Railway deployment and browser access. Uses `@st.cache_resource` for the shared index and `st.session_state` for per-user state. Contains a copy of `IndexManager` (no tkinter dependency) and a `_llm_stream` generator for streaming LLM responses.
+
+Five pages (sidebar navigation, each with a `?` help button):
+- **Search** — query + ranked results with checkboxes; stage selected chunks for Report
+- **Chat** — conversational Q&A; compact single-line control bar
+- **Report** — generate a cited report; audit chunks used
+- **Index** — admin: index statistics and document list
+- **Settings** — LLM provider/key/model config; default search mode; system prompt; connection test
+
+API keys in Settings are masked — only the last 6 characters are shown.
 
 ### Search modes
 
@@ -129,11 +165,22 @@ Everything runs in a single GUI file (`bowen_rag_gui.py`, ~2100 lines) built wit
 | Semantic (TF-IDF) | `semantic_search` | Cosine similarity on TF-IDF vectors. Fast, exact-vocabulary matching. |
 | Keyword | `keyword_search` | Counts exact word matches with simple stemming. Good for names and specific terms. |
 | Both | `combined_search` | Merges semantic and keyword results. |
-| Embedding | `embedding_search` | Cosine similarity on sentence-transformer vectors. Finds conceptual matches regardless of exact wording. Requires `embed_matrix.npy` to be built first. |
+| Embedding | `embedding_search` | Cosine similarity on sentence-transformer vectors. Finds conceptual matches regardless of exact wording. Requires `embed_matrix.npy`. |
+| Hybrid | `hybrid_search` | Reciprocal Rank Fusion (RRF, K=60) of BM25 and Embedding results. Best overall quality. Requires `embed_matrix.npy`. |
 
 ### Search ranking
 
-Raw similarity scores are boosted by `authority_boost()` before ranking. The multipliers are defined in `AUTHORITY_TIERS` (top of `bowen_rag_gui.py`) — primary Bowen/Kerr sources get 3.0×, Family Systems Journal articles 1.3×, other named theorists 1.15×. This is editorial content and should stay in that list rather than being hardcoded elsewhere.
+Raw similarity scores are boosted by `authority_boost()` before ranking. The multipliers are defined in `AUTHORITY_TIERS` (top of `bowen_rag_gui.py` and `streamlit_app.py`, also overridable via `authority_tiers.yml`) — primary Bowen/Kerr sources get 3.0×, Family Systems Journal articles 1.3×, other named theorists 1.15×. This is editorial content; keep it in the config files rather than hardcoding elsewhere.
+
+### DeepSeek integration
+
+DeepSeek uses the Anthropic SDK with a custom `base_url`:
+
+```python
+client = anthropic.Anthropic(api_key=key, base_url="https://api.deepseek.com/anthropic")
+```
+
+Available models: `deepseek-v4-flash` (default, fast/cheap), `deepseek-v4-pro`.
 
 ### Chat context strategy
 
@@ -141,7 +188,7 @@ The Chat tab keeps conversation history as bare Q&A pairs — the user's questio
 
 ### Report citation format
 
-Reports cite sources by reference number (`[1]`, `[2]`) rather than document name. The reference list mapping numbers to document names appears in the "Reference List" panel in the UI and at the end of every generated report.
+Reports cite sources by reference number (`[1]`, `[2]`) rather than document name. The reference list appears at the end of the generated report. An "Audit: show chunks sent to LLM" expander lets you inspect exactly what was passed to the model.
 
 ### Chunking strategy
 
@@ -153,8 +200,7 @@ Reports cite sources by reference number (`[1]`, `[2]`) rather than document nam
 |---|---|---|
 | Script / dev | directory of `bowen_rag_gui.py` | same |
 | PyInstaller bundle | `~/Documents/BowenRAG/` | `sys._MEIPASS/.../references/` (read-only bundle) |
-
-When the index is rebuilt inside a frozen app, output goes to `~/Documents/BowenRAG/references/` (writable), and `IndexManager.load()` prefers that over the bundle's read-only copy.
+| Streamlit / Railway | directory of `streamlit_app.py` | `rag-document-search/references/` |
 
 ### Claude models (current as of May 2026)
 
@@ -166,8 +212,7 @@ When the index is rebuilt inside a frozen app, output goes to `~/Documents/Bowen
 | Opus 4.6 (legacy) | `claude-opus-4-6` |
 | Opus 4.5 (legacy) | `claude-opus-4-5` |
 | Sonnet 4.5 (legacy) | `claude-sonnet-4-5` |
-| Opus 4.1 (legacy) | `claude-opus-4-1` |
 
 ### LLM system prompt
 
-Defined as `SYSTEM_PROMPT` constant near the top of `bowen_rag_gui.py`. It instructs the model to cite only the provided source excerpts and not draw on outside knowledge. Editable at runtime via LLM Settings tab. Do not soften these constraints without understanding the intent — the app is used for Bowen Family Systems Theory research where source fidelity matters.
+Defined as `SYSTEM_PROMPT` constant near the top of both `bowen_rag_gui.py` and `streamlit_app.py`. It instructs the model to cite only the provided source excerpts and not draw on outside knowledge. Editable at runtime via the LLM Settings tab / Settings page. Do not soften these constraints — the app is used for Bowen Family Systems Theory research where source fidelity matters.
