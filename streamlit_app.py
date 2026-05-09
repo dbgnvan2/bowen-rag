@@ -758,42 +758,44 @@ def page_search(idx: IndexManager):
 def page_chat(idx: IndexManager):
     st.header("Chat")
 
-    # Controls in a compact row (full-width columns so help= icons render)
-    c1, c2, c3, c4, c5 = st.columns([2, 1, 1, 1, 1])
-    with c1:
-        chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
-        if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
-            chat_mode_opts.insert(0, "embedding")
-            if BM25_AVAILABLE:
-                chat_mode_opts.insert(1, "hybrid")
-        default_mode     = st.session_state.get("default_search_mode", "hybrid")
-        chat_default_idx = chat_mode_opts.index(default_mode) if default_mode in chat_mode_opts else 0
+    # Two wide columns so help= icons render; chat input stays full-width below
+    cc1, cc2, cc3 = st.columns([2, 2, 1])
+
+    chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
+    if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
+        chat_mode_opts.insert(0, "embedding")
+        if BM25_AVAILABLE:
+            chat_mode_opts.insert(1, "hybrid")
+    default_mode     = st.session_state.get("default_search_mode", "hybrid")
+    chat_default_idx = chat_mode_opts.index(default_mode) if default_mode in chat_mode_opts else 0
+
+    with cc1:
         chat_mode = st.selectbox(
             "Mode", chat_mode_opts, index=chat_default_idx, key="chat_mode_sel",
             help=(
                 "How source chunks are retrieved per question.\n\n"
-                "**Hybrid** — BM25 + Embedding; best overall.\n\n"
-                "**Top Docs** — fastest.\n\n"
+                "**Hybrid** — BM25 + Embedding via RRF; best overall.\n\n"
+                "**Top Docs** — fastest; good for well-known topics.\n\n"
+                "**Semantic** — TF-IDF cosine similarity.\n\n"
                 "**Keyword** — good for names and specific terms."
             ),
         )
-    with c2:
         chat_k = st.number_input(
             "Chunks", min_value=3, max_value=100, value=12, key="chat_k_inp",
             help="Number of source passages retrieved per question. More = broader context but slower.",
         )
-    with c3:
+    with cc2:
         chat_boost = st.checkbox(
-            "Boost", value=True, key="chat_boost_cb",
-            help="Apply authority weighting so primary Bowen/Kerr sources rank higher.",
+            "Authority boost", value=True, key="chat_boost_cb",
+            help="Apply authority weighting so primary Bowen/Kerr sources rank higher (3×).",
         )
-    with c4:
         chat_authors = ["All authors"] + all_known_authors()
         chat_author  = st.selectbox(
-            "Author", chat_authors, key="chat_author_sel",
+            "Author filter", chat_authors, key="chat_author_sel",
             help="Restrict retrieved chunks to a specific author's works.",
         )
-    with c5:
+    with cc3:
+        st.write("")
         st.write("")
         if st.button("Clear chat", use_container_width=True):
             st.session_state.chat_history = []
@@ -897,8 +899,9 @@ def page_report(idx: IndexManager):
         help="The question or topic the report will address. Pre-filled from your last search.",
     )
 
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
+    # 2×2 grid — each cell is 50% wide so help= icons render
+    r1c1, r1c2 = st.columns(2)
+    with r1c1:
         rpt_k = st.number_input(
             "Retrieve top", min_value=5, max_value=150, value=30,
             help=(
@@ -908,7 +911,7 @@ def page_report(idx: IndexManager):
             ),
         )
         st.session_state.rpt_k = rpt_k
-    with c2:
+    with r1c2:
         rpt_mode_opts = ["top-docs (recommended)", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
             rpt_mode_opts.append("embedding")
@@ -927,7 +930,9 @@ def page_report(idx: IndexManager):
             ),
         )
         st.session_state.rpt_mode = rpt_mode.split(" ")[0]
-    with c3:
+
+    r2c1, r2c2 = st.columns(2)
+    with r2c1:
         target_words = st.number_input(
             "Target words", min_value=500, max_value=10000, value=2000, step=500,
             help=(
@@ -935,7 +940,7 @@ def page_report(idx: IndexManager):
                 "2000 is a solid summary; 4000+ for a deep dive."
             ),
         )
-    with c4:
+    with r2c2:
         cpd = st.number_input(
             "Chunks per source", min_value=1, max_value=20, value=5,
             help=(
