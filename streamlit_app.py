@@ -759,7 +759,7 @@ def page_chat(idx: IndexManager):
     st.header("Chat")
 
     # Single compact row — all options on one line
-    cc1, cc2, cc3, cc4, cc5, cc6 = st.columns([3, 1, 1, 2, 1, 1])
+    cc1, cc2, cc3, cc4, cc5, cc6 = st.columns([2, 1, 1, 2, 1, 1])
 
     chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
     if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
@@ -771,22 +771,23 @@ def page_chat(idx: IndexManager):
 
     with cc1:
         chat_mode = st.selectbox("Mode", chat_mode_opts, index=chat_default_idx,
-                                 key="chat_mode_sel", label_visibility="collapsed")
+                                 key="chat_mode_sel")
     with cc2:
         chat_k = st.number_input("Chunks", min_value=3, max_value=100, value=12,
-                                 key="chat_k_inp", label_visibility="collapsed")
+                                 key="chat_k_inp")
     with cc3:
         chat_boost = st.checkbox("Boost", value=True, key="chat_boost_cb")
     with cc4:
         chat_authors = ["All authors"] + all_known_authors()
-        chat_author  = st.selectbox("Author", chat_authors, key="chat_author_sel",
-                                    label_visibility="collapsed")
+        chat_author  = st.selectbox("Author", chat_authors, key="chat_author_sel")
     with cc5:
+        st.write("")
         if st.button("Clear", use_container_width=True):
             st.session_state.chat_history = []
             st.rerun()
     with cc6:
-        with st.popover("? Help", use_container_width=True):
+        st.write("")
+        with st.popover("?", use_container_width=True):
             st.markdown(
                 "**Mode** — how source chunks are retrieved "
                 "(Hybrid = BM25 + Embedding, best overall).\n\n"
@@ -1217,6 +1218,12 @@ def main():
         page_title="Bowen Theory RAG",
         layout="wide",
         initial_sidebar_state="expanded",
+    )
+
+    # Hide the ∨ chevron that Streamlit appends to every popover button
+    st.markdown(
+        "<style>[data-testid='stPopoverButton'] svg { display: none !important; }</style>",
+        unsafe_allow_html=True,
     )
 
     _init_session()
