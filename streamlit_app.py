@@ -581,6 +581,44 @@ def _gather_chunks(idx: IndexManager, query: str) -> list:
     return merged
 
 
+def _format_chunk_text(text: str) -> str:
+    """Return chunk text cleaned up for readable markdown display."""
+    # Strip [Section Title]\n\n prefix added by the indexer
+    text = re.sub(r'^\[[^\]]+\]\s*\n\n', '', text, count=1)
+    # Split on paragraph breaks (2+ newlines)
+    paragraphs = re.split(r'\n{2,}', text)
+    cleaned = []
+    for para in paragraphs:
+        # Collapse soft-wrap newlines within a paragraph (common in PDF text)
+        para = re.sub(r'[ \t]*\n[ \t]*', ' ', para)
+        # Collapse multiple spaces
+        para = re.sub(r' {2,}', ' ', para).strip()
+        if para:
+            cleaned.append(para)
+    return '\n\n'.join(cleaned)
+
+
+@st.dialog("Section text", width="large")
+def _show_section_dialog() -> None:
+    result = st.session_state.get("_dialog_result", {})
+    doc    = result.get("doc_name", "")
+    title  = result.get("section_title", "")
+    page   = result.get("page")
+    chunk_pos   = result.get("chunk_pos")
+    doc_total   = result.get("doc_chunk_count", 1)
+
+    parts = [doc]
+    if title:
+        parts.append(title)
+    if page:
+        parts.append(f"p. {page}")
+    elif chunk_pos and doc_total > 1:
+        parts.append(f"~{round(chunk_pos / doc_total * 100)}% through document")
+    st.caption(" · ".join(parts))
+    st.divider()
+    st.markdown(_format_chunk_text(result.get("text", "")))
+
+
 def _score_color(result: dict) -> str:
     score = result.get("score", 0)
     if result.get("mode") == "keyword":
@@ -631,9 +669,13 @@ def _result_card(result: dict, checkbox_key: str):
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True
         )
-        st.caption(excerpt + "…")
-        with st.expander("View full section"):
-            st.text(result["text"])
+        bcol, vcol = st.columns([5, 1])
+        with bcol:
+            st.caption(excerpt + "…")
+        with vcol:
+            if st.button("View ↗", key=f"view_{checkbox_key}", use_container_width=True):
+                st.session_state["_dialog_result"] = result
+                _show_section_dialog()
     return checked
 
 
