@@ -76,13 +76,27 @@ python3 rag-document-search/scripts/build_index.py source_files/ rag-document-se
 
 Run this after adding or changing documents in `source_files/`. The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json`.
 
+**After rebuilding, always rebuild the embedding index too** — the chunk count changes and a stale `embed_matrix.npy` will cause a startup error.
+
 ## Building the embedding index
 
-After rebuilding the TF-IDF index, optionally build the semantic embedding index via the GUI:
+After rebuilding the TF-IDF index, rebuild the embedding index. You can do this via the GUI (**Index tab → Build Embeddings**) or directly:
 
-**Index tab → Build Embeddings**
+```python
+python3 - <<'EOF'
+import json, numpy as np
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
+REFS = Path("rag-document-search/references")
+chunks = json.load(open(REFS / "chunk_metadata.json"))
+model = SentenceTransformer("all-MiniLM-L6-v2")
+vecs = model.encode([c["text"] for c in chunks], show_progress_bar=True, batch_size=64, convert_to_numpy=True)
+np.save(str(REFS / "embed_matrix.npy"), vecs)
+print(f"Saved {len(vecs):,} embeddings")
+EOF
+```
 
-This encodes all chunks with `all-MiniLM-L6-v2` (sentence-transformers) and saves `embed_matrix.npy` alongside the TF-IDF files. First run downloads the model (~90 MB to `~/.cache/huggingface/`). Subsequent runs load from cache. Expect a few minutes on CPU for a large corpus.
+This encodes all chunks with `all-MiniLM-L6-v2` and saves `embed_matrix.npy` alongside the TF-IDF files. First run downloads the model (~90 MB to `~/.cache/huggingface/`). Expect a few minutes on CPU for a large corpus.
 
 The embedding index is required for Embedding and Hybrid search modes. It is loaded automatically on startup if the file exists. `embed_matrix.npy` (~16 MB) is committed to the repo so Railway gets it on deploy.
 
@@ -144,18 +158,26 @@ Built with tkinter. Four classes:
 
 - **`Tooltip`** — click-to-show helper widget, used on `?` buttons.
 
-### Streamlit web app (`streamlit_app.py`, ~1300 lines)
+### Streamlit web app (`streamlit_app.py`, ~1400 lines)
 
 Designed for Railway deployment and browser access. Uses `@st.cache_resource` for the shared index and `st.session_state` for per-user state. Contains a copy of `IndexManager` (no tkinter dependency) and a `_llm_stream` generator for streaming LLM responses.
 
 Five pages (sidebar navigation, each with a `?` help button):
-- **Search** — query + ranked results with checkboxes; stage selected chunks for Report
-- **Chat** — conversational Q&A; compact single-line control bar
-- **Report** — generate a cited report; audit chunks used
+- **Search** — query + ranked results with checkboxes; stage selected chunks for Report; each result has a **View ↗** button that opens a formatted modal dialog with the full section text
+- **Chat** — conversational Q&A; compact single-line control bar; sources expander includes **View ↗** per source
+- **Report** — generate a cited report; audit chunks used; optional **Include sources as Appendix** checkbox appends full source texts to the report and download
 - **Index** — admin: index statistics and document list
 - **Settings** — LLM provider/key/model config; default search mode; system prompt; connection test
 
 API keys in Settings are masked — only the last 6 characters are shown.
+
+Key helper functions in `streamlit_app.py`:
+
+| Function | Purpose |
+|---|---|
+| `_format_chunk_text(text)` | Strips `[Section Title]` prefix, collapses PDF soft-wrap newlines, normalises whitespace — used by the View dialog and appendix |
+| `_show_section_dialog()` | `@st.dialog` modal — shows doc name, section title, page/position caption and formatted full text |
+| `_result_card(result, key)` | Renders a single search result card with score/author/page badges, excerpt, and View ↗ button |
 
 ### Search modes
 
@@ -184,15 +206,35 @@ Available models: `deepseek-v4-flash` (default, fast/cheap), `deepseek-v4-pro`.
 
 ### Chat context strategy
 
-The Chat tab keeps conversation history as bare Q&A pairs — the user's question and the assistant's answer only. Retrieved source chunks are included only for the current turn and are not stored in history. This keeps context size flat regardless of conversation length while preserving conversational continuity.
+The Chat tab keeps conversation history as bare Q&A pairs — the user's question and the assistant's answer only. Retrieved source chunks are included only for the current turn and are not stored in history. This keeps context size flat regardless of conversation length while preserving conversational continuity. Each source in the sources expander has a **View ↗** button to open the full section text in a modal.
 
 ### Report citation format
 
 Reports cite sources by reference number (`[1]`, `[2]`) rather than document name. The reference list appears at the end of the generated report. An "Audit: show chunks sent to LLM" expander lets you inspect exactly what was passed to the model.
 
+**Include sources as Appendix** — optional checkbox on the Report page. When enabled, a formatted appendix containing the full text of every cited source is added after the report body. The appendix is also included in the downloaded `.md` file.
+
 ### Chunking strategy
 
 `build_index.py` uses two chunking modes: if a document contains `## Section N –` headings (formatted transcript output from `process_transcripts.py`), each section becomes one chunk. Otherwise it falls back to overlapping word-count chunks (~1500 chars, 200-char overlap at sentence boundaries).
+
+### Chunk metadata fields
+
+Each entry in `chunk_metadata.json` has:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | int | Global chunk index |
+| `doc_name` | str | Source document filename (without extension) |
+| `section_title` | str | Section heading for transcript chunks; empty for word-count chunks |
+| `text` | str | Full chunk text (transcript chunks are prefixed with `[Section Title]\n\n`) |
+| `char_count` | int | Character length of `text` |
+| `page` | int or null | PDF page number of the first sentence in this chunk; `null` for `.txt` files |
+| `chunk_pos` | int | 1-based position of this chunk within its document |
+| `doc_chunk_count` | int | Total number of chunks in this document |
+| `preview` | str | First 150 characters of `text` |
+
+The `page` and `chunk_pos`/`doc_chunk_count` fields are used by the Streamlit UI to display location badges (`p.5` for PDFs, `~33%` for text files) on search result cards.
 
 ### Paths at runtime
 
