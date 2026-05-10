@@ -598,6 +598,7 @@ def _result_card(result: dict, checkbox_key: str):
     author  = doc_author(result["doc_name"])
     color   = _score_color(result)
     excerpt = re.sub(r'\s+', ' ', result["text"][:220]).strip()
+    page    = result.get("page")
 
     col_cb, col_body = st.columns([0.04, 0.96])
     with col_cb:
@@ -612,11 +613,18 @@ def _result_card(result: dict, checkbox_key: str):
                 f'<span style="background:#7c3aed;color:white;padding:2px 8px;'
                 f'border-radius:4px;font-size:11px;margin-right:4px">{author}</span>'
             )
+        if page:
+            badges += (
+                f'<span style="background:#475569;color:white;padding:2px 8px;'
+                f'border-radius:4px;font-size:11px;margin-right:4px">p.{page}</span>'
+            )
         st.markdown(
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True
         )
         st.caption(excerpt + "…")
+        with st.expander("View full section"):
+            st.text(result["text"])
     return checked
 
 

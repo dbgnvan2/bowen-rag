@@ -8,7 +8,7 @@ import os
 import json
 import re
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Optional, Tuple
 import numpy as np
 from scipy import sparse as sp_sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -87,19 +87,19 @@ class DocumentIndexer:
         return documents
 
     def _extract_pdf_text(self, filepath: Path) -> str:
-        """Extract text from PDF file."""
-        text = []
+        """Extract text from PDF file, inserting [PDF_PAGE:N] markers between pages."""
+        parts = []
         try:
             with open(filepath, 'rb') as f:
                 pdf_reader = PyPDF2.PdfReader(f)
-                for page in pdf_reader.pages:
+                for i, page in enumerate(pdf_reader.pages):
                     page_text = page.extract_text()
-                    if page_text:
-                        text.append(page_text)
+                    if page_text and page_text.strip():
+                        parts.append(f"[PDF_PAGE:{i + 1}]{page_text}")
         except Exception as e:
             print(f"  Warning: Could not fully extract text from {filepath.name}: {e}")
 
-        return "\n".join(text)
+        return "\n".join(parts)
 
     def chunk_document(self, doc_name: str, content: str) -> List[Dict]:
         """
@@ -114,7 +114,6 @@ class DocumentIndexer:
 
     def _chunk_by_sections(self, doc_name: str, content: str) -> List[Dict]:
         """One chunk per ## Section heading — preserves semantic boundaries."""
-        # Split on section headings, keeping the heading text
         parts = re.split(r'\n(## Section \d+ – [^\n]+)\n', content)
         chunks = []
         it = iter(parts[1:])   # skip content before first heading
@@ -124,60 +123,78 @@ class DocumentIndexer:
             body_clean = body.strip()
             if not body_clean:
                 continue
-            # Prepend section title so TF-IDF indexes it as a search term
             full_text = f"[{section_title}]\n\n{body_clean}"
             chunks.append({
                 "doc_name": doc_name,
                 "section_title": section_title,
                 "text": full_text,
                 "char_count": len(full_text),
+                "page": None,
             })
         return chunks
 
+    _PDF_PAGE_RE = re.compile(r'\[PDF_PAGE:(\d+)\]')
+
     def _chunk_by_wordcount(self, doc_name: str, content: str) -> List[Dict]:
+        """Split document into overlapping chunks at sentence boundaries.
+        Tracks PDF page numbers from [PDF_PAGE:N] markers inserted by _extract_pdf_text.
         """
-        Split document into overlapping chunks at sentence boundaries.
-        """
+        # Split content into (page_num_or_None, segment_text) pairs
+        segments: List[Tuple[Optional[int], str]] = []
+        current_page: Optional[int] = None
+        last_pos = 0
+        for m in self._PDF_PAGE_RE.finditer(content):
+            if m.start() > last_pos:
+                segments.append((current_page, content[last_pos:m.start()]))
+            current_page = int(m.group(1))
+            last_pos = m.end()
+        if last_pos < len(content):
+            segments.append((current_page, content[last_pos:]))
+
+        # Build a flat list of (sentence, page_num) pairs
+        sentences_with_pages: List[Tuple[str, Optional[int]]] = []
+        for page_num, seg_text in segments:
+            for sent in re.split(r'(?<=[.!?])\s+', seg_text):
+                if sent.strip():
+                    sentences_with_pages.append((sent, page_num))
+
+        # Produce overlapping chunks, recording the page of the first sentence
         chunks = []
-        sentences = re.split(r'(?<=[.!?])\s+', content)
+        chunk_buf: List[Tuple[str, Optional[int]]] = []
+        current_chars = 0
 
-        current_chunk = ""
-        chunk_sentences = []
-
-        for sentence in sentences:
-            test_chunk = current_chunk + " " + sentence if current_chunk else sentence
-
-            if len(test_chunk) > self.chunk_size and chunk_sentences:
-                # Save current chunk
-                chunk_text = " ".join(chunk_sentences)
+        for sentence, page_num in sentences_with_pages:
+            projected = current_chars + len(sentence) + (1 if chunk_buf else 0)
+            if projected > self.chunk_size and chunk_buf:
+                chunk_text = " ".join(s for s, _ in chunk_buf).strip()
                 chunks.append({
                     "doc_name": doc_name,
-                    "text": chunk_text.strip(),
-                    "char_count": len(chunk_text)
+                    "text": chunk_text,
+                    "char_count": len(chunk_text),
+                    "page": chunk_buf[0][1],
                 })
-
-                # Start new chunk with overlap
-                overlap_sentences = []
+                # overlap: carry last N chars of sentences forward
+                overlap_buf: List[Tuple[str, Optional[int]]] = []
                 overlap_chars = 0
-                for sent in reversed(chunk_sentences):
-                    if overlap_chars + len(sent) < self.overlap:
-                        overlap_sentences.insert(0, sent)
-                        overlap_chars += len(sent) + 1
+                for s, p in reversed(chunk_buf):
+                    if overlap_chars + len(s) < self.overlap:
+                        overlap_buf.insert(0, (s, p))
+                        overlap_chars += len(s) + 1
                     else:
                         break
-
-                chunk_sentences = overlap_sentences + [sentence]
-                current_chunk = " ".join(chunk_sentences)
+                chunk_buf = overlap_buf + [(sentence, page_num)]
+                current_chars = sum(len(s) + 1 for s, _ in chunk_buf)
             else:
-                chunk_sentences.append(sentence)
-                current_chunk = test_chunk
+                chunk_buf.append((sentence, page_num))
+                current_chars += len(sentence) + (1 if current_chars else 0)
 
-        # Add final chunk
-        if chunk_sentences:
+        if chunk_buf:
+            chunk_text = " ".join(s for s, _ in chunk_buf).strip()
             chunks.append({
                 "doc_name": doc_name,
-                "text": " ".join(chunk_sentences).strip(),
-                "char_count": len(" ".join(chunk_sentences))
+                "text": chunk_text,
+                "char_count": len(chunk_text),
+                "page": chunk_buf[0][1],
             })
 
         return chunks
@@ -223,6 +240,7 @@ class DocumentIndexer:
                 "section_title": chunk.get("section_title", ""),
                 "text": chunk["text"],
                 "char_count": chunk["char_count"],
+                "page": chunk.get("page"),
                 "preview": chunk["text"][:150] + "..."
             }
             for i, chunk in enumerate(self.chunks)
