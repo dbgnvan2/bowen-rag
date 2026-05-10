@@ -508,8 +508,9 @@ def _init_session():
         "search_results":  [],
         "staged_chunks":   [],
         "chat_history":    [],
-        "last_rpt_context": "",
-        "last_report":     "",
+        "last_rpt_context":  "",
+        "last_rpt_appendix": "",
+        "last_report":       "",
         "provider":        os.environ.get("LLM_PROVIDER", "claude"),
         "claude_key":      os.environ.get("ANTHROPIC_API_KEY", ""),
         "claude_model":    os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
@@ -861,13 +862,22 @@ def page_chat(idx: IndexManager):
             )
 
     # Display history
-    for msg in st.session_state.chat_history:
+    for msg_idx, msg in enumerate(st.session_state.chat_history):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             if msg["role"] == "assistant" and msg.get("sources"):
                 with st.expander(f"Sources ({len(msg['sources'])} docs)"):
-                    for src in msg["sources"]:
-                        st.caption(f"**{src['doc']}** — {src['excerpt']}")
+                    for src_idx, src in enumerate(msg["sources"]):
+                        sc, vc = st.columns([5, 1])
+                        with sc:
+                            st.caption(f"**{src['doc']}** — {src['excerpt']}…")
+                        with vc:
+                            chunk = next((c for c in idx.chunks
+                                          if c["doc_name"] == src["doc"]), None)
+                            if chunk and st.button("View ↗",
+                                                   key=f"chat_view_{msg_idx}_{src_idx}"):
+                                st.session_state["_dialog_result"] = chunk
+                                _show_section_dialog()
 
     # Input
     if prompt := st.chat_input("Ask about Bowen theory…"):
@@ -938,9 +948,22 @@ def page_chat(idx: IndexManager):
                           "excerpt": re.sub(r'\s+', ' ', next(
                               (c["text"][:150] for c in chunks if c["doc_name"] == d), ""))
                           } for d in doc_names]
+            # Key index this message will have once appended to history:
+            # chat_history currently has N items; user appended first → N,
+            # assistant appended second → N+1.
+            cur_msg_idx = len(st.session_state.chat_history) + 1
             with st.expander(f"Sources used ({len(doc_names)} docs)"):
-                for src in sources:
-                    st.caption(f"**{src['doc']}** — {src['excerpt']}…")
+                for src_idx, src in enumerate(sources):
+                    sc, vc = st.columns([5, 1])
+                    with sc:
+                        st.caption(f"**{src['doc']}** — {src['excerpt']}…")
+                    with vc:
+                        chunk = next((c for c in idx.chunks
+                                      if c["doc_name"] == src["doc"]), None)
+                        if chunk and st.button("View ↗",
+                                               key=f"chat_view_{cur_msg_idx}_{src_idx}"):
+                            st.session_state["_dialog_result"] = chunk
+                            _show_section_dialog()
 
         # Bare Q&A stored in history (no chunks)
         st.session_state.chat_history.append({"role": "user",      "content": prompt})
@@ -1017,6 +1040,11 @@ def page_report(idx: IndexManager):
         ),
     )
     st.session_state.rpt_boost = rpt_boost
+
+    include_appendix = st.checkbox(
+        "Include sources as Appendix",
+        help="Appends the full formatted text of every cited source after the report body.",
+    )
 
     staged = st.session_state.get("staged_chunks", [])
     if staged:
@@ -1118,6 +1146,18 @@ def page_report(idx: IndexManager):
             st.error(f"LLM error: {e}")
             return
 
+        # Build appendix from source texts
+        if include_appendix and docs:
+            appendix_parts = ["\n\n---\n\n## Appendix: Source Texts\n"]
+            for doc_name in sorted(docs, key=lambda d: ref_map[d]):
+                appendix_parts.append(f"\n### [{ref_map[doc_name]}] {doc_name}\n")
+                for txt in docs[doc_name]:
+                    appendix_parts.append(_format_chunk_text(txt) + "\n")
+                appendix_parts.append("\n---\n")
+            st.session_state.last_rpt_appendix = "\n".join(appendix_parts)
+        else:
+            st.session_state.last_rpt_appendix = ""
+
     # Show chunks used (after generation)
     if st.session_state.get("last_rpt_context"):
         with st.expander("Audit: show chunks sent to LLM"):
@@ -1130,11 +1170,19 @@ def page_report(idx: IndexManager):
                 st.text(body)
                 st.divider()
 
-    # Download button
+    # Appendix (shown after audit, before download)
+    if st.session_state.get("last_rpt_appendix"):
+        with st.expander("Appendix: Source Texts"):
+            st.markdown(st.session_state.last_rpt_appendix)
+
+    # Download button — includes appendix when present
     if st.session_state.get("last_report"):
+        full_download = st.session_state.last_report
+        if st.session_state.get("last_rpt_appendix"):
+            full_download += "\n\n" + st.session_state.last_rpt_appendix
         st.download_button(
             "Download report as .md",
-            data=st.session_state.last_report,
+            data=full_download,
             file_name="bowen_report.md",
             mime="text/markdown",
         )
