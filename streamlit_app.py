@@ -618,6 +618,15 @@ def _result_card(result: dict, checkbox_key: str):
                 f'<span style="background:#475569;color:white;padding:2px 8px;'
                 f'border-radius:4px;font-size:11px;margin-right:4px">p.{page}</span>'
             )
+        else:
+            chunk_pos = result.get("chunk_pos")
+            doc_total = result.get("doc_chunk_count", 1)
+            if chunk_pos and doc_total > 1:
+                pct = round(chunk_pos / doc_total * 100)
+                badges += (
+                    f'<span style="background:#64748b;color:white;padding:2px 8px;'
+                    f'border-radius:4px;font-size:11px;margin-right:4px">~{pct}%</span>'
+                )
         st.markdown(
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True

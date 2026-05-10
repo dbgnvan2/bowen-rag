@@ -231,6 +231,16 @@ class DocumentIndexer:
         )
         self.tfidf_matrix = self.vectorizer.fit_transform(chunk_texts)
 
+        # Build per-document chunk position map: chunk_index → (1-based pos, total in doc)
+        doc_seq: Dict[str, List[int]] = {}
+        for i, chunk in enumerate(self.chunks):
+            doc_seq.setdefault(chunk["doc_name"], []).append(i)
+        pos_map: Dict[int, Tuple[int, int]] = {}
+        for ids in doc_seq.values():
+            total = len(ids)
+            for pos, idx in enumerate(ids):
+                pos_map[idx] = (pos + 1, total)
+
         # Create metadata without embedding vectors (they're sparse and large)
         print("Saving metadata...")
         self.metadata = [
@@ -241,6 +251,8 @@ class DocumentIndexer:
                 "text": chunk["text"],
                 "char_count": chunk["char_count"],
                 "page": chunk.get("page"),
+                "chunk_pos": pos_map[i][0],
+                "doc_chunk_count": pos_map[i][1],
                 "preview": chunk["text"][:150] + "..."
             }
             for i, chunk in enumerate(self.chunks)
