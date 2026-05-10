@@ -638,7 +638,7 @@ def _result_card(result: dict, checkbox_key: str):
     excerpt = re.sub(r'\s+', ' ', result["text"][:220]).strip()
     page    = result.get("page")
 
-    col_cb, col_body = st.columns([0.04, 0.96])
+    col_cb, col_body, col_view = st.columns([0.04, 0.88, 0.08])
     with col_cb:
         checked = st.checkbox("Select", key=checkbox_key, label_visibility="collapsed")
     with col_body:
@@ -669,13 +669,11 @@ def _result_card(result: dict, checkbox_key: str):
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True
         )
-        bcol, vcol = st.columns([5, 1])
-        with bcol:
-            st.caption(excerpt + "…")
-        with vcol:
-            if st.button("View ↗", key=f"view_{checkbox_key}", use_container_width=True):
-                st.session_state["_dialog_result"] = result
-                _show_section_dialog()
+        st.caption(excerpt + "…")
+    with col_view:
+        if st.button("View ↗", key=f"view_{checkbox_key}", use_container_width=True):
+            st.session_state["_dialog_result"] = result
+            _show_section_dialog()
     return checked
 
 
