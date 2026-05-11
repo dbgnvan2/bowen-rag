@@ -843,7 +843,29 @@ def page_search(idx: IndexManager):
                     else:
                         st.warning("Select at least one result first.")
 
-            st.caption(f"{len(results)} results")
+            _rc, _hc = st.columns([9, 1])
+            with _rc:
+                st.caption(f"{len(results)} results")
+            with _hc:
+                if st.button("?", key="help_score_badges", use_container_width=True):
+                    st.session_state["show_help_badges"] = not st.session_state.get("show_help_badges", False)
+                    st.rerun()
+            if st.session_state.get("show_help_badges", False):
+                st.info(
+                    "**Score badges**\n\n"
+                    "| Badge | Mode | Meaning |\n"
+                    "|---|---|---|\n"
+                    "| `45%` | Top Docs | Aggregate similarity across best chunks for that document |\n"
+                    "| `45% ★` | Semantic (TF-IDF) | Cosine similarity; ★ = authority-boosted source |\n"
+                    "| `45% ⬡` | Hybrid | Reciprocal Rank Fusion (RRF) score; ⬡ marks Hybrid mode |\n"
+                    "| `45% ⬡ ★` | Hybrid + boosted | RRF score with authority boost applied |\n"
+                    "| `45% ✦` | Embedding | Cosine similarity on sentence-transformer vectors |\n"
+                    "| `6 hits ×3 ★` | Keyword | Raw hit count × authority multiplier |\n"
+                    "| `3.42 ★` | BM25 | BM25 relevance score |\n\n"
+                    "**Authority boost (★):** Primary Bowen/Kerr sources ×3, "
+                    "Family Systems Journal ×1.3, named theorists ×1.15. "
+                    "Toggle off with the **Authority boost** checkbox to rank by raw score only."
+                )
             st.divider()
 
             for i, result in enumerate(results):
