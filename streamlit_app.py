@@ -145,7 +145,17 @@ SYSTEM_PROMPT = (
     "4. If sources conflict or are ambiguous, note the conflict and quote both — do not resolve it yourself.\n"
     "5. Do not add introductory or concluding remarks that go beyond what the sources say.\n"
     "6. If asked about something not covered in the provided excerpts, respond: "
-    "'The provided sources do not contain information on this point.'"
+    "'The provided sources do not contain information on this point.'\n"
+    "7. Terminology precision — CRITICAL for Bowen theory: Before answering, check whether the "
+    "exact term or phrase from the user's query appears verbatim in the provided excerpts. "
+    "If it does NOT appear verbatim, you MUST begin your response with a clearly visible notice:\n"
+    "⚠️ Note: The exact term/phrase \"[user's term]\" does not appear in the provided sources. "
+    "The following is drawn from semantically related content and represents an inference, "
+    "not a direct match. Bowen theory uses precise terminology — the absence of a term is "
+    "significant and should not be papered over by substituting similar-sounding concepts.\n"
+    "This rule exists because, for example, Bowen uses 'emotional contact' with a specific "
+    "clinical meaning that is distinct from everyday phrases like 'emotional connection' — "
+    "treating them as equivalent would misrepresent the theory."
 )
 
 CLAUDE_MODELS = [
