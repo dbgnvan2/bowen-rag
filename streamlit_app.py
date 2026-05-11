@@ -852,14 +852,17 @@ def page_chat(idx: IndexManager):
             st.rerun()
     with cc6:
         st.write("")
-        st.button("?", key="chat_help_btn", use_container_width=True,
-                  help=(
-                      "**Mode** — how source chunks are retrieved "
-                      "(Hybrid = BM25 + Embedding, best overall).\n\n"
-                      "**Chunks** — number of source passages retrieved per question.\n\n"
-                      "**Boost** — apply authority weighting (primary sources rank 3× higher).\n\n"
-                      "**Author** — restrict retrieval to a specific author's works."
-                  ))
+        if st.button("?", key="chat_help_btn", use_container_width=True):
+            st.session_state["show_chat_help"] = not st.session_state.get("show_chat_help", False)
+
+    if st.session_state.get("show_chat_help", False):
+        st.info(
+            "**Mode** — how source chunks are retrieved "
+            "(Hybrid = BM25 + Embedding, best overall).\n\n"
+            "**Chunks** — number of source passages retrieved per question.\n\n"
+            "**Boost** — apply authority weighting (primary sources rank 3× higher).\n\n"
+            "**Author** — restrict retrieval to a specific author's works."
+        )
 
     # Display history
     for msg_idx, msg in enumerate(st.session_state.chat_history):
@@ -1382,15 +1385,24 @@ def main():
         st.divider()
         for _name, _desc in _NAV:
             _selected = st.session_state["nav_page"] == _name
-            if st.button(
-                ("▶ " if _selected else "") + _name,
-                use_container_width=True,
-                key=f"nav_{_name}",
-                type="primary" if _selected else "secondary",
-                help=_desc,
-            ):
-                st.session_state["nav_page"] = _name
-                st.rerun()
+            _nc, _hc = st.columns([5, 1])
+            with _nc:
+                if st.button(
+                    ("▶ " if _selected else "") + _name,
+                    use_container_width=True,
+                    key=f"nav_{_name}",
+                    type="primary" if _selected else "secondary",
+                ):
+                    st.session_state["nav_page"] = _name
+                    st.session_state[f"show_help_{_name}"] = False
+                    st.rerun()
+            with _hc:
+                if st.button("?", key=f"help_{_name}", use_container_width=True):
+                    _tog = f"show_help_{_name}"
+                    st.session_state[_tog] = not st.session_state.get(_tog, False)
+                    st.rerun()
+            if st.session_state.get(f"show_help_{_name}", False):
+                st.info(_desc)
         st.divider()
         st.caption("Bowen Family Systems Theory research tool")
 
