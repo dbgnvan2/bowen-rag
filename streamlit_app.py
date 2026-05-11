@@ -981,9 +981,9 @@ def page_report(idx: IndexManager):
         help="The question or topic the report will address. Pre-filled from your last search.",
     )
 
-    # 2×2 grid — each cell is 50% wide so help= icons render
-    r1c1, r1c2 = st.columns(2)
-    with r1c1:
+    # Single row: Retrieve | Mode | Target words | Chunks per source
+    rc1, rc2, rc3, rc4 = st.columns([1, 2, 1, 1])
+    with rc1:
         rpt_k = st.number_input(
             "Retrieve top", min_value=5, max_value=150, value=30,
             help=(
@@ -993,7 +993,7 @@ def page_report(idx: IndexManager):
             ),
         )
         st.session_state.rpt_k = rpt_k
-    with r1c2:
+    with rc2:
         rpt_mode_opts = ["top-docs (recommended)", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE and idx.embed_matrix is not None:
             rpt_mode_opts.append("embedding")
@@ -1012,9 +1012,7 @@ def page_report(idx: IndexManager):
             ),
         )
         st.session_state.rpt_mode = rpt_mode.split(" ")[0]
-
-    r2c1, r2c2 = st.columns(2)
-    with r2c1:
+    with rc3:
         target_words = st.number_input(
             "Target words", min_value=500, max_value=10000, value=2000, step=500,
             help=(
@@ -1022,7 +1020,7 @@ def page_report(idx: IndexManager):
                 "2000 is a solid summary; 4000+ for a deep dive."
             ),
         )
-    with r2c2:
+    with rc4:
         cpd = st.number_input(
             "Chunks per source", min_value=1, max_value=20, value=5,
             help=(
@@ -1032,19 +1030,21 @@ def page_report(idx: IndexManager):
             ),
         )
 
-    rpt_boost = st.checkbox(
-        "Authority boost", value=True,
-        help=(
-            "Apply authority weighting when retrieving chunks. "
-            "Primary Bowen/Kerr sources 3×, FSJ articles 1.3×, other named theorists 1.15×."
-        ),
-    )
-    st.session_state.rpt_boost = rpt_boost
-
-    include_appendix = st.checkbox(
-        "Include sources as Appendix",
-        help="Appends the full formatted text of every cited source after the report body.",
-    )
+    cb1, cb2 = st.columns(2)
+    with cb1:
+        rpt_boost = st.checkbox(
+            "Authority boost", value=True,
+            help=(
+                "Apply authority weighting when retrieving chunks. "
+                "Primary Bowen/Kerr sources 3×, FSJ articles 1.3×, other named theorists 1.15×."
+            ),
+        )
+        st.session_state.rpt_boost = rpt_boost
+    with cb2:
+        include_appendix = st.checkbox(
+            "Include sources as Appendix",
+            help="Appends the full formatted text of every cited source after the report body.",
+        )
 
     staged = st.session_state.get("staged_chunks", [])
     if staged:
@@ -1337,11 +1337,20 @@ def main():
         initial_sidebar_state="expanded",
     )
 
-    # Hide the ∨ chevron that Streamlit appends to every popover button
-    st.markdown(
-        "<style>[data-testid='stPopoverButton'] svg { display: none !important; }</style>",
-        unsafe_allow_html=True,
-    )
+    # Hide the ∨ chevron that Streamlit appends to every popover button.
+    # Multiple selectors cover different Streamlit versions / render paths.
+    st.markdown("""<style>
+[data-testid='stPopoverButton'] svg,
+[data-testid='stPopoverButton'] > div > svg,
+[data-testid='stPopoverButton'] span svg,
+[data-testid='stPopover'] > button svg,
+section[data-testid='stSidebar'] [data-testid='stPopoverButton'] svg {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+}
+</style>""", unsafe_allow_html=True)
 
     _init_session()
     _check_auth()
