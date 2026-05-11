@@ -1374,7 +1374,11 @@ def main():
             "deepseek": st.session_state.get("deepseek_model", "deepseek-v4-flash"),
             "ollama":   st.session_state.get("ollama_model",   "qwen2.5:7b"),
         }.get(_provider, _provider)
-        st.caption(f"LLM: {_provider} · {_model}")
+        st.markdown(
+            f'<div style="font-size:12px;color:#4b5563;margin:2px 0">'
+            f'🤖 {_provider} · {_model}</div>',
+            unsafe_allow_html=True,
+        )
         st.divider()
         for _name, _desc in _NAV:
             _selected = st.session_state["nav_page"] == _name
