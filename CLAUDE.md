@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**User-facing documentation:** [`USER_GUIDE.md`](USER_GUIDE.md) — keep it current whenever features, search modes, score badges, or admin workflows change.
+
 ## Setup
 
 ```bash
