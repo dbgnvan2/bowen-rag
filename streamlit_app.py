@@ -290,23 +290,40 @@ class IndexManager:
     def keyword_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         if not self.loaded:
             return []
-        raw_terms = [t.lower() for t in query.split()
+
+        # Extract quoted phrases ("exact phrase") and remaining individual words
+        phrases   = [p.lower() for p in re.findall(r'"([^"]+)"', query)]
+        remainder = re.sub(r'"[^"]+"', '', query)
+        raw_terms = [t.lower() for t in remainder.split()
                      if len(t) > 2 and t.lower() not in self._STOP]
-        if not raw_terms:
+
+        if not phrases and not raw_terms:
             return []
+
         term_sets = [set(self._stems(t)) for t in raw_terms]
         boost_fn  = authority_boost if use_boost else (lambda _: 1.0)
         doc_best: dict = {}
+
         for c in self.chunks:
-            tl   = c["text"].lower()
-            hits = sum(max(tl.count(v) for v in variants) for variants in term_sets)
+            tl = c["text"].lower()
+
+            # Quoted phrases must all be present — skip chunk if any are absent
+            if any(tl.count(p) == 0 for p in phrases):
+                continue
+            phrase_hits = sum(tl.count(p) * 3 for p in phrases)  # weight phrases 3×
+
+            word_hits = sum(max(tl.count(v) for v in variants) for variants in term_sets)
+            hits = phrase_hits + word_hits
             if hits == 0:
                 continue
+
             dn    = c["doc_name"]
             score = hits * boost_fn(dn)
-            label = f"{hits} hits" + (" ★" if use_boost and authority_boost(dn) > 1.0 else "")
+            tag   = " phrase" if phrases else ""
+            label = f"{hits} hits{tag}" + (" ★" if use_boost and authority_boost(dn) > 1.0 else "")
             if dn not in doc_best or score > doc_best[dn]["score"]:
                 doc_best[dn] = {**c, "score": score, "score_label": label, "mode": "keyword"}
+
         out = sorted(doc_best.values(), key=lambda x: x["score"], reverse=True)
         return out[:top_k]
 
