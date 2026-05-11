@@ -1365,11 +1365,6 @@ def main():
 
     with st.sidebar:
         st.markdown("### Bowen Theory RAG")
-        if idx.loaded:
-            docs = len(set(c["doc_name"] for c in idx.chunks))
-            st.caption(f"{docs} documents · {len(idx.chunks):,} chunks")
-            if idx.embed_matrix is not None:
-                st.caption(f"{len(idx.embed_matrix):,} embeddings")
         _provider = st.session_state.get("provider", "claude")
         _model = {
             "claude":   st.session_state.get("claude_model",   "claude-sonnet-4-6"),
@@ -1377,11 +1372,15 @@ def main():
             "deepseek": st.session_state.get("deepseek_model", "deepseek-v4-flash"),
             "ollama":   st.session_state.get("ollama_model",   "qwen2.5:7b"),
         }.get(_provider, _provider)
-        st.markdown(
-            f'<div style="font-size:12px;color:#4b5563;margin:2px 0">'
-            f'🤖 {_provider} · {_model}</div>',
-            unsafe_allow_html=True,
-        )
+        if idx.loaded:
+            docs  = len(set(c["doc_name"] for c in idx.chunks))
+            embed = f" · {len(idx.embed_matrix):,} embeddings" if idx.embed_matrix is not None else ""
+            st.markdown(
+                f'<div style="font-size:12px;color:#4b5563;line-height:1.4;margin:0">'
+                f'{docs} docs · {len(idx.chunks):,} chunks{embed}<br>'
+                f'🤖 {_provider} · {_model}</div>',
+                unsafe_allow_html=True,
+            )
         st.divider()
         for _name, _desc in _NAV:
             _selected = st.session_state["nav_page"] == _name
