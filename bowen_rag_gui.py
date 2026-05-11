@@ -468,9 +468,13 @@ class IndexManager:
                 continue
 
             dn    = c["doc_name"]
-            score = hits * boost_fn(dn)
+            boost_val = authority_boost(dn) if use_boost else 1.0
+            score = hits * boost_val
             tag   = " phrase" if phrases else ""
-            label = f"{hits} hits{tag}" + (" ★" if use_boost and authority_boost(dn) > 1.0 else "")
+            if boost_val > 1.0:
+                label = f"{hits} hits{tag} ×{boost_val:g} ★"
+            else:
+                label = f"{hits} hits{tag}"
             if dn not in doc_best or score > doc_best[dn]["score"]:
                 doc_best[dn] = {**c, "score": score,
                                 "score_label": label, "mode": "keyword"}
