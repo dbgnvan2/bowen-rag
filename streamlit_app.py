@@ -672,7 +672,7 @@ def _result_card(result: dict, checkbox_key: str):
         )
         st.caption(excerpt + "…")
     with col_view:
-        if st.button("View ↗", key=f"view_{checkbox_key}", use_container_width=True):
+        if st.button("↗", key=f"view_{checkbox_key}", use_container_width=True):
             st.session_state["_dialog_result"] = result
             _show_section_dialog()
     return checked
@@ -852,14 +852,14 @@ def page_chat(idx: IndexManager):
             st.rerun()
     with cc6:
         st.write("")
-        with st.popover("?", use_container_width=True):
-            st.markdown(
-                "**Mode** — how source chunks are retrieved "
-                "(Hybrid = BM25 + Embedding, best overall).\n\n"
-                "**Chunks** — number of source passages retrieved per question.\n\n"
-                "**Boost** — apply authority weighting (primary sources rank 3× higher).\n\n"
-                "**Author** — restrict retrieval to a specific author's works."
-            )
+        st.button("?", key="chat_help_btn", use_container_width=True,
+                  help=(
+                      "**Mode** — how source chunks are retrieved "
+                      "(Hybrid = BM25 + Embedding, best overall).\n\n"
+                      "**Chunks** — number of source passages retrieved per question.\n\n"
+                      "**Boost** — apply authority weighting (primary sources rank 3× higher).\n\n"
+                      "**Author** — restrict retrieval to a specific author's works."
+                  ))
 
     # Display history
     for msg_idx, msg in enumerate(st.session_state.chat_history):
@@ -874,7 +874,7 @@ def page_chat(idx: IndexManager):
                         with vc:
                             chunk = next((c for c in idx.chunks
                                           if c["doc_name"] == src["doc"]), None)
-                            if chunk and st.button("View ↗",
+                            if chunk and st.button("↗",
                                                    key=f"chat_view_{msg_idx}_{src_idx}"):
                                 st.session_state["_dialog_result"] = chunk
                                 _show_section_dialog()
@@ -960,7 +960,7 @@ def page_chat(idx: IndexManager):
                     with vc:
                         chunk = next((c for c in idx.chunks
                                       if c["doc_name"] == src["doc"]), None)
-                        if chunk and st.button("View ↗",
+                        if chunk and st.button("↗",
                                                key=f"chat_view_{cur_msg_idx}_{src_idx}"):
                             st.session_state["_dialog_result"] = chunk
                             _show_section_dialog()
@@ -1337,20 +1337,6 @@ def main():
         initial_sidebar_state="expanded",
     )
 
-    # Hide the ∨ chevron that Streamlit appends to every popover button.
-    # Multiple selectors cover different Streamlit versions / render paths.
-    st.markdown("""<style>
-[data-testid='stPopoverButton'] svg,
-[data-testid='stPopoverButton'] > div > svg,
-[data-testid='stPopoverButton'] span svg,
-[data-testid='stPopover'] > button svg,
-section[data-testid='stSidebar'] [data-testid='stPopoverButton'] svg {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-}
-</style>""", unsafe_allow_html=True)
 
     _init_session()
     _check_auth()
@@ -1381,20 +1367,16 @@ section[data-testid='stSidebar'] [data-testid='stPopoverButton'] svg {
             st.caption(f"{docs} documents · {len(idx.chunks):,} chunks")
         st.divider()
         for _name, _desc in _NAV:
-            _nc, _hc = st.columns([5, 1])
-            with _nc:
-                _selected = st.session_state["nav_page"] == _name
-                if st.button(
-                    ("▶ " if _selected else "") + _name,
-                    use_container_width=True,
-                    key=f"nav_{_name}",
-                    type="primary" if _selected else "secondary",
-                ):
-                    st.session_state["nav_page"] = _name
-                    st.rerun()
-            with _hc:
-                with st.popover("?", use_container_width=True):
-                    st.write(_desc)
+            _selected = st.session_state["nav_page"] == _name
+            if st.button(
+                ("▶ " if _selected else "") + _name,
+                use_container_width=True,
+                key=f"nav_{_name}",
+                type="primary" if _selected else "secondary",
+                help=_desc,
+            ):
+                st.session_state["nav_page"] = _name
+                st.rerun()
         st.divider()
         st.caption("Bowen Family Systems Theory research tool")
 
