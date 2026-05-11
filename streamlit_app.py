@@ -542,7 +542,7 @@ def _init_session():
         "last_rpt_context":  "",
         "last_rpt_appendix": "",
         "last_report":       "",
-        "provider":        os.environ.get("LLM_PROVIDER", "claude"),
+        "provider":        os.environ.get("LLM_PROVIDER", "deepseek"),
         "claude_key":      os.environ.get("ANTHROPIC_API_KEY", ""),
         "claude_model":    os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
         "openai_key":      os.environ.get("OPENAI_API_KEY", ""),
@@ -1283,7 +1283,7 @@ def page_settings():
     st.subheader("LLM Provider")
     provider = st.radio("Provider", ["claude", "openai", "deepseek", "ollama"],
                         index=["claude", "openai", "deepseek", "ollama"].index(
-                            st.session_state.get("provider", "claude")),
+                            st.session_state.get("provider", "deepseek")),
                         horizontal=True)
     st.session_state.provider = provider
 
@@ -1411,6 +1411,8 @@ def main():
                      "Do not modify unless you are rebuilding the index."),
         ("Settings", "Admin — configure the LLM provider, API keys, default search mode, "
                      "and system prompt. Do not change unless you know what you are doing."),
+        ("User Guide", "Full documentation — search modes, score badges, Chat, Report, "
+                       "and admin workflows for index management and deployment."),
     ]
 
     if "nav_page" not in st.session_state:
@@ -1468,8 +1470,18 @@ def main():
         page_report(idx)
     elif page == "Index":
         page_index(idx)
-    else:
+    elif page == "Settings":
         page_settings()
+    else:
+        page_user_guide()
+
+
+def page_user_guide():
+    guide_path = BASE_DIR / "USER_GUIDE.md"
+    if guide_path.exists():
+        st.markdown(guide_path.read_text(encoding="utf-8"))
+    else:
+        st.error("USER_GUIDE.md not found. It should be in the project root directory.")
 
 
 if __name__ == "__main__":
