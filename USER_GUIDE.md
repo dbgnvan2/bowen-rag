@@ -118,8 +118,8 @@ The **Mode** selector at the top of the Chat page changes how the AI engages wit
 | Mode | When to use it | What the AI does |
 |---|---|---|
 | **Standard** | Research questions, looking something up, exploring a topic | Answers your questions from the retrieved source corpus. Default mode. |
-| **Interview** | Exploring your own family system, reflective self-study | Takes the role of interviewer — asks one focused question at a time, reflects your answers back through Bowen theory concepts, then asks the next question. You respond; it asks. |
-| **Coach** | Applying Bowen theory to your own functioning or clinical work | Acts as a Bowen-informed coach — offers one observation grounded in the sources, then asks one question to help you go deeper. Non-directive: it helps you think, not tells you what to do. |
+| **Interview** | Exploring your own family system, reflective self-study | Takes the role of researcher-interviewer, exploring how you are doing in three areas: defining a self under relationship pressure, managing emotional reactivity, and maintaining emotional contact. Asks one question at a time, follows your lead, does not evaluate or interpret. |
+| **Coach** | Working on your own functioning, applying theory to your own patterns | Focuses entirely on your own part in your system — not on what others are doing, and not on what you should do. Asks questions that help you see your own reactions, positions, and patterns more clearly. Never gives advice or tells you what to try. |
 | **Quiz** | Testing your knowledge of Bowen theory, studying for clinical work | Asks one question at a time drawn from the source material, evaluates your answer against the sources, gives feedback with citations, and tracks your running score. |
 
 **Interview and Coach modes** are grounded in the same source corpus as Standard mode — the AI's questions and reflections draw from Bowen and Kerr's actual writing, not generic therapy frameworks.
