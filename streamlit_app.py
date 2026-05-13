@@ -639,8 +639,12 @@ def _init_session():
     # Env vars always override stale session state for provider and keys.
     # This prevents a browser session that had "ollama" selected from
     # persisting that choice after a redeploy changes LLM_PROVIDER.
+    _valid_providers = {"claude", "openai", "deepseek", "ollama"}
+    raw_provider = os.environ.get("LLM_PROVIDER", "")
+    if raw_provider:
+        # Guard against LLM_PROVIDER being set to a model name (e.g. "deepseek-v4-flash")
+        st.session_state["provider"] = raw_provider if raw_provider in _valid_providers else "deepseek"
     for env_var, ss_key in (
-        ("LLM_PROVIDER",    "provider"),
         ("ANTHROPIC_API_KEY", "claude_key"),
         ("OPENAI_API_KEY",    "openai_key"),
         ("DEEPSEEK_API_KEY",  "deepseek_key"),
@@ -1419,9 +1423,12 @@ def page_settings():
 
     st.divider()
     st.subheader("LLM Provider")
-    provider = st.radio("Provider", ["claude", "openai", "deepseek", "ollama"],
-                        index=["claude", "openai", "deepseek", "ollama"].index(
-                            st.session_state.get("provider", "deepseek")),
+    _providers = ["claude", "openai", "deepseek", "ollama"]
+    _cur_provider = st.session_state.get("provider", "deepseek")
+    if _cur_provider not in _providers:
+        _cur_provider = "deepseek"
+    provider = st.radio("Provider", _providers,
+                        index=_providers.index(_cur_provider),
                         horizontal=True)
     st.session_state.provider = provider
 
