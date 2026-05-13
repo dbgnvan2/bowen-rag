@@ -509,10 +509,17 @@ def _llm_stream(messages: list, system: str):
         url   = ss.get("ollama_url", "http://localhost:11434")
         model = ss.get("ollama_model", "qwen2.5:7b")
         full  = [{"role": "system", "content": system}] + messages
-        r = requests.post(f"{url.rstrip('/')}/api/chat",
-                          json={"model": model, "messages": full, "stream": True},
-                          stream=True, timeout=300)
-        r.raise_for_status()
+        try:
+            r = requests.post(f"{url.rstrip('/')}/api/chat",
+                              json={"model": model, "messages": full, "stream": True},
+                              stream=True, timeout=300)
+            r.raise_for_status()
+        except requests.exceptions.ConnectionError:
+            raise RuntimeError(
+                f"Cannot connect to Ollama at {url}. "
+                "Ollama must be running locally to use this provider. "
+                "Go to Settings and switch to DeepSeek, Claude, or OpenAI."
+            )
         for line in r.iter_lines():
             if line:
                 d = json.loads(line)
