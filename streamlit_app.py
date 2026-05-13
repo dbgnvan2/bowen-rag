@@ -565,6 +565,18 @@ def _init_session():
         if k not in st.session_state:
             st.session_state[k] = v
 
+    # Env vars always override stale session state for provider and keys.
+    # This prevents a browser session that had "ollama" selected from
+    # persisting that choice after a redeploy changes LLM_PROVIDER.
+    for env_var, ss_key in (
+        ("LLM_PROVIDER",    "provider"),
+        ("ANTHROPIC_API_KEY", "claude_key"),
+        ("OPENAI_API_KEY",    "openai_key"),
+        ("DEEPSEEK_API_KEY",  "deepseek_key"),
+    ):
+        if env_var in os.environ:
+            st.session_state[ss_key] = os.environ[env_var]
+
 
 def _check_auth():
     required = os.environ.get("APP_PASSWORD", "")
