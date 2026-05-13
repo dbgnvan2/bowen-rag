@@ -158,6 +158,76 @@ SYSTEM_PROMPT = (
     "treating them as equivalent would misrepresent the theory."
 )
 
+INTERVIEW_SYSTEM_PROMPT = (
+    SYSTEM_PROMPT + "\n\n"
+    "INTERACTION MODE: INTERVIEW\n"
+    "You are interviewing the user about their family system using Bowen Family Systems Theory "
+    "as your framework. Rules for this mode:\n"
+    "- Ask ONE focused question per turn. Never ask multiple questions at once.\n"
+    "- After the user responds, offer one brief reflection (1–2 sentences) grounded in the "
+    "retrieved source excerpts, then ask your next question.\n"
+    "- Ground your questions in specific Bowen concepts from the sources: differentiation of self, "
+    "triangles, nuclear family emotional system, family projection process, multigenerational "
+    "transmission, emotional cutoff, sibling position.\n"
+    "- If the user asks a direct question, answer it briefly from the sources then return to "
+    "your interviewing role.\n"
+    "- Do not lecture or give lengthy explanations unprompted. Keep your turn to one reflection + one question."
+)
+
+COACH_SYSTEM_PROMPT = (
+    SYSTEM_PROMPT + "\n\n"
+    "INTERACTION MODE: COACHING\n"
+    "You are a Bowen Family Systems Theory coach helping the user understand and apply the theory "
+    "to their own life and functioning. Rules for this mode:\n"
+    "- After each user message, offer one observation or reflection grounded in the retrieved "
+    "source excerpts, then ask ONE question that invites the user to go deeper.\n"
+    "- Help the user see their patterns through Bowen concepts in the sources: differentiation, "
+    "triangles, anxiety, emotional reactivity, cutoff, and so on.\n"
+    "- Be warm but non-directive. Do not tell the user what to do — ask questions that help them "
+    "think more clearly about their own functioning.\n"
+    "- When introducing a Bowen concept, briefly explain it from the source material and cite it "
+    "before applying it to the user's situation.\n"
+    "- Keep turns concise: 2–4 sentences of reflection + one question.\n"
+    "- If the user asks for information, provide it from the sources then return to coaching."
+)
+
+QUIZ_SYSTEM_PROMPT = (
+    SYSTEM_PROMPT + "\n\n"
+    "INTERACTION MODE: QUIZ\n"
+    "You are quizzing the user on Bowen Family Systems Theory, drawing exclusively from the "
+    "retrieved source excerpts. Rules for this mode:\n"
+    "- Ask ONE question per turn. Wait for the user's answer before proceeding.\n"
+    "- Base every question directly on content in the provided source excerpts.\n"
+    "- After the user answers, give brief feedback: correct, partially correct, or incorrect. "
+    "Explain using the source and cite it in brackets. Then immediately ask the next question.\n"
+    "- Vary question types across the session: definition, application, true/false, "
+    "fill-in-the-blank, compare and contrast.\n"
+    "- Progress from foundational to more nuanced concepts as the session continues.\n"
+    "- After each answer, report the running score (e.g. '2 out of 3 correct so far').\n"
+    "- If the user says they don't know or want to skip, give the answer from the source and move on."
+)
+
+_CHAT_MODE_OPENINGS = {
+    "Interview": (
+        "I'd like to explore your family system with you through the lens of Bowen theory. "
+        "I'll ask one question at a time — there are no right or wrong answers, "
+        "just an opportunity to look at patterns.\n\n"
+        "**To begin: how would you describe the emotional climate in your family of origin?**"
+    ),
+    "Coach": (
+        "I'm here to help you apply Bowen Family Systems Theory to your own thinking and functioning. "
+        "I'll draw strictly from Bowen's framework as he and Kerr described it — "
+        "reflecting what I hear and asking questions to help you go deeper.\n\n"
+        "**What aspect of your own functioning or your family system would you most like to understand better?**"
+    ),
+    "Quiz": (
+        "Let's test your knowledge of Bowen Family Systems Theory. "
+        "I'll ask one question at a time drawn from the source material, "
+        "give you feedback after each answer, and track your score.\n\n"
+        "Type **start** (or anything) and I'll ask your first question."
+    ),
+}
+
 CLAUDE_MODELS = [
     "claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5",
     "claude-opus-4-6", "claude-opus-4-5", "claude-sonnet-4-5",
@@ -558,8 +628,9 @@ def _init_session():
         "ollama_model":    os.environ.get("OLLAMA_MODEL", "qwen2.5:7b"),
         "deepseek_key":    os.environ.get("DEEPSEEK_API_KEY", ""),
         "deepseek_model":  os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash"),
-        "system_prompt":       SYSTEM_PROMPT,
-        "default_search_mode": "hybrid",
+        "system_prompt":           SYSTEM_PROMPT,
+        "default_search_mode":     "hybrid",
+        "chat_interaction_mode":   "Standard",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -895,7 +966,41 @@ def page_search(idx: IndexManager):
 def page_chat(idx: IndexManager):
     st.header("Chat")
 
-    # Single compact row — all options on one line
+    # ── Interaction mode selector ─────────────────────────────────────────────
+    _interaction_modes = ["Standard", "Interview", "Coach", "Quiz"]
+    _prev_mode = st.session_state.get("chat_interaction_mode", "Standard")
+    _mode_descriptions = {
+        "Standard":  "Ask questions; the AI answers from the source corpus.",
+        "Interview": "The AI interviews you about your family system using Bowen concepts.",
+        "Coach":     "The AI coaches you in applying Bowen theory to your own functioning.",
+        "Quiz":      "The AI quizzes you on Bowen theory, one question at a time with scoring.",
+    }
+    im_col, imdesc_col = st.columns([2, 5])
+    with im_col:
+        _selected_mode = st.selectbox(
+            "Mode",
+            _interaction_modes,
+            index=_interaction_modes.index(_prev_mode),
+            key="chat_interaction_mode_sel",
+        )
+    with imdesc_col:
+        st.write("")
+        st.caption(_mode_descriptions[_selected_mode])
+
+    if _selected_mode != _prev_mode:
+        st.session_state["chat_interaction_mode"] = _selected_mode
+        opening = _CHAT_MODE_OPENINGS.get(_selected_mode)
+        st.session_state.chat_history = (
+            [{"role": "assistant", "content": opening, "sources": []}]
+            if opening else []
+        )
+        st.rerun()
+
+    _chat_mode = st.session_state.get("chat_interaction_mode", "Standard")
+
+    st.divider()
+
+    # Single compact row — retrieval options
     cc1, cc2, cc3, cc4, cc5, cc6 = st.columns([2, 1, 1, 2, 1, 1])
 
     chat_mode_opts = ["top-docs", "semantic", "keyword", "both"]
@@ -955,7 +1060,13 @@ def page_chat(idx: IndexManager):
                                 _show_section_dialog()
 
     # Input
-    if prompt := st.chat_input("Ask about Bowen theory…"):
+    _placeholders = {
+        "Standard":  "Ask about Bowen theory…",
+        "Interview": "Respond to the question above…",
+        "Coach":     "Share what's on your mind…",
+        "Quiz":      "Type your answer…",
+    }
+    if prompt := st.chat_input(_placeholders.get(_chat_mode, "Ask about Bowen theory…")):
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -1009,7 +1120,15 @@ def page_chat(idx: IndexManager):
             {"role": "user", "content": current_content}
         ]
 
-        system = st.session_state.get("system_prompt", SYSTEM_PROMPT)
+        _mode_systems = {
+            "Interview": INTERVIEW_SYSTEM_PROMPT,
+            "Coach":     COACH_SYSTEM_PROMPT,
+            "Quiz":      QUIZ_SYSTEM_PROMPT,
+        }
+        system = _mode_systems.get(
+            st.session_state.get("chat_interaction_mode", "Standard"),
+            st.session_state.get("system_prompt", SYSTEM_PROMPT),
+        )
 
         with st.chat_message("assistant"):
             try:

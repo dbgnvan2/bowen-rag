@@ -111,6 +111,21 @@ Check the boxes on results you want to use, then click **Stage selected for Repo
 
 **When to use Report instead:** You want a structured, citable document suitable for sharing or saving.
 
+### Chat interaction modes
+
+The **Mode** selector at the top of the Chat page changes how the AI engages with you. Switching modes clears the current conversation and starts a fresh session in the new mode.
+
+| Mode | When to use it | What the AI does |
+|---|---|---|
+| **Standard** | Research questions, looking something up, exploring a topic | Answers your questions from the retrieved source corpus. Default mode. |
+| **Interview** | Exploring your own family system, reflective self-study | Takes the role of interviewer — asks one focused question at a time, reflects your answers back through Bowen theory concepts, then asks the next question. You respond; it asks. |
+| **Coach** | Applying Bowen theory to your own functioning or clinical work | Acts as a Bowen-informed coach — offers one observation grounded in the sources, then asks one question to help you go deeper. Non-directive: it helps you think, not tells you what to do. |
+| **Quiz** | Testing your knowledge of Bowen theory, studying for clinical work | Asks one question at a time drawn from the source material, evaluates your answer against the sources, gives feedback with citations, and tracks your running score. |
+
+**Interview and Coach modes** are grounded in the same source corpus as Standard mode — the AI's questions and reflections draw from Bowen and Kerr's actual writing, not generic therapy frameworks.
+
+**Quiz mode** generates questions directly from retrieved source excerpts, so questions vary based on what the corpus contains on the topic you seed the conversation with.
+
 ### How Chat works
 
 Each message you send triggers a fresh search of the corpus. The retrieved chunks are included as context for the AI's answer for that turn only — they are not stored in conversation history. Prior turns are kept as bare question-and-answer pairs, so the conversation context grows slowly regardless of how long the conversation goes.
