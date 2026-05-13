@@ -212,7 +212,7 @@ _CHAT_MODE_OPENINGS = {
         "I'd like to explore your family system with you through the lens of Bowen theory. "
         "I'll ask one question at a time — there are no right or wrong answers, "
         "just an opportunity to look at patterns.\n\n"
-        "**To begin: how would you describe the emotional climate in your family of origin?**"
+        "**Where would you like to start?**"
     ),
     "Coach": (
         "I'm here to help you apply Bowen Family Systems Theory to your own thinking and functioning. "
