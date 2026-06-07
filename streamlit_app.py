@@ -692,37 +692,31 @@ def _check_auth():
 
 
 def _gather_chunks(idx: IndexManager, query: str) -> list:
-    ss        = st.session_state
+    """If staged chunks exist, use only those. Otherwise, retrieve fresh."""
+    ss     = st.session_state
+    staged = ss.get("staged_chunks", [])
+
+    # If user staged chunks, use ONLY those (don't retrieve fresh)
+    if staged:
+        return staged
+
+    # Otherwise, retrieve fresh chunks based on query
     mode      = ss.get("rpt_mode", "top-docs")
     k         = ss.get("rpt_k", 30)
     use_boost = ss.get("rpt_boost", True)
 
     if "top-docs" in mode:
-        fresh = idx.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=use_boost)
+        return idx.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=use_boost)
     elif mode == "semantic":
-        fresh = idx.semantic_search(query, k, use_boost=use_boost)
+        return idx.semantic_search(query, k, use_boost=use_boost)
     elif mode == "keyword":
-        fresh = idx.keyword_search(query, k, use_boost=use_boost)
+        return idx.keyword_search(query, k, use_boost=use_boost)
     elif mode == "embedding":
-        fresh = idx.embedding_search(query, k, use_boost=use_boost)
+        return idx.embedding_search(query, k, use_boost=use_boost)
     elif mode == "hybrid":
-        fresh = idx.hybrid_search(query, k, use_boost=use_boost)
+        return idx.hybrid_search(query, k, use_boost=use_boost)
     else:
-        fresh = idx.combined_search(query, k, use_boost=use_boost)
-
-    staged = ss.get("staged_chunks", [])
-    if not staged:
-        return fresh
-
-    seen: set = set()
-    merged: list = []
-    for c in staged + fresh:
-        key = c.get("id") if c.get("id") is not None else c.get("doc_name", "")
-        if key in seen:
-            continue
-        seen.add(key)
-        merged.append(c)
-    return merged
+        return idx.combined_search(query, k, use_boost=use_boost)
 
 
 def _format_chunk_text(text: str) -> str:
@@ -740,6 +734,136 @@ def _format_chunk_text(text: str) -> str:
         if para:
             cleaned.append(para)
     return '\n\n'.join(cleaned)
+
+
+# ─── Export converters ──────────────────────────────────────────────────────
+def md_to_docx_bytes(md_text: str, title: str = "Bowen Report") -> bytes:
+    """Convert markdown text to a .docx file, returned as bytes."""
+    from docx import Document
+    from docx.shared import Pt, RGBColor
+    from io import BytesIO
+
+    doc = Document()
+    style = doc.styles['Normal']
+    style.font.name = 'Calibri'
+    style.font.size = Pt(11)
+
+    for raw_line in md_text.split('\n'):
+        line = raw_line.rstrip()
+        if not line.strip():
+            doc.add_paragraph()
+            continue
+        # Headings
+        if line.startswith('### '):
+            doc.add_heading(line[4:].strip(), level=3)
+        elif line.startswith('## '):
+            doc.add_heading(line[3:].strip(), level=2)
+        elif line.startswith('# '):
+            doc.add_heading(line[2:].strip(), level=1)
+        # Bullet lists
+        elif line.lstrip().startswith('- ') or line.lstrip().startswith('* '):
+            text = line.lstrip()[2:].strip()
+            doc.add_paragraph(_clean_md_inline(text), style='List Bullet')
+        # Numbered lists (1. 2. etc.)
+        elif re.match(r'^\d+\.\s', line.lstrip()):
+            text = re.sub(r'^\d+\.\s', '', line.lstrip())
+            doc.add_paragraph(_clean_md_inline(text), style='List Number')
+        # Horizontal rule
+        elif line.strip() == '---':
+            doc.add_paragraph('_' * 40)
+        else:
+            p = doc.add_paragraph()
+            _add_runs_with_formatting(p, line)
+
+    buf = BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+def _clean_md_inline(text: str) -> str:
+    """Strip basic markdown inline formatting markers."""
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = re.sub(r'`(.+?)`', r'\1', text)
+    return text
+
+
+def _add_runs_with_formatting(paragraph, text: str) -> None:
+    """Add text to a docx paragraph, handling **bold** and *italic* inline."""
+    # Pattern to split on **bold** and *italic*
+    pattern = re.compile(r'(\*\*[^*]+\*\*|\*[^*]+\*)')
+    parts = pattern.split(text)
+    for part in parts:
+        if not part:
+            continue
+        if part.startswith('**') and part.endswith('**'):
+            run = paragraph.add_run(part[2:-2])
+            run.bold = True
+        elif part.startswith('*') and part.endswith('*'):
+            run = paragraph.add_run(part[1:-1])
+            run.italic = True
+        else:
+            paragraph.add_run(part)
+
+
+def md_to_pdf_bytes(md_text: str, title: str = "Bowen Report") -> bytes:
+    """Convert markdown text to a PDF file, returned as bytes."""
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, ListItem
+    from reportlab.lib.enums import TA_LEFT
+    from io import BytesIO
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=letter,
+                            leftMargin=0.75*inch, rightMargin=0.75*inch,
+                            topMargin=0.75*inch, bottomMargin=0.75*inch)
+    styles = getSampleStyleSheet()
+    body_style = ParagraphStyle('Body', parent=styles['Normal'],
+                                fontSize=11, leading=15, spaceAfter=6)
+    h1_style = ParagraphStyle('H1', parent=styles['Heading1'],
+                              fontSize=18, leading=22, spaceBefore=12, spaceAfter=8)
+    h2_style = ParagraphStyle('H2', parent=styles['Heading2'],
+                              fontSize=15, leading=19, spaceBefore=10, spaceAfter=6)
+    h3_style = ParagraphStyle('H3', parent=styles['Heading3'],
+                              fontSize=13, leading=17, spaceBefore=8, spaceAfter=4)
+
+    story = []
+    for raw_line in md_text.split('\n'):
+        line = raw_line.rstrip()
+        if not line.strip():
+            story.append(Spacer(1, 6))
+            continue
+        # Escape HTML special chars for reportlab
+        def fmt(t):
+            t = (t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
+            # Bold
+            t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', t)
+            # Italic
+            t = re.sub(r'\*([^*]+?)\*', r'<i>\1</i>', t)
+            return t
+
+        if line.startswith('### '):
+            story.append(Paragraph(fmt(line[4:].strip()), h3_style))
+        elif line.startswith('## '):
+            story.append(Paragraph(fmt(line[3:].strip()), h2_style))
+        elif line.startswith('# '):
+            story.append(Paragraph(fmt(line[2:].strip()), h1_style))
+        elif line.lstrip().startswith('- ') or line.lstrip().startswith('* '):
+            text = line.lstrip()[2:].strip()
+            story.append(Paragraph('• ' + fmt(text), body_style))
+        elif re.match(r'^\d+\.\s', line.lstrip()):
+            story.append(Paragraph(fmt(line.lstrip()), body_style))
+        elif line.strip() == '---':
+            story.append(Spacer(1, 6))
+            story.append(Paragraph('_' * 60, body_style))
+            story.append(Spacer(1, 6))
+        else:
+            story.append(Paragraph(fmt(line), body_style))
+
+    doc.build(story)
+    return buf.getvalue()
 
 
 @st.dialog("Section text", width="large")
@@ -875,8 +999,8 @@ def page_search(idx: IndexManager):
         use_boost = st.checkbox(
             "Authority boost", value=True,
             help=(
-                "Multiplies scores for primary Bowen/Kerr sources (3×), "
-                "FSJ articles (1.3×), and other named theorists (1.15×)."
+                "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources. "
+                "Primary Bowen/Kerr sources (3×), FSJ articles (1.3×), and other named theorists (1.15×)."
             ),
         )
 
@@ -925,13 +1049,15 @@ def page_search(idx: IndexManager):
                 del st.session_state[key]
 
         st.session_state.search_results = results
+        # Sync boost setting to Report tab
+        st.session_state.rpt_boost = use_boost
 
     with results_col:
         results = st.session_state.get("search_results", [])
         if not results:
             st.info("Run a search to see results.")
         else:
-            sel_col1, sel_col2, sel_col3 = st.columns(3)
+            sel_col1, sel_col2, sel_col3, sel_col4 = st.columns([1, 1, 1.5, 0.5])
             with sel_col1:
                 if st.button("Select All"):
                     for i, r in enumerate(results):
@@ -945,7 +1071,7 @@ def page_search(idx: IndexManager):
             with sel_col3:
                 if st.button(
                     "Stage selected for Report", type="primary",
-                    help="Save checked results to merge into a Report alongside fresh retrieval.",
+                    help="Save checked results to include in a Report. Optional — you can also go to Report and do a fresh retrieval.",
                 ):
                     selected = [results[i] for i, r in enumerate(results)
                                 if st.session_state.get(f"sel_{r.get('id', i)}", False)]
@@ -954,6 +1080,30 @@ def page_search(idx: IndexManager):
                         st.success(f"{len(selected)} chunks staged.")
                     else:
                         st.warning("Select at least one result first.")
+            with sel_col4:
+                if st.button("?", key="help_stage_workflow", use_container_width=True):
+                    st.session_state["show_stage_help"] = not st.session_state.get("show_stage_help", False)
+                    st.rerun()
+
+            if st.session_state.get("show_stage_help", False):
+                st.info(
+                    "**Report Workflow Options:**\n\n"
+                    "**Option 1: Fresh Retrieval (recommended for most queries)**\n"
+                    "1. Run a search to find relevant sources\n"
+                    "2. Go to the Report tab\n"
+                    "3. Enter your topic and click \"Generate Report\"\n"
+                    "4. Report retrieves fresh chunks for that query\n\n"
+                    "**Option 2: Use Selected Results**\n"
+                    "1. Run a search\n"
+                    "2. Use Select/Clear to filter results\n"
+                    "3. Click \"Stage selected for Report\" to save them\n"
+                    "4. Go to Report tab and generate\n"
+                    "5. Report combines your staged chunks + fresh retrieval\n\n"
+                    "**When to stage:**\n"
+                    "✓ You found specific sources you want to highlight\n"
+                    "✓ You want to pre-filter low-quality results\n"
+                    "✗ You just want fresh results—no need to stage"
+                )
 
             _rc, _hc = st.columns([9, 1])
             with _rc:
@@ -1040,7 +1190,13 @@ def page_chat(idx: IndexManager):
         chat_k = st.number_input("Chunks", min_value=3, max_value=100, value=12,
                                  key="chat_k_inp")
     with cc3:
-        chat_boost = st.checkbox("Boost", value=True, key="chat_boost_cb")
+        chat_boost = st.checkbox(
+            "Boost", value=True, key="chat_boost_cb",
+            help=(
+                "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources. "
+                "Primary Bowen/Kerr sources 3×, FSJ articles 1.3×, other named theorists 1.15×."
+            ),
+        )
     with cc4:
         chat_authors = ["All authors"] + all_known_authors()
         chat_author  = st.selectbox("Author", chat_authors, key="chat_author_sel")
@@ -1248,14 +1404,15 @@ def page_report(idx: IndexManager):
 
     cb1, cb2 = st.columns(2)
     with cb1:
-        rpt_boost = st.checkbox(
-            "Authority boost", value=True,
+        # Use session state as the source of truth for boost setting
+        st.session_state.rpt_boost = st.checkbox(
+            "Authority boost",
+            value=st.session_state.get("rpt_boost", True),
             help=(
-                "Apply authority weighting when retrieving chunks. "
+                "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources. "
                 "Primary Bowen/Kerr sources 3×, FSJ articles 1.3×, other named theorists 1.15×."
             ),
         )
-        st.session_state.rpt_boost = rpt_boost
     with cb2:
         include_appendix = st.checkbox(
             "Include sources as Appendix",
@@ -1264,7 +1421,7 @@ def page_report(idx: IndexManager):
 
     staged = st.session_state.get("staged_chunks", [])
     if staged:
-        st.info(f"{len(staged)} chunks staged from Search will be merged with fresh retrieval.")
+        st.info(f"{len(staged)} chunks staged from Search will make up this report.")
         if st.button("Clear staged"):
             st.session_state.staged_chunks = []
             st.rerun()
@@ -1313,7 +1470,7 @@ def page_report(idx: IndexManager):
         context = "\n\n---\n\n".join(context_parts)
         st.session_state.last_rpt_context = context
 
-        prompt = f"""Write a detailed report on the following topic using ONLY the source excerpts provided below.
+        prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
 
 **Topic / Question:** {query}
 
@@ -1330,34 +1487,40 @@ def page_report(idx: IndexManager):
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
 - **Every factual claim must be cited** immediately after the claim using the reference number in brackets, e.g. [1] or [3].
-- Write at least {target_words} words. Develop each section fully using evidence from the excerpts.
+- Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
 
 ## REPORT STRUCTURE
 
-1. **Introduction & Definition**
-2. **Theoretical Foundations**
-3. **Key Dimensions**
-4. **Relationship to Other Bowen Concepts**
-5. **Clinical Presentation**
-6. **Clinical Implications & Therapeutic Approach**
-7. **Direct Quotations & Illustrations**
-8. **Gaps & Limitations**
-9. **References** — reproduce the numbered reference list verbatim
+### 1. Executive Summary (300–500 words)
+A concise overview of the topic drawing from the sources. Mention key themes, major concepts, and main findings. This should give the reader a complete but brief understanding of the topic.
 
-## References
+### 2. Full Report
+Develop the topic in depth with these sections:
+
+1. **Introduction & Definition** — what do the sources say this concept is?
+2. **Theoretical Foundations** — how do the sources describe its origins and place in Bowen theory?
+3. **Key Dimensions** — what distinct aspects or components do the sources identify?
+4. **Relationship to Other Bowen Concepts** — what connections do the sources explicitly draw?
+5. **Clinical Presentation** — how do the sources describe this appearing in families or individuals?
+6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
+7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
+8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
+
+**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [1], [2], etc. for inline citations throughout your report, using the numbers from the source list below.
+
+## Source numbers (for inline citations only — do NOT reproduce this list in your output)
 {refs_md}
 """
-
-        st.subheader("References")
-        st.text(refs_md)
-        st.divider()
 
         st.subheader("Report")
         system = st.session_state.get("system_prompt", SYSTEM_PROMPT)
         try:
             result = st.write_stream(_llm_stream(
                 [{"role": "user", "content": prompt}], system))
-            st.session_state.last_report = result
+            # Append references at the end (single source of truth)
+            refs_section = f"\n\n## References\n\n{refs_md}\n"
+            st.markdown(refs_section)
+            st.session_state.last_report = result + refs_section
         except Exception as e:
             st.error(f"LLM error: {e}")
             return
@@ -1391,17 +1554,52 @@ def page_report(idx: IndexManager):
         with st.expander("Appendix: Source Texts"):
             st.markdown(st.session_state.last_rpt_appendix)
 
-    # Download button — includes appendix when present
+    # Download buttons — includes appendix when present
     if st.session_state.get("last_report"):
         full_download = st.session_state.last_report
         if st.session_state.get("last_rpt_appendix"):
             full_download += "\n\n" + st.session_state.last_rpt_appendix
-        st.download_button(
-            "Download report as .md",
-            data=full_download,
-            file_name="bowen_report.md",
-            mime="text/markdown",
-        )
+
+        # Build a filename stem from the topic
+        topic_stub = (st.session_state.get("last_search_query", "bowen_report")
+                      .strip()[:50].replace(" ", "_").replace("/", "-").replace(":", ""))
+        if not topic_stub:
+            topic_stub = "bowen_report"
+
+        st.markdown("**Download Report**")
+        dl1, dl2, dl3 = st.columns(3)
+        with dl1:
+            st.download_button(
+                "📄 Markdown (.md)",
+                data=full_download,
+                file_name=f"{topic_stub}.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+        with dl2:
+            try:
+                docx_bytes = md_to_docx_bytes(full_download)
+                st.download_button(
+                    "📝 Word (.docx)",
+                    data=docx_bytes,
+                    file_name=f"{topic_stub}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True,
+                )
+            except Exception as e:
+                st.warning(f"Word export unavailable: {e}")
+        with dl3:
+            try:
+                pdf_bytes = md_to_pdf_bytes(full_download)
+                st.download_button(
+                    "📕 PDF (.pdf)",
+                    data=pdf_bytes,
+                    file_name=f"{topic_stub}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                )
+            except Exception as e:
+                st.warning(f"PDF export unavailable: {e}")
 
 
 def page_settings():

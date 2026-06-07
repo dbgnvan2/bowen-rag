@@ -74,11 +74,13 @@ Choose the mode that matches how you are thinking about your question.
 
 ### Authority boost
 
-The **Authority boost** checkbox multiplies scores for primary sources before ranking. This means a passage from a Bowen lecture tape or the Bowen-Kerr interview series ranks above an equivalent passage from a secondary paper, all else being equal.
+The **Authority boost** checkbox prioritizes Bowen, Kerr, and Papero as sources, but does **not** eliminate other sources. It multiplies scores for primary sources before ranking. This means a passage from a Bowen lecture tape or the Bowen-Kerr interview series ranks above an equivalent passage from a secondary paper, all else being equal.
 
 **When to leave it on (default):** Most research — you want primary Bowen and Kerr material to surface first.
 
 **When to turn it off:** You want to compare all sources on equal footing, or you are specifically looking for secondary commentary and primary sources are crowding out the results.
+
+**Carries over to Report:** If you turn off Authority boost on the Search page, the Report page will use the same setting automatically. You don't need to set it twice.
 
 See [Authority Tiers](#authority-tiers) for the exact multipliers.
 
@@ -101,7 +103,15 @@ Click **↗** on any result card to open the full section text in a popup. The p
 
 ### Staging results for a Report
 
-Check the boxes on results you want to use, then click **Stage selected for Report**. Staged chunks appear on the Report page and are merged with any fresh retrieval you do there. This lets you hand-pick the most relevant passages and supplement them with additional retrieval.
+Staging is **optional**. You have two ways to feed sources into a Report:
+
+**Option 1 — Fresh retrieval (simplest):**
+Run a Search, then go directly to the Report page, enter your topic, and click Generate. The Report retrieves its own fresh chunks based on your topic.
+
+**Option 2 — Stage specific results:**
+Check the boxes on results you want to use, then click **Stage selected for Report**. The Report will use **only those staged chunks** — it does NOT do an additional fresh search. Use this when you've already found the specific sources you want to highlight.
+
+When staged chunks are present, the Report page shows: *"N chunks staged from Search will make up this report."*
 
 ---
 
@@ -162,12 +172,20 @@ If you see this warning, consider:
 | **Mode** | Which search method to use for retrieval | Hybrid or Embedding for nuanced topics; Keyword for reports built around specific terms or names. |
 | **Target words** | Minimum word count for the generated report | 400–600 for a summary; 800–1200 for a detailed synthesis. The AI will expand to this length using only the provided sources. |
 | **Chunks per source** | How many text chunks to include per source document | 1–2 for broad coverage; 3–4 when you want depth on each source. Higher values use more of the context window. |
-| **Authority boost** | Apply source authority multipliers before retrieval | Leave on for most reports; turn off when you specifically want secondary sources included on equal footing. |
-| **Include sources as Appendix** | Append full section texts after the report body | Use when you want a self-contained document with all sources readable in one place. Adds significant length. Included in the downloaded `.md` file. |
+| **Authority boost** | Prioritizes Bowen, Kerr, Papero as sources (does not eliminate other sources) | Leave on for most reports; turn off when you specifically want secondary sources included on equal footing. Carries over from the Search page automatically. |
+| **Include sources as Appendix** | Append full section texts after the report body | Use when you want a self-contained document with all sources readable in one place. Adds significant length. Included in the downloaded file. |
+
+### Report structure
+
+Generated reports follow this three-part structure:
+
+1. **Executive Summary** (300–500 words) — concise overview of the topic for quick reading
+2. **Full Report** — in-depth treatment with sections covering Introduction & Definition, Theoretical Foundations, Key Dimensions, Relationships to Other Concepts, Clinical Presentation, Clinical Implications, Direct Quotations, and Gaps & Limitations
+3. **References** — numbered list of source documents (appears once, at the end)
 
 ### Staged chunks
 
-If you staged chunks from the Search page, they appear listed above the Generate button. They will be merged with any fresh retrieval when the report is generated. Remove staged chunks by clearing them in the Search page before navigating here.
+If you staged chunks from the Search page, they appear listed above the Generate button. The report will be built using **only those staged chunks** — no additional fresh search will be performed. To use fresh retrieval instead, clear the staged chunks.
 
 ### Audit: show chunks sent to LLM
 
@@ -175,7 +193,19 @@ After generating, expand **Audit: show chunks sent to LLM** to see exactly what 
 
 ### Downloading a report
 
-Click **Download report** after generating to save the report as a `.md` file. If **Include sources as Appendix** was checked, the appendix is included in the download.
+After generating, three download buttons appear at the bottom of the Report page:
+
+| Format | Use it for |
+|---|---|
+| 📄 **Markdown (`.md`)** | Editing in a text editor, sharing with anyone, version-controlling, or further processing. The original format. |
+| 📝 **Word (`.docx`)** | Sharing with colleagues, opening in Microsoft Word / Google Docs / Pages. Headings, bold, italics, bullet lists, and numbered lists are preserved with native Word styles. |
+| 📕 **PDF (`.pdf`)** | Archival, printing, distributing read-only. Formatted with proper heading sizes, spacing, and styling. |
+
+Filenames are auto-generated from your topic (e.g., `triangles_in_bowen_theory.docx`).
+
+If **Include sources as Appendix** was checked, the appendix is included in all three download formats.
+
+In the desktop GUI, click **Save (.md / .docx / .pdf)** and choose the format in the file dialog — the format is detected from the file extension you choose.
 
 ---
 

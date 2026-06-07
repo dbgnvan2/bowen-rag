@@ -10,3 +10,5 @@ pyyaml
 rank-bm25
 streamlit
 python-dotenv
+python-docx
+reportlab

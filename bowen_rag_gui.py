@@ -1126,8 +1126,14 @@ class App:
 
         ttk.Button(lf, text="Search", style="Accent.TButton",
                    command=self._do_search).pack(fill="x", pady=(0, 4))
-        ttk.Checkbutton(lf, text="Authority boost (primary sources ranked higher)",
-                        variable=self._use_boost).pack(anchor="w", pady=(0, 4))
+        boost_row = ttk.Frame(lf)
+        boost_row.pack(anchor="w", pady=(0, 4))
+        ttk.Checkbutton(boost_row, text="Authority boost (primary sources ranked higher)",
+                        variable=self._use_boost).pack(side="left")
+        help_btn(boost_row,
+            "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
+            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            self._bg).pack(side="left", padx=(2, 0))
 
         ttk.Separator(lf).pack(fill="x", pady=6)
         ttk.Label(lf, text="Selection:").pack(anchor="w")
@@ -1139,9 +1145,16 @@ class App:
         self._sel_lbl = ttk.Label(lf, text="0 selected", style="Info.TLabel")
         self._sel_lbl.pack(anchor="w", pady=4)
 
-        ttk.Button(lf, text="→ Send to Report",
+        send_row = ttk.Frame(lf)
+        send_row.pack(fill="x", pady=(6, 2))
+        ttk.Button(send_row, text="→ Send to Report",
                    style="Accent.TButton",
-                   command=self._send_to_report).pack(fill="x", pady=(6, 2))
+                   command=self._send_to_report).pack(side="left", fill="x", expand=True)
+        help_btn(send_row,
+            "Optional: Send selected results to Report.\n\n"
+            "You can also skip this and go directly to the Report tab to do a fresh retrieval.\n\n"
+            "Use this when you found specific sources you want to highlight or pre-filtered results.",
+            self._bg).pack(side="left", padx=(4, 0))
 
         # ── Right results + preview ──────────────────────────────────────────
         rf = ttk.Frame(f)
@@ -1232,6 +1245,8 @@ class App:
             results = [r for r in results if doc_author(r["doc_name"]) == author]
 
         self.search_results = results
+        # Sync boost setting to Report tab
+        self._rpt_use_boost.set(boost)
         self._render_results(results)
         author_tag = f"  ·  {author}" if author and author != "All authors" else ""
         self._set_status(f"{len(results)} results for: \"{query}\"{author_tag}")
@@ -1332,7 +1347,7 @@ class App:
         self._staged_chunks = chunks
         self._nb.select(3)   # jump to Report tab
         self._rpt_staged_lbl.config(
-            text=f"{len(chunks)} chunks pre-loaded from Search ({len(set(c['doc_name'] for c in chunks))} docs)")
+            text=f"{len(chunks)} chunks staged from Search will make up this report ({len(set(c['doc_name'] for c in chunks))} docs)")
         self._set_status(f"Sent {len(chunks)} chunks to Report tab.")
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -1839,8 +1854,14 @@ class App:
             "specific terms not captured by TF-IDF.\n\n"
             "• both — merges semantic and keyword results.",
             self._bg).pack(side="left", padx=2)
-        ttk.Checkbutton(r2, text="Authority boost",
-                        variable=self._rpt_use_boost).pack(side="left", padx=(16, 0))
+        boost_r2 = ttk.Frame(r2, style='TFrame')
+        boost_r2.pack(side="left", padx=(16, 0))
+        ttk.Checkbutton(boost_r2, text="Authority boost",
+                        variable=self._rpt_use_boost).pack(side="left")
+        help_btn(boost_r2,
+            "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
+            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            self._bg).pack(side="left", padx=(2, 0))
 
         # Row 3 — Target length + chunks per source
         r3 = tk.Frame(qf, bg=self._bg)
@@ -1893,13 +1914,13 @@ class App:
                    command=self._show_rpt_context).pack(side="left", padx=4)
         ttk.Button(btn_row, text="Clear staged chunks",
                    command=self._clear_staged).pack(side="left", padx=4)
-        ttk.Button(btn_row, text="Save as .md",
+        ttk.Button(btn_row, text="Save (.md / .docx / .pdf)",
                    command=self._save_report).pack(side="left", padx=4)
         ttk.Button(btn_row, text="Copy to Clipboard",
                    command=self._copy_report).pack(side="left", padx=4)
 
-        # Reference list
-        rf = ttk.LabelFrame(f, text="Reference List  (documents used)", padding=6)
+        # Quick-reference preview of documents being used (appears in report at end)
+        rf = ttk.LabelFrame(f, text="Documents Used  (preview — full list appears at end of report)", padding=6)
         rf.grid(row=1, column=0, sticky="ew", padx=8, pady=(4, 0))
         rf.columnconfigure(0, weight=1)
 
@@ -1924,40 +1945,31 @@ class App:
         self._rpt_staged_lbl.config(text="")
 
     def _gather_chunks(self, query: str) -> list:
-        """Always retrieve fresh up to Retrieve-top; merge staged chunks in as additional context."""
+        """If staged chunks exist, use only those. Otherwise, retrieve fresh."""
         if not self.index.loaded:
             raise RuntimeError("Index not loaded.")
 
+        # If user staged chunks, use ONLY those (don't retrieve fresh)
+        if self._staged_chunks:
+            return self._staged_chunks
+
+        # Otherwise, retrieve fresh chunks based on query
         mode      = self._rpt_mode.get()
         k         = self._rpt_k.get()
         use_boost = self._rpt_use_boost.get()
 
         if "top-docs" in mode:
-            fresh = self.index.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=use_boost)
+            return self.index.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=use_boost)
         elif mode == "semantic":
-            fresh = self.index.semantic_search(query, k, use_boost=use_boost)
+            return self.index.semantic_search(query, k, use_boost=use_boost)
         elif mode == "keyword":
-            fresh = self.index.keyword_search(query, k, use_boost=use_boost)
+            return self.index.keyword_search(query, k, use_boost=use_boost)
         elif mode == "embedding":
-            fresh = self.index.embedding_search(query, k, use_boost=use_boost)
+            return self.index.embedding_search(query, k, use_boost=use_boost)
         elif mode == "hybrid":
-            fresh = self.index.hybrid_search(query, k, use_boost=use_boost)
+            return self.index.hybrid_search(query, k, use_boost=use_boost)
         else:
-            fresh = self.index.combined_search(query, k, use_boost=use_boost)
-
-        if not self._staged_chunks:
-            return fresh
-
-        # Merge: staged chunks first (user-pinned), then fresh results, deduplicated by chunk id
-        seen: set = set()
-        merged: list = []
-        for c in self._staged_chunks + fresh:
-            key = c.get("id") if c.get("id") is not None else c.get("doc_name", "")
-            if key in seen:
-                continue
-            seen.add(key)
-            merged.append(c)
-        return merged
+            return self.index.combined_search(query, k, use_boost=use_boost)
 
     def _generate_report(self):
         query = self._rpt_q.get("1.0", "end-1c").strip()
@@ -2018,7 +2030,7 @@ class App:
             f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         target_wc = self._rpt_words.get()
 
-        prompt = f"""Write a detailed report on the following topic using ONLY the source excerpts provided below.
+        prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
 
 **Topic / Question:** {query}
 
@@ -2037,11 +2049,17 @@ class App:
 - **Every factual claim must be cited** immediately after the claim using the reference number in brackets, e.g. [1] or [3]. Use the numbers shown in the source headers above — do NOT use document names in citations.
 - **Do not paraphrase without attribution.** If you summarise a source's position, cite it by number.
 - If sources disagree or use different language for the same idea, quote both and note the difference — do not resolve it yourself.
-- Write at least {target_wc} words. Develop each section fully using evidence from the excerpts.
+- Write at least {target_wc} words total. Develop each section fully using evidence from the excerpts.
 
 ## REPORT STRUCTURE
 
-Produce a well-structured Markdown report with these sections, each developed in depth:
+Produce a well-structured Markdown report with this structure:
+
+### 1. Executive Summary (300–500 words)
+A concise overview of the topic drawing from the sources. Mention key themes, major concepts, and main findings. This should give the reader a complete but brief understanding of the topic.
+
+### 2. Full Report
+Develop the topic in depth with these sections:
 
 1. **Introduction & Definition** — what do the sources say this concept is?
 2. **Theoretical Foundations** — how do the sources describe its origins and place in Bowen theory?
@@ -2051,11 +2069,12 @@ Produce a well-structured Markdown report with these sections, each developed in
 6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
 7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
 8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
-9. **References** — reproduce the numbered reference list below verbatim
+
+**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [1], [2], etc. for inline citations throughout your report, using the numbers from the source list below.
 
 Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** for key terms from the sources.
 
-## References
+## Source numbers (for inline citations only — do NOT reproduce this list in your output)
 {refs_md}
 """
 
@@ -2095,7 +2114,10 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                     result = self.llm.call_ollama(
                         prompt, self.ollama_url.get(),
                         self.ollama_mdl.get(), sys_p, _on_token)
-                self._last_report = result
+                # Append references at the end (single source of truth)
+                refs_section = f"\n\n## References\n\n{refs_md}\n"
+                self.root.after(0, self._append_rpt, refs_section)
+                self._last_report = result + refs_section
                 self.root.after(0, self._set_status, "Report complete.")
             except Exception as e:
                 self.root.after(0, self._append_rpt, f"\n\n**[ERROR]** {e}\n")
@@ -2121,20 +2143,148 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
             initialdir=str(OUT_DIR),
             initialfile=default_name,
             defaultextension=".md",
-            filetypes=[("Markdown", "*.md"), ("Text", "*.txt"), ("All", "*")])
+            filetypes=[
+                ("Markdown", "*.md"),
+                ("Word Document", "*.docx"),
+                ("PDF", "*.pdf"),
+                ("Text", "*.txt"),
+                ("All", "*"),
+            ])
 
         if not path:
             return
 
-        refs = self._ref_box.get("1.0", "end").strip()
-        full  = f"---\ntopic: {topic}\ngenerated: {datetime.now():%Y-%m-%d %H:%M}\n---\n\n"
-        if refs:
-            full += f"## Source Documents\n\n{refs}\n\n---\n\n"
+        # References are already appended to the report content at the end.
+        # Don't prepend them again here.
+        full = f"---\ntopic: {topic}\ngenerated: {datetime.now():%Y-%m-%d %H:%M}\n---\n\n"
         full += content
 
-        Path(path).write_text(full, encoding="utf-8")
-        self._set_status(f"Saved: {path}")
-        messagebox.showinfo("Saved", f"Report saved to:\n{path}")
+        ext = Path(path).suffix.lower()
+        try:
+            if ext == ".docx":
+                self._export_docx(full, path)
+            elif ext == ".pdf":
+                self._export_pdf(full, path)
+            else:
+                Path(path).write_text(full, encoding="utf-8")
+            self._set_status(f"Saved: {path}")
+            messagebox.showinfo("Saved", f"Report saved to:\n{path}")
+        except ImportError as e:
+            messagebox.showerror(
+                "Missing dependency",
+                f"Could not save as {ext}: {e}\n\n"
+                "Install missing package:\n"
+                "  pip install python-docx reportlab")
+        except Exception as e:
+            messagebox.showerror("Save Failed", f"Could not save report:\n{e}")
+
+    def _export_docx(self, md_text: str, path: str):
+        """Save markdown text as a .docx file."""
+        from docx import Document
+        from docx.shared import Pt
+
+        doc = Document()
+        style = doc.styles['Normal']
+        style.font.name = 'Calibri'
+        style.font.size = Pt(11)
+
+        for raw_line in md_text.split('\n'):
+            line = raw_line.rstrip()
+            if not line.strip():
+                doc.add_paragraph()
+                continue
+            if line.startswith('### '):
+                doc.add_heading(line[4:].strip(), level=3)
+            elif line.startswith('## '):
+                doc.add_heading(line[3:].strip(), level=2)
+            elif line.startswith('# '):
+                doc.add_heading(line[2:].strip(), level=1)
+            elif line.lstrip().startswith('- ') or line.lstrip().startswith('* '):
+                text = line.lstrip()[2:].strip()
+                doc.add_paragraph(self._strip_md_inline(text), style='List Bullet')
+            elif re.match(r'^\d+\.\s', line.lstrip()):
+                text = re.sub(r'^\d+\.\s', '', line.lstrip())
+                doc.add_paragraph(self._strip_md_inline(text), style='List Number')
+            elif line.strip() == '---':
+                doc.add_paragraph('_' * 40)
+            else:
+                p = doc.add_paragraph()
+                self._docx_add_runs(p, line)
+        doc.save(path)
+
+    @staticmethod
+    def _strip_md_inline(text: str) -> str:
+        text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+        text = re.sub(r'\*(.+?)\*', r'\1', text)
+        text = re.sub(r'`(.+?)`', r'\1', text)
+        return text
+
+    @staticmethod
+    def _docx_add_runs(paragraph, text: str):
+        pattern = re.compile(r'(\*\*[^*]+\*\*|\*[^*]+\*)')
+        for part in pattern.split(text):
+            if not part:
+                continue
+            if part.startswith('**') and part.endswith('**'):
+                run = paragraph.add_run(part[2:-2])
+                run.bold = True
+            elif part.startswith('*') and part.endswith('*'):
+                run = paragraph.add_run(part[1:-1])
+                run.italic = True
+            else:
+                paragraph.add_run(part)
+
+    def _export_pdf(self, md_text: str, path: str):
+        """Save markdown text as a .pdf file."""
+        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
+        doc = SimpleDocTemplate(
+            path, pagesize=letter,
+            leftMargin=0.75*inch, rightMargin=0.75*inch,
+            topMargin=0.75*inch, bottomMargin=0.75*inch)
+        styles = getSampleStyleSheet()
+        body_style = ParagraphStyle('Body', parent=styles['Normal'],
+                                    fontSize=11, leading=15, spaceAfter=6)
+        h1_style = ParagraphStyle('H1', parent=styles['Heading1'],
+                                  fontSize=18, leading=22, spaceBefore=12, spaceAfter=8)
+        h2_style = ParagraphStyle('H2', parent=styles['Heading2'],
+                                  fontSize=15, leading=19, spaceBefore=10, spaceAfter=6)
+        h3_style = ParagraphStyle('H3', parent=styles['Heading3'],
+                                  fontSize=13, leading=17, spaceBefore=8, spaceAfter=4)
+
+        def fmt(t):
+            t = (t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
+            t = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', t)
+            t = re.sub(r'\*([^*]+?)\*', r'<i>\1</i>', t)
+            return t
+
+        story = []
+        for raw_line in md_text.split('\n'):
+            line = raw_line.rstrip()
+            if not line.strip():
+                story.append(Spacer(1, 6))
+                continue
+            if line.startswith('### '):
+                story.append(Paragraph(fmt(line[4:].strip()), h3_style))
+            elif line.startswith('## '):
+                story.append(Paragraph(fmt(line[3:].strip()), h2_style))
+            elif line.startswith('# '):
+                story.append(Paragraph(fmt(line[2:].strip()), h1_style))
+            elif line.lstrip().startswith('- ') or line.lstrip().startswith('* '):
+                text = line.lstrip()[2:].strip()
+                story.append(Paragraph('• ' + fmt(text), body_style))
+            elif re.match(r'^\d+\.\s', line.lstrip()):
+                story.append(Paragraph(fmt(line.lstrip()), body_style))
+            elif line.strip() == '---':
+                story.append(Spacer(1, 6))
+                story.append(Paragraph('_' * 60, body_style))
+                story.append(Spacer(1, 6))
+            else:
+                story.append(Paragraph(fmt(line), body_style))
+        doc.build(story)
 
     def _copy_report(self):
         content = self._rpt_out.get("1.0", "end").strip()
@@ -2266,7 +2416,13 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
         self._chat_k = tk.IntVar(value=12)
         ttk.Spinbox(ctrl, from_=3, to=50, textvariable=self._chat_k,
                     width=4).pack(side="left", padx=4)
-        ttk.Checkbutton(ctrl, text="Boost", variable=self._use_boost).pack(side="left", padx=(8, 0))
+        boost_ctrl = ttk.Frame(ctrl)
+        boost_ctrl.pack(side="left", padx=(8, 0))
+        ttk.Checkbutton(boost_ctrl, text="Boost", variable=self._use_boost).pack(side="left")
+        help_btn(boost_ctrl,
+            "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
+            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            self._bg).pack(side="left", padx=(2, 0))
         ttk.Label(ctrl, text="  Author:").pack(side="left")
         ttk.Combobox(ctrl, textvariable=self._author_filter,
                      values=["All authors"] + all_known_authors(),
