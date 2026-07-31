@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Global standards
+
+Read the relevant file from `~/.claude/standards/` before starting work:
+
+| Standard | When |
+|---|---|
+| `learnings.md` | Any RAG pipeline, search, scoring, or report code — P1–P10 checklist |
+| `llm-integration.md` | Any LLM call, prompt building, model selection, or output parsing |
+| `external-api.md` | Any HTTP call to LLM providers or external APIs |
+| `security.md` | API keys in `.env`, Railway env vars, input validation — deployed app, higher stakes |
+| `file-maintainability.md` | Any new module or significant refactor |
+
+
+
 **User-facing documentation:** [`USER_GUIDE.md`](USER_GUIDE.md) — keep it current whenever features, search modes, score badges, or admin workflows change.
 
 ## Setup
@@ -214,14 +228,31 @@ Available models: `deepseek-v4-flash` (default, fast/cheap), `deepseek-v4-pro`.
 
 The Chat tab keeps conversation history as bare Q&A pairs — the user's question and the assistant's answer only. Retrieved source chunks are included only for the current turn and are not stored in history. This keeps context size flat regardless of conversation length while preserving conversational continuity. Each source in the sources expander has a **View ↗** button to open the full section text in a modal.
 
-### Report citation format
+### Report citation format & citation styles
 
-Reports cite sources by reference number (`[1]`, `[2]`) rather than document name. The reference list appears **once, at the end** of the generated report. The LLM is explicitly instructed NOT to include a References section in its output; instead, the references are programmatically appended after the LLM stream completes. This avoids duplicate reference lists (LLM-generated + UI-rendered). An "Audit: show chunks sent to LLM" expander lets you inspect exactly what was passed to the model.
+**The LLM never writes a citation.** It emits **double-bracket** numbered placeholders `[[1]]`, `[[2]]` (grouped `[[1, 3]]`; optionally `[[N, p. X]]` when quoting a passage whose source header shows a page). Double brackets are deliberate: a single-bracket `[1]` can appear inside quoted source text (the corpus has footnote numbers in passages the report may quote verbatim), and a single-bracket scheme would rewrite those into wrong citations — so citations use `[[…]]`, which can't collide. After the stream completes, a deterministic post-processor in `citations.py` (`apply_intext_citations`) rewrites those markers into the user's chosen style and builds the reference list; grouped markers are expanded and joined. This preserves the no-fabrication guarantee — the model cannot invent an author, year, or publisher because it never writes one — and keeps the reference list the single source of truth (the LLM is still told NOT to output a References section).
+
+Page locators are offered to the model only when a document's retrieved chunks resolve to a single page (otherwise no locator, rather than a confidently-wrong one). Post-processing is guarded in both apps: a malformed hand-edited `sources.yml` record degrades to plain numbered references instead of crashing the report.
+
+**Selectable styles** (Settings → Citations in Streamlit; Report tab in the desktop GUI; default from `CITATION_STYLE` env var, else APA):
+
+| Style | In-text | Reference list |
+|---|---|---|
+| APA, Harvard | `(Bowen, 1978, p. 45)` | alphabetical by author |
+| MLA | `(Bowen 45)` | alphabetical by author |
+| Chicago (author–date) | `(Bowen 1978, 45)` | alphabetical by author |
+| Vancouver | `[1]` | numbered, citation order |
+
+For author–date/author–page styles the reference list contains **only the works actually cited** (parsed from the report body via `citations.cited_numbers`). Vancouver keeps the numbered markers.
+
+**`citations.py`** (shared by both apps, no tkinter/streamlit deps): `load_sources` / `match_source` (longest-substring-match wins), `record_for_doc` (sources.yml record or a filename fallback), `format_reference`, `format_intext`, `order_references`, `build_reference_list_md`, `apply_intext_citations`, `cited_numbers`. Missing fields render with each style's real convention (APA `n.d.`); nothing is invented. Known simplifications (Chicago = author–date not footnotes; Harvard = "Cite Them Right"; et-al. thresholds) are documented in the module docstring. Tests: `test_citations.py`.
+
+**`sources.yml`** — bibliographic records (author/year/title/publisher/journal/volume/pages/type), pattern-matched to documents like `author_map.yml`. Created by **`seed_sources.py`** (seeds author from `author_map.yml`, year from filename digits, title from cleaned filename; writes `sources.seeded.yml`, refuses to overwrite `sources.yml`; every field `verified: false` until a human confirms it). Editorial content — keep it in the YAML file, not code. Tests: `test_seed_sources.py`.
 
 **Report structure (generated by the LLM):**
 1. **Executive Summary** (300–500 words) — concise overview
 2. **Full Report** — 8 sections (Introduction & Definition, Theoretical Foundations, Key Dimensions, Relationships, Clinical Presentation, Clinical Implications, Direct Quotations, Gaps & Limitations)
-3. **References** — appended programmatically (not generated by LLM)
+3. **References** — appended programmatically in the chosen style (not generated by LLM)
 
 **Include sources as Appendix** — optional checkbox on the Report page. When enabled, a formatted appendix containing the full text of every cited source is added after the report body. The appendix is included in all download formats.
 

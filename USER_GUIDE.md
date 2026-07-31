@@ -174,6 +174,7 @@ If you see this warning, consider:
 | **Chunks per source** | How many text chunks to include per source document | 1–2 for broad coverage; 3–4 when you want depth on each source. Higher values use more of the context window. |
 | **Authority boost** | Prioritizes Bowen, Kerr, Papero as sources (does not eliminate other sources) | Leave on for most reports; turn off when you specifically want secondary sources included on equal footing. Carries over from the Search page automatically. |
 | **Include sources as Appendix** | Append full section texts after the report body | Use when you want a self-contained document with all sources readable in one place. Adds significant length. Included in the downloaded file. |
+| **Citation style** | The style used for in-text citations and the References list | APA (default), MLA, Chicago, Harvard, or Vancouver. Set it in the Streamlit app under **Settings → Citations**, or on the **Report tab** in the desktop app. See [Citation style](#citation-style) below. |
 
 ### Report structure
 
@@ -181,7 +182,23 @@ Generated reports follow this three-part structure:
 
 1. **Executive Summary** (300–500 words) — concise overview of the topic for quick reading
 2. **Full Report** — in-depth treatment with sections covering Introduction & Definition, Theoretical Foundations, Key Dimensions, Relationships to Other Concepts, Clinical Presentation, Clinical Implications, Direct Quotations, and Gaps & Limitations
-3. **References** — numbered list of source documents (appears once, at the end)
+3. **References** — the source list, formatted in your chosen citation style (appears once, at the end). For author–date styles it lists only the works actually cited, in alphabetical order; for Vancouver it is numbered in citation order.
+
+### Citation style
+
+The Report formats its in-text citations and reference list in one of five styles. Set it once in **Settings → Citations** (Streamlit web app) or on the **Report tab** (desktop app); it applies to every report you generate until you change it.
+
+| Style | In-text looks like | Reference list |
+|---|---|---|
+| **APA** (default) | (Bowen, 1978) — quotes add a page: (Bowen, 1978, p. 45) | Alphabetical by author |
+| **MLA** | (Bowen 45) | Alphabetical by author |
+| **Chicago** (author–date) | (Bowen 1978, 45) | Alphabetical by author |
+| **Harvard** | (Bowen, 1978, p. 45) | Alphabetical by author |
+| **Vancouver** | [1] | Numbered, in citation order |
+
+**Where the citation data comes from.** Full references need author, year, title, and publisher — details the search index does not store. They live in a separate file, **`sources.yml`**, which an admin creates by running `seed_sources.py` (see [Bibliography — sources.yml](#bibliography--sourcesyml) in the Admin guide). Until a source is verified there, its citation shows only what is known and marks the rest honestly — a missing year appears as **`n.d.`** ("no date"), and a source with no record falls back to a cleaned version of its filename. **The app never invents a citation detail.** For polished references, verify the works you cite in `sources.yml`.
+
+**Quotes.** When the report quotes a specific passage and the source is a PDF with a known page, the in-text citation includes the page (e.g. `p. 45`). Text sources without page numbers cite without a locator.
 
 ### Staged chunks
 
@@ -424,6 +441,41 @@ tiers:
 ```
 
 The `patterns` values are matched against the document filename (without extension).
+
+---
+
+## Bibliography — sources.yml
+
+`sources.yml` holds the bibliographic details (author, year, title, publisher, journal, volume, pages) used to format Report citations. It is optional: without it, references fall back to cleaned filenames. With it, references are exact and in your chosen [citation style](#citation-style).
+
+**Creating it (one time):**
+
+```bash
+python3 seed_sources.py
+```
+
+This reads every document in the index and pre-fills a record for each — author from `author_map.yml`, a year scraped from the filename when present, and a title guess from the cleaned filename. It writes **`sources.seeded.yml`** and prints coverage (e.g. "author guessed for 172/330, year for 33/330"). It **never overwrites** an existing `sources.yml`. Review it, then rename:
+
+```bash
+mv sources.seeded.yml sources.yml
+```
+
+**Every seeded field is a guess** (`verified: false`). Nothing is invented — a year the filename doesn't contain is left as `n.d.`, an unknown author as an empty list. For the works you actually cite, open `sources.yml` and fill in the real details, then set `verified: true`. One record:
+
+```yaml
+sources:
+  - pattern: "Family Therapy in_Clinical_Practice"   # substring of the filename; longest match wins
+    type: book                # book | chapter | article-journal | speech | interview | report | webpage
+    authors:
+      - {family: "Bowen", given: "Murray"}
+    year: 1978
+    title: "Family Therapy in Clinical Practice"
+    publisher: "Jason Aronson"
+    publisher_place: "New York"
+    verified: true
+```
+
+Records are matched to documents by `pattern` (a case-insensitive substring of the filename); when several match, the **longest/most-specific** wins. The Streamlit **Settings → Citations** panel shows how many records are verified so you can track your progress. No index rebuild is needed — edit the file and restart the app.
 
 ---
 
