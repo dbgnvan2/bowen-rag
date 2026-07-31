@@ -592,7 +592,10 @@ def _llm_stream(messages: list, system: str):
         client = anthropic.Anthropic(api_key=key, base_url=DEEPSEEK_BASE_URL)
         with client.messages.stream(
             model=ss.get("deepseek_model", "deepseek-v4-flash"),
-            max_tokens=8000, system=system, messages=messages
+            # deepseek-v4-flash is a reasoning model: its thinking block counts against
+            # max_tokens. 8000 could be fully consumed by thinking on a large report,
+            # leaving no text. 32000 leaves ample room for thinking + a full report.
+            max_tokens=32000, system=system, messages=messages
         ) as s:
             for token in s.text_stream:
                 yield token
@@ -1544,13 +1547,28 @@ Develop the topic in depth with these sections:
         report_ph = st.empty()
         try:
             acc: list = []
-            for tok in _llm_stream([{"role": "user", "content": prompt}], system):
-                acc.append(tok)
-                if len(acc) % 12 == 0:          # throttle live re-render
-                    report_ph.markdown("".join(acc))
+            # The model (esp. deepseek reasoning) analyzes all sources before emitting any
+            # text, so nothing streams for the first ~10-60s. Show a spinner so the user
+            # knows it is working; it clears once text starts arriving / on completion.
+            with st.spinner("Reading the sources and writing the report — the model analyzes "
+                            "everything before it starts writing, which can take up to a minute…"):
+                for tok in _llm_stream([{"role": "user", "content": prompt}], system):
+                    acc.append(tok)
+                    if len(acc) % 12 == 0:          # throttle live re-render
+                        report_ph.markdown("".join(acc))
             result = "".join(acc)
         except Exception as e:
             st.error(f"LLM error: {e}")
+            return
+
+        if not result.strip():
+            # Empty body but the call succeeded: the model produced no text (e.g. its whole
+            # token budget went to internal reasoning). Fail loud instead of showing a
+            # misleading references-only page.
+            report_ph.empty()
+            st.error("The model returned no report text — it may have spent its entire token "
+                     "budget on internal reasoning. Try again, or lower **Retrieve top N** on "
+                     "the form above so there is less for the model to reason over.")
             return
 
         # Rewrite [[N]] markers into the chosen style and build the reference list from

@@ -782,14 +782,15 @@ class LLMClient:
         if on_chunk:
             buf = []
             with client.messages.stream(
-                model=model, max_tokens=8000, system=system, messages=msgs
+                model=model, max_tokens=32000, system=system, messages=msgs
             ) as stream:
                 for token in stream.text_stream:
                     buf.append(token)
                     on_chunk(token)
             return "".join(buf)
-        r = client.messages.create(model=model, max_tokens=8000, system=system, messages=msgs)
-        return r.content[0].text
+        r = client.messages.create(model=model, max_tokens=32000, system=system, messages=msgs)
+        # deepseek-v4-flash emits a thinking block first; return the text block(s), not content[0].
+        return "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
 
     @staticmethod
     def call_deepseek_chat(messages: list, api_key: str, model: str,
@@ -802,14 +803,15 @@ class LLMClient:
         if on_chunk:
             buf = []
             with client.messages.stream(
-                model=model, max_tokens=8000, system=system, messages=messages
+                model=model, max_tokens=32000, system=system, messages=messages
             ) as stream:
                 for token in stream.text_stream:
                     buf.append(token)
                     on_chunk(token)
             return "".join(buf)
-        r = client.messages.create(model=model, max_tokens=8000, system=system, messages=messages)
-        return r.content[0].text
+        r = client.messages.create(model=model, max_tokens=32000, system=system, messages=messages)
+        # deepseek-v4-flash emits a thinking block first; return the text block(s), not content[0].
+        return "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
 
     @staticmethod
     def list_ollama_models(url: str) -> list:
@@ -2121,8 +2123,10 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
         # Clear output area
         self._rpt_out.delete("1.0", "end")
         self._rpt_out.insert("1.0",
-            f"# Generating report…\n_Topic: {query}_\n_Sources: {len(docs)} documents_\n\n")
-        self._set_status("Generating report…")
+            f"# Generating report…\n_Topic: {query}_\n_Sources: {len(docs)} documents_\n\n"
+            "_The model reads all the sources before it starts writing — the first output can "
+            "take up to a minute. Please wait…_\n\n")
+        self._set_status("Generating report… (analyzing sources — up to a minute)")
         self._last_report = ""
 
         def _on_token(t: str):
@@ -2154,6 +2158,15 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                     result = self.llm.call_ollama(
                         prompt, self.ollama_url.get(),
                         self.ollama_mdl.get(), sys_p, _on_token)
+                # Empty body but the call succeeded: fail loud instead of showing only refs.
+                if not (result or "").strip():
+                    self.root.after(0, self._replace_rpt,
+                        "**No report text was returned.** The model may have spent its entire "
+                        "token budget on internal reasoning. Try again, or lower **Retrieve top** "
+                        "on the form so there is less for the model to reason over.\n")
+                    self._last_report = ""
+                    self.root.after(0, self._set_status, "Report failed — no text returned.")
+                    return
                 # Rewrite [[N]] markers into the chosen style and build the reference list
                 # from ONLY the sources actually cited. Guard the post-process so a
                 # human-edited sources.yml record can't lose the just-streamed report.

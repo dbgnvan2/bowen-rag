@@ -224,6 +224,8 @@ client = anthropic.Anthropic(api_key=key, base_url="https://api.deepseek.com/ant
 
 Available models: `deepseek-v4-flash` (default, fast/cheap), `deepseek-v4-pro`.
 
+**Reasoning-model gotcha:** `deepseek-v4-flash` emits a large `thinking` block that counts against `max_tokens`. With a low ceiling (was 8000), a full-size report's thinking could consume the entire budget, leaving no visible text — the report came back as references only. All DeepSeek calls use `max_tokens=32000` to leave room for thinking + a complete report. Also, the model's first content block is the thinking block, so non-streaming reads must select the `text` block (`b.type == "text"`), not `content[0]`. Because the thinking pass runs before any text streams, the report UI shows a spinner/"analyzing sources" status during the initial silent phase, and fails loud (not references-only) if the text ever comes back empty.
+
 ### Chat context strategy
 
 The Chat tab keeps conversation history as bare Q&A pairs — the user's question and the assistant's answer only. Retrieved source chunks are included only for the current turn and are not stored in history. This keeps context size flat regardless of conversation length while preserving conversational continuity. Each source in the sources expander has a **View ↗** button to open the full section text in a modal.
