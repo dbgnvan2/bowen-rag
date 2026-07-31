@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "streamlit",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m", "streamlit", "run", "streamlit_app.py",
+        "--server.port", "8501",
+        "--server.address", "127.0.0.1",
+        "--server.headless", "true",
+        "--browser.gatherUsageStats", "false"
+      ],
+      "port": 8501
+    }
+  ]
+}

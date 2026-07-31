@@ -10,6 +10,8 @@ import os
 import re
 from pathlib import Path
 
+import citations
+
 # Load .env so local runs pick up API keys without manual export
 try:
     from dotenv import load_dotenv
@@ -114,6 +116,9 @@ def _load_author_map() -> list:
 
 
 AUTHOR_MAP = _load_author_map()
+
+# Bibliographic records for citation formatting (sources.yml); [] if absent.
+SOURCES = citations.load_sources(BASE_DIR)
 
 
 def doc_author(doc_name: str) -> str:
@@ -649,6 +654,8 @@ def _init_session():
         "system_prompt":           SYSTEM_PROMPT,
         "default_search_mode":     "hybrid",
         "chat_interaction_mode":   "Standard",
+        "citation_style": citations.normalize_style(
+            os.environ.get("CITATION_STYLE", citations.DEFAULT_STYLE)),
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -1461,10 +1468,27 @@ def page_report(idx: IndexManager):
                     existing.add(t)
 
         ref_map  = {name: i + 1 for i, name in enumerate(sorted(docs))}
-        refs_md  = "\n".join(f"{num}. {name}"
+        # Page per document, but ONLY when the retrieved chunks for that doc resolve to
+        # a SINGLE page — otherwise a page locator would be confidently wrong (a doc's
+        # retrieved chunks span several pages). Ambiguous → no page; the model cites
+        # without a locator rather than with a made-up one.
+        doc_pages: dict = {}
+        for c in chunks:
+            p = c.get("page")
+            if p is not None:
+                doc_pages.setdefault(c["doc_name"], set()).add(p)
+        doc_page = {dn: next(iter(ps)) for dn, ps in doc_pages.items() if len(ps) == 1}
+        # Source list handed to the model — [[N]] so citations can't collide with the
+        # single brackets that appear inside quoted source text.
+        refs_md  = "\n".join(f"[[{num}]] {name}"
                              for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
+        # Deterministic bibliographic record per cited number (sources.yml → filename fallback).
+        num_to_record = {ref_map[dn]: citations.record_for_doc(dn, SOURCES, doc_author)
+                         for dn in docs}
         context_parts = [
-            f"### [{ref_map[dn]}] {dn}\n" + "\n…\n".join(txts)
+            f"### [[{ref_map[dn]}]] {dn}"
+            + (f" (p. {doc_page[dn]})" if dn in doc_page else "") + "\n"
+            + "\n…\n".join(txts)
             for dn, txts in docs.items()
         ]
         context = "\n\n---\n\n".join(context_parts)
@@ -1486,7 +1510,8 @@ def page_report(idx: IndexManager):
 
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
-- **Every factual claim must be cited** immediately after the claim using the reference number in brackets, e.g. [1] or [3].
+- **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
+- **When you quote a specific passage** and that source's header shows a page (e.g. "(p. 45)"), cite it as [[N, p. 45]]. If no page is shown, just use [[N]]. Do not invent page numbers.
 - Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
 
 ## REPORT STRUCTURE
@@ -1506,7 +1531,7 @@ Develop the topic in depth with these sections:
 7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
 8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
 
-**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [1], [2], etc. for inline citations throughout your report, using the numbers from the source list below.
+**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [[1]], [[2]], etc. (double brackets) for inline citations throughout your report, using the numbers from the source list below.
 
 ## Source numbers (for inline citations only — do NOT reproduce this list in your output)
 {refs_md}
@@ -1514,16 +1539,48 @@ Develop the topic in depth with these sections:
 
         st.subheader("Report")
         system = st.session_state.get("system_prompt", SYSTEM_PROMPT)
+        style  = citations.normalize_style(
+            st.session_state.get("citation_style", citations.DEFAULT_STYLE))
+        report_ph = st.empty()
         try:
-            result = st.write_stream(_llm_stream(
-                [{"role": "user", "content": prompt}], system))
-            # Append references at the end (single source of truth)
-            refs_section = f"\n\n## References\n\n{refs_md}\n"
-            st.markdown(refs_section)
-            st.session_state.last_report = result + refs_section
+            acc: list = []
+            for tok in _llm_stream([{"role": "user", "content": prompt}], system):
+                acc.append(tok)
+                if len(acc) % 12 == 0:          # throttle live re-render
+                    report_ph.markdown("".join(acc))
+            result = "".join(acc)
         except Exception as e:
             st.error(f"LLM error: {e}")
             return
+
+        # Rewrite [[N]] markers into the chosen style and build the reference list from
+        # ONLY the sources actually cited. Guard the whole post-process: a human-edited
+        # sources.yml record must never crash the page and lose the streamed report.
+        try:
+            styled_body = citations.apply_intext_citations(result, num_to_record, style)
+            raw_cited = citations.cited_numbers(result, set(num_to_record))
+            cited = raw_cited or set(num_to_record)
+            refs_body = citations.build_reference_list_md(num_to_record, style, cited)
+            final_report = styled_body + f"\n\n## References\n\n{refs_body}\n"
+            if not raw_cited and len(result.strip()) > 200:
+                # Non-empty report but zero [[N]] markers → the model ignored the required
+                # citation format. Surface it loudly instead of silently listing all sources.
+                note, warn = ("No [[N]] citation markers were found — the model may not have "
+                              "used the required format, so in-text citations are unstyled and "
+                              "the reference list shows all retrieved sources. Try regenerating."), True
+            else:
+                verified_n = sum(1 for n in cited if num_to_record[n].get("verified"))
+                note, warn = (f"Citations in {style} style · {verified_n}/{len(cited)} cited "
+                              "sources have verified bibliographic data (edit sources.yml).", False)
+        except Exception as e:
+            plain = re.sub(r'\[\[\s*(\d[^\]]*?)\s*\]\]', r'[\1]', result)
+            plain_refs = "\n".join(f"{n}. {nm}"
+                                   for nm, n in sorted(ref_map.items(), key=lambda x: x[1]))
+            final_report = plain + f"\n\n## References\n\n{plain_refs}\n"
+            note, warn = f"Citation styling failed ({e}); showing plain numbered references.", True
+        report_ph.markdown(final_report)                 # final view replaces raw stream
+        (st.warning if warn else st.caption)(note)
+        st.session_state.last_report = final_report
 
         # Build appendix from source texts
         if include_appendix and docs:
@@ -1636,6 +1693,29 @@ def page_settings():
     ):
         st.warning("Hybrid and Embedding modes require the embedding index. "
                    "If it is not available the pages will fall back to Top Docs.")
+
+    st.divider()
+    st.subheader("Citations")
+    _cur_style = citations.normalize_style(
+        st.session_state.get("citation_style", citations.DEFAULT_STYLE))
+    _style = st.selectbox(
+        "Citation style (Report references + in-text citations)",
+        citations.STYLES,
+        index=citations.STYLES.index(_cur_style),
+        help="How the Report lists its references and formats in-text citations. "
+             "APA/MLA/Chicago/Harvard use author–date or author–page; Vancouver is "
+             "numbered [1]. Full citations read from sources.yml; missing fields show "
+             "honestly (e.g. 'n.d.') and are never invented.",
+    )
+    st.session_state.citation_style = _style
+    _verified = sum(1 for r in SOURCES if r.get("verified"))
+    if SOURCES:
+        st.caption(f"sources.yml: {len(SOURCES)} records, {_verified} verified. "
+                   "Unverified records still cite with best-available data; verify the "
+                   "works you cite (author, year, title, publisher) for exact references.")
+    else:
+        st.caption("No sources.yml found — references fall back to document filenames. "
+                   "Run `python3 seed_sources.py` to create one.")
 
     st.divider()
     st.subheader("LLM Provider")

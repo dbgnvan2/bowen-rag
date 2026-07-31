@@ -7,6 +7,9 @@ source_files/
 # Generated outputs
 outputs/
 
+# Seeder byproduct — regenerate with `python3 seed_sources.py`; sources.yml is the live file
+sources.seeded.yml
+
 # Old dense matrix (replaced by .npz)
 rag-document-search/references/tfidf_matrix.npy
 

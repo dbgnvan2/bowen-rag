@@ -8,6 +8,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
 import importlib.util
 import json
+import os
 import re
 import threading
 import sys
@@ -18,6 +19,8 @@ import numpy as np
 from scipy import sparse as sp_sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+import citations  # shared citation-style formatting (no tkinter/streamlit deps)
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -150,6 +153,9 @@ def _load_author_map() -> list:
         return []
 
 AUTHOR_MAP = _load_author_map()
+
+# Bibliographic records for citation formatting (sources.yml in BASE_DIR); [] if absent.
+SOURCES = citations.load_sources(BASE_DIR)
 
 def doc_author(doc_name: str) -> str:
     dn = doc_name.lower()
@@ -1901,6 +1907,22 @@ class App:
             "size and may slow generation on local (Ollama) models.",
             self._bg).pack(side="left", padx=2)
 
+        ttk.Label(r3, text="Citation style:").pack(side="left", padx=(20, 0))
+        self._citation_style = tk.StringVar(
+            value=citations.normalize_style(
+                os.environ.get("CITATION_STYLE", citations.DEFAULT_STYLE)))
+        ttk.Combobox(r3, textvariable=self._citation_style,
+                     values=citations.STYLES, width=11,
+                     state="readonly").pack(side="left", padx=(4, 0))
+        help_btn(r3,
+            "Citation style for the report's References list and in-text citations.\n\n"
+            "• APA / MLA / Chicago / Harvard — author–date or author–page, e.g. (Bowen, 1978)\n"
+            "• Vancouver — numbered, e.g. [1]\n\n"
+            "Full references use the data in sources.yml. Unverified or missing "
+            "fields are shown honestly (e.g. 'n.d.') and never invented. Run "
+            "seed_sources.py to create sources.yml, then verify the works you cite.",
+            self._bg).pack(side="left", padx=2)
+
         self._rpt_staged_lbl = ttk.Label(qf, text="", style="Info.TLabel")
         self._rpt_staged_lbl.grid(row=4, column=1, columnspan=4, sticky="w",
                                    pady=(4, 0))
@@ -2010,6 +2032,20 @@ class App:
         # Assign stable reference numbers (sorted for determinism)
         ref_map = {name: i + 1 for i, name in enumerate(sorted(docs))}
 
+        # Page per document, but ONLY when the retrieved chunks for that doc resolve to
+        # a SINGLE page — otherwise a page locator would be confidently wrong (a doc's
+        # retrieved chunks span several pages). Ambiguous → no page; the model cites
+        # without a locator rather than with a made-up one.
+        doc_pages: dict = {}
+        for c in chunks:
+            p = c.get("page")
+            if p is not None:
+                doc_pages.setdefault(c["doc_name"], set()).add(p)
+        doc_page = {dn: next(iter(ps)) for dn, ps in doc_pages.items() if len(ps) == 1}
+        # Deterministic bibliographic record per cited number (sources.yml → filename fallback).
+        num_to_record = {ref_map[dn]: citations.record_for_doc(dn, SOURCES, doc_author)
+                         for dn in docs}
+
         refs_numbered = "\n".join(
             f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         self._ref_box.config(state="normal")
@@ -2022,12 +2058,15 @@ class App:
         for doc_name, texts in docs.items():
             num     = ref_map[doc_name]
             combined = "\n…\n".join(texts)
-            context_parts.append(f"### [{num}] {doc_name}\n{combined}")
+            page_hdr = f" (p. {doc_page[doc_name]})" if doc_name in doc_page else ""
+            context_parts.append(f"### [[{num}]] {doc_name}{page_hdr}\n{combined}")
         context = "\n\n---\n\n".join(context_parts)
         self._last_rpt_context = context
 
+        # Source list handed to the model — [[N]] so citations can't collide with the
+        # single brackets that appear inside quoted source text.
         refs_md   = "\n".join(
-            f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
+            f"[[{num}]] {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         target_wc = self._rpt_words.get()
 
         prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
@@ -2046,7 +2085,8 @@ class App:
 
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
-- **Every factual claim must be cited** immediately after the claim using the reference number in brackets, e.g. [1] or [3]. Use the numbers shown in the source headers above — do NOT use document names in citations.
+- **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so citations are never confused with bracketed numbers inside quoted source text. Use the numbers shown in the source headers above — do NOT use document names.
+- **When you quote a specific passage** and that source's header shows a page (e.g. "(p. 45)"), cite it as [[N, p. 45]]. If no page is shown, just use [[N]]. Do not invent page numbers.
 - **Do not paraphrase without attribution.** If you summarise a source's position, cite it by number.
 - If sources disagree or use different language for the same idea, quote both and note the difference — do not resolve it yourself.
 - Write at least {target_wc} words total. Develop each section fully using evidence from the excerpts.
@@ -2070,7 +2110,7 @@ Develop the topic in depth with these sections:
 7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
 8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
 
-**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [1], [2], etc. for inline citations throughout your report, using the numbers from the source list below.
+**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [[1]], [[2]], etc. (double brackets) for inline citations throughout your report, using the numbers from the source list below.
 
 Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** for key terms from the sources.
 
@@ -2114,11 +2154,34 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                     result = self.llm.call_ollama(
                         prompt, self.ollama_url.get(),
                         self.ollama_mdl.get(), sys_p, _on_token)
-                # Append references at the end (single source of truth)
-                refs_section = f"\n\n## References\n\n{refs_md}\n"
-                self.root.after(0, self._append_rpt, refs_section)
-                self._last_report = result + refs_section
-                self.root.after(0, self._set_status, "Report complete.")
+                # Rewrite [[N]] markers into the chosen style and build the reference list
+                # from ONLY the sources actually cited. Guard the post-process so a
+                # human-edited sources.yml record can't lose the just-streamed report.
+                style = citations.normalize_style(self._citation_style.get())
+                try:
+                    styled_body = citations.apply_intext_citations(result, num_to_record, style)
+                    raw_cited = citations.cited_numbers(result, set(num_to_record))
+                    cited = raw_cited or set(num_to_record)
+                    refs_body = citations.build_reference_list_md(num_to_record, style, cited)
+                    final_report = styled_body + f"\n\n## References\n\n{refs_body}\n"
+                    if not raw_cited and len(result.strip()) > 200:
+                        # Non-empty report, zero [[N]] markers → model ignored the format.
+                        status_msg = ("Report done — WARNING: no [[N]] citation markers found; "
+                                      "in-text citations unstyled and all sources listed. Regenerate.")
+                    else:
+                        verified_n = sum(1 for n in cited if num_to_record[n].get("verified"))
+                        status_msg = (f"Report complete — {style} citations · "
+                                      f"{verified_n}/{len(cited)} cited sources verified.")
+                except Exception as ce:
+                    plain = re.sub(r'\[\[\s*(\d[^\]]*?)\s*\]\]', r'[\1]', result)
+                    plain_refs = "\n".join(
+                        f"{n}. {nm}" for nm, n in sorted(ref_map.items(), key=lambda x: x[1]))
+                    final_report = plain + f"\n\n## References\n\n{plain_refs}\n"
+                    status_msg = f"Report complete — citation styling failed ({ce}); plain refs."
+                # Replace the raw streamed view ([[N]] markers) with the finished report.
+                self.root.after(0, self._replace_rpt, final_report)
+                self._last_report = final_report
+                self.root.after(0, self._set_status, status_msg)
             except Exception as e:
                 self.root.after(0, self._append_rpt, f"\n\n**[ERROR]** {e}\n")
                 self.root.after(0, self._set_status, f"Error: {e}")
@@ -2128,6 +2191,12 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
     def _append_rpt(self, text: str):
         self._rpt_out.insert("end", text)
         self._rpt_out.see("end")
+
+    def _replace_rpt(self, text: str):
+        """Replace the streamed raw report with the finished, citation-styled version."""
+        self._rpt_out.delete("1.0", "end")
+        self._rpt_out.insert("1.0", text)
+        self._rpt_out.see("1.0")
 
     def _save_report(self):
         content = self._rpt_out.get("1.0", "end").strip()

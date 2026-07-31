@@ -1,0 +1,2851 @@
+# sources.yml — bibliographic records for citation formatting.
+#
+# AUTO-SEEDED by seed_sources.py. EVERY field below is a GUESS until you set
+# `verified: true`. For each work you actually cite, confirm the author(s),
+# year, and title, and add publisher / journal / volume / issue / pages.
+#
+# Matching: a record whose `pattern` is a case-insensitive substring of the
+# document filename applies; when several match, the LONGEST (most specific)
+# pattern wins, regardless of order. Records are listed primary-sources-first
+# only for ease of review.
+#
+# type: book | chapter | article-journal | speech | interview | report | webpage | generic
+
+sources:
+
+  - pattern: 'Bowen Basic Series Tape 1 TRIANGLES AND THE SCALE OF DIFFERENTIATION'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 1 TRIANGLES AND THE SCALE OF DIFFERENTIATION'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 2 NUCLEAR FAMILY EMOTIONAL SYSTEM AND FAMILY PROJECTION PROCESS'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 2 NUCLEAR FAMILY EMOTIONAL SYSTEM AND FAMILY PROJECTION PROCESS'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 3 MULTIGENERATIONAL TRANSMISSION PROCESS AND SIBLING POSITION'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 3 MULTIGENERATIONAL TRANSMISSION PROCESS AND SIBLING POSITION'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 4 DIFFERENTIATION OF SELF AND THE I POSITION'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 4 DIFFERENTIATION OF SELF AND THE I POSITION'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 6 Family Reaction to Death'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 6 Family Reaction to Death'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Basic Series Tape 7 EMOTIONAL CUTOFF_ A CLINICAL EXAMPLE - Bowen'
+    type: speech
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Basic Series Tape 7 EMOTIONAL CUTOFF A CLINICAL EXAMPLE - Bowen'
+    # title hint (from authority_tiers): Bowen lecture tapes
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_ Triangles and Scale of Differentiation'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Triangles and Scale of Differentiation'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter01_Bowen_Theory_in_Perspective'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter01 Bowen Theory in Perspective'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter02_The_Family_as_a_Unit'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter02 The Family as a Unit'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter03_Bowen_Family_Systems_Theory'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter03 Bowen Family Systems Theory'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter04_Family_Systems_Theory_in_Clinical_Practice'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter04 Family Systems Theory in Clinical Practice'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter05_A_Clinical_Situation_The_B_Family'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter05 A Clinical Situation The B Family'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Chapter06_Training_in_Theory_Thought_and_Therapy'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Chapter06 Training in Theory Thought and Therapy'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Forewords'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Forewords'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems Theory_Preface'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems Theory Preface'
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #1 - FAMILY SYSTEMS THEORY  THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #1 - FAMILY SYSTEMS THEORY THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #1 - FAMILY SYSTEMS THEORY & THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #1 - FAMILY SYSTEMS THEORY & THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #10 - EMOTIONAL PROCESS IN SOCIETY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #10 - EMOTIONAL PROCESS IN SOCIETY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #11 - TOWARDS A SYSTEMS CONCEPT OF SUPERNATURAL PHENOMENA'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #11 - TOWARDS A SYSTEMS CONCEPT OF SUPERNATURAL PHENOMENA'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #12 - BACKGROUND ASPECTS OF DIFFERENTIATION'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #12 - BACKGROUND ASPECTS OF DIFFERENTIATION'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #13 - THE CHANGING WORLD AND FAMILY THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #13 - THE CHANGING WORLD AND FAMILY THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #14 - THE BEST OF FAMILY THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #14 - THE BEST OF FAMILY THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #15 - A NEW CONCEPT OF THE MIDBRAIN'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #15 - A NEW CONCEPT OF THE MIDBRAIN'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #2 THE THEORETICAL BASE OF FAMILY SYSTEMS THEORY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #2 THE THEORETICAL BASE OF FAMILY SYSTEMS THEORY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #3 - SYSTEMS THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #3 - SYSTEMS THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #4 - ANXIETY AND EMOTIONAL REACTIVITY IN THERAPY'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #4 - ANXIETY AND EMOTIONAL REACTIVITY IN THERAPY'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #5 - DEFINING A SELF IN ONE_S FAMILY OF ORIGIN - PART 1'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #5 - DEFINING A SELF IN ONE S FAMILY OF ORIGIN - PART 1'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #6 - DEFINING A SELF IN ONE_S FAMILY OF ORIGIN - PART 2'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #6 - DEFINING A SELF IN ONE S FAMILY OF ORIGIN - PART 2'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #7 - OBSTACLES TO SYSTEMS'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #7 - OBSTACLES TO SYSTEMS'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #8 - FAMILY THERAPY WITH SCHIZOPHRENIA'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #8 - FAMILY THERAPY WITH SCHIZOPHRENIA'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'BOWEN-KERR INTERVIEW SERIES #9 - BACKGROUND TO SYSTEMS THINKING AND DISCIPLESHIP'
+    type: interview
+    authors: [{family: 'Bowen', given: ''}, {family: 'Kerr', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'BOWEN-KERR INTERVIEW SERIES #9 - BACKGROUND TO SYSTEMS THINKING AND DISCIPLESHIP'
+    # title hint (from authority_tiers): Bowen-Kerr interview series
+    publisher: ''
+    verified: false
+
+  - pattern: 'Cancer and the Emotional System KERR '
+    type: generic
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Cancer and the Emotional System KERR'
+    # title hint (from authority_tiers): Kerr
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family and Society Kerr '
+    type: generic
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family and Society Kerr'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter01_Toward_a_Natural_Systems_Theory'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter01 Toward a Natural Systems Theory'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter02_The_Emotional_System'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter02 The Emotional System'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter03_Individuality_and_Togetherness'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter03 Individuality and Togetherness'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter04_Differentiation_of_Self'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter04 Differentiation of Self'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter05_Chronic_Anxiety'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter05 Chronic Anxiety'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter06_Triangles'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter06 Triangles'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter07_Nuclear_Family_Emotional_System'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter07 Nuclear Family Emotional System'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter08_Multigenerational_Emotional_Process'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter08 Multigenerational Emotional Process'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter09_Symptom_Development'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter09 Symptom Development'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter10_Family_Evaluation_Chapter'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter10 Family Evaluation Chapter'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Chapter11_Epilogue_An_Odyssey_Toward_Science'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Chapter11 Epilogue An Odyssey Toward Science'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Evaluation_Introduction'
+    type: generic
+    authors: [{family: 'Kerr', given: ''}, {family: 'Bowen', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Evaluation Introduction'
+    # title hint (from authority_tiers): Family Evaluation: An Approach Based on Bowen Theory (Kerr & Bowen)
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter01_Treatment_of_Family_Groups_With_a_Schizophrenic_Member'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter01 Treatment of Family Groups With a Schizophrenic Member'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter02_The_Role_of_the_Father_in_Families_With_a_Schizophrenic_Pati'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter02 The Role of the Father in Families With a Schizophrenic Pati'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter03_Family_Relationships_in_Schizophrenia'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter03 Family Relationships in Schizophrenia'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter04_A_Family_Concept_of_Schizophrenia'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter04 A Family Concept of Schizophrenia'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter05_Family_Psychotherapy'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter05 Family Psychotherapy'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter06_Out_Patient_Family_Psychotherapy'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter06 Out Patient Family Psychotherapy'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter07_Intrafamily_Dynamics_in_Emotional_Illness'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter07 Intrafamily Dynamics in Emotional Illness'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter08_Family_Psychotherapy_With_Schizophrenia_in_the_Hospital_and'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter08 Family Psychotherapy With Schizophrenia in the Hospital and'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter09_The_Use_of_Family_Theory_in_Clinical_Practice'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter09 The Use of Family Theory in Clinical Practice'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter10_Family Therapy and_Family_Group_Therapy'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter10 Family Therapy and Family Group Therapy'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter11_Principles_and_Techniques_of_Multiple_Family_Therapy'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter11 Principles and Techniques of Multiple Family Therapy'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter12_Alcoholism_and_the_Family'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter12 Alcoholism and the Family'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter13_Societal_Regression_as_Viewed_Through_Family_Systems_Theory'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter13 Societal Regression as Viewed Through Family Systems Theory'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter14_Family Therapy After_Twenty_Years'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter14 Family Therapy After Twenty Years'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter15_Family_Reaction_to_Death'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter15 Family Reaction to Death'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter16_Theory_in_the_Practice_of_Psychotherapy'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter16 Theory in the Practice of Psychotherapy'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter17_An_Interview_With_Murray_Bowen'
+    type: interview
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter17 An Interview With Murray Bowen'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter18_Society_Crisis_and_Systems_Theory'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter18 Society Crisis and Systems Theory'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter19_Problems_of_Medical_Practice_Presented_by_Families_With_a_Sc'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter19 Problems of Medical Practice Presented by Families With a Sc'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter20_Toward_the_Differentiation_of_Self_in_Administrative_Systems'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter20 Toward the Differentiation of Self in Administrative Systems'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter21_On_the_Differentiation_of_Self'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter21 On the Differentiation of Self'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy in_Clinical_Practice_Chapter22_Toward_the_Differentiation_of_Self_in_One_s_Family_of_Origin'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy in Clinical Practice Chapter22 Toward the Differentiation of Self in One s Family of Origin'
+    # title hint (from authority_tiers): FTCP book chapters
+    publisher: ''
+    verified: false
+
+  - pattern: 'Physical Illness as the Family Emotional Systems Psoroasis as a model KERR'
+    type: generic
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Physical Illness as the Family Emotional Systems Psoroasis as a model KERR'
+    # title hint (from authority_tiers): Kerr
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Index'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Index'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 1 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 1 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 1 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 1 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 1 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 1 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 1 No 4'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 1 No 4'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 10 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 10 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 10 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 10 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 10 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 10 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 11 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 11 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 11 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 11 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 12 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 12 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 12 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 12 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 13 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 13 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 13 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 13 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 14 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 14 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 14 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 14 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 14 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 14 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 14 No 4'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 14 No 4'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 15 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 15 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 15 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 15 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 2 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 2 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 2 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 2 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 2 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 2 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 2 No 4'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 2 No 4'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 3 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 3 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 3 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 3 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 4 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 4 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 4 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 4 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 5 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 5 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 6 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 6 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 6 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 6 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 6 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 6 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 7 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 7 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 8 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 8 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 8 No 4'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 8 No 4'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 9 No 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 9 No 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 9 No 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 9 No 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 9 No 3'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 9 No 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Center Reports Vol 9 No 4'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Center Reports Vol 9 No 4'
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 1.1 (1) Caskie 7-18'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 1.1 (1) Caskie 7-18'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 1.1 (4) Ferrera 44-55 Neutrality in Violent World'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 1.1 (4) Ferrera 44-55 Neutrality in Violent World'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Ferrera Rational Optimist How Prosperity Evolves'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Ferrera Rational Optimist How Prosperity Evolves'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Jones Epigenetics, Social Genomics, and Bowen'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Jones Epigenetics, Social Genomics, and Bowen'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Jurkowski Value of Defining a Self'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Jurkowski Value of Defining a Self'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Muraskin Alloparenting The Works of Sarah'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Muraskin Alloparenting The Works of Sarah'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 10.2 Thompson Hospital Leadership and the Chronically'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 10.2 Thompson Hospital Leadership and the Chronically'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.1 (4) McKnight 31-48'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.1 (4) McKnight 31-48'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.2 Klever Extended Family Relationships A Comparison'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.2 Klever Extended Family Relationships A Comparison'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.2 Martinez Family Projection Process when'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.2 Martinez Family Projection Process when'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.2 McKnight Sixth Extinction An Unnatural History'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.2 McKnight Sixth Extinction An Unnatural History'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 11.2 Rakow Learning from the Nurses Notes'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 11.2 Rakow Learning from the Nurses Notes'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 (6) BR Riordan 69-80'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 (6) BR Riordan 69-80'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Donley Bonding and Babies The Evolution'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Donley Bonding and Babies The Evolution'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Frost Defining a Self in Multiple'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Frost Defining a Self in Multiple'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Gilbert Brainwashedthe Seductive Appeal'
+    type: article-journal
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Gilbert Brainwashedthe Seductive Appeal'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Hargrove Differentiation of Self'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Hargrove Differentiation of Self'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Noone Family, Self, and the Intermix'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Noone Family, Self, and the Intermix'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.1 Riordan Marriage Preparation Programs and Bowen'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.1 Riordan Marriage Preparation Programs and Bowen'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Bowen Letter from Murray Bowen About'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Bowen Letter from Murray Bowen About'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Brooks Within-Family Variability The Family Projection'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Brooks Within-Family Variability The Family Projection'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Cauley Death of a Sibling Bringing'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Cauley Death of a Sibling Bringing'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Donley Mindset The New Psychology of'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Donley Mindset The New Psychology of'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Jones Family Emotional System'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Jones Family Emotional System'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Jurkowski Anxiety and the Nuclear Family'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Jurkowski Anxiety and the Nuclear Family'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2 Noone Jaak Panksepp (1943-2017)'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 1943
+    title: 'FSJ 12.2 Noone Jaak Panksepp (1943-2017)'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 12.2(3)Brooks107-125'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 12.2(3)Brooks107-125'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Baker Emotional Process in Society A'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Baker Emotional Process in Society A'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Bowen Systems View of the Aging'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Bowen Systems View of the Aging'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Brooks Triangles, Fusion, and the Challenge'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Brooks Triangles, Fusion, and the Challenge'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Ferrera Women After All Sex, Evolution,'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Ferrera Women After All Sex, Evolution,'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Kerr How to Tame a Fox'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Kerr How to Tame a Fox'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 McKnight Interview with Walter Smith Jr.,'
+    type: interview
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 McKnight Interview with Walter Smith Jr.,'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1.1editor3-7'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1.1editor3-7'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.1.2 baker9-34'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.1.2 baker9-34'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 Bowen Family Psychotherapy in Office Practice'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 Bowen Family Psychotherapy in Office Practice'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 Harrison Difference Bowen Theory Makes in'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 Harrison Difference Bowen Theory Makes in'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 Havstad Study of Weight Loss as'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 Havstad Study of Weight Loss as'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 McKnight Island of Knowledge'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 McKnight Island of Knowledge'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2 Papero Developing a Systems Model for'
+    type: article-journal
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2 Papero Developing a Systems Model for'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 13.2. papero129-144'
+    type: article-journal
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 13.2. papero129-144'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 14.2 Galloway How Emotions Are Made'
+    type: article-journal
+    authors: [{family: 'Galloway', given: 'Dave'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 14.2 Galloway How Emotions Are Made'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 14.2.2editor99-101'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 14.2.2editor99-101'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 14.2.5briefreport157-163'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 14.2.5briefreport157-163'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 14.2.7book review183-191'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 14.2.7book review183-191'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Bowen Integration of Knowledge'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Bowen Integration of Knowledge'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Brooks Emotional Process when a Spouse'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Brooks Emotional Process when a Spouse'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Butler Child Pornography Offenders Overview and'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Butler Child Pornography Offenders Overview and'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Kerr Hidden Valley Road Inside the'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Kerr Hidden Valley Road Inside the'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Klever Divergent Spouse Functioning'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Klever Divergent Spouse Functioning'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 15.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 15.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (2) Ferrera editor 3-6'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (2) Ferrera editor 3-6'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (3) 7-41 Harrison'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (3) 7-41 Harrison'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (4) Papero 43-67'
+    type: article-journal
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (4) Papero 43-67'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (5) Gowdy 69-97'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (5) Gowdy 69-97'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (6) Ferrera 99-111'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (6) Ferrera 99-111'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.1 (7) McKnight 113-120'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.1 (7) McKnight 113-120'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (2) 99-100 from the editor'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (2) 99-100 from the editor'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (3) 101-131 Rakow'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (3) 101-131 Rakow'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (4) 133-154 Shultz'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (4) 133-154 Shultz'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (5) 157-160 In Memoriam'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (5) 157-160 In Memoriam'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (6) 161-179 FCC Jurkowski'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (6) 161-179 FCC Jurkowski'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (7) 181-184 Bk McKnight'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (7) 181-184 Bk McKnight'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 16.2 (8) 185-190 Bk Pickering'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 16.2 (8) 185-190 Bk Pickering'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 East Growing Picture of “Intuition” and'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 East Growing Picture of “Intuition” and'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 Ferrera Family and Self Bowen Theory'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 Ferrera Family and Self Bowen Theory'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 Lassiter Emotional Side of Socioeconomic Status'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 Lassiter Emotional Side of Socioeconomic Status'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 McKnight Mamas Last Hug Animal Emotions'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 McKnight Mamas Last Hug Animal Emotions'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.1 Noone Observing Triangles'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.1 Noone Observing Triangles'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.2 Frost Conducting Clinical Research with Families'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.2 Frost Conducting Clinical Research with Families'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.2 Harrison Observations of Change While Working'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.2 Harrison Observations of Change While Working'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.2 Klever Similarity in Spouse Functioning'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.2 Klever Similarity in Spouse Functioning'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.2 McKnight Fault Lines Fractured Families'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.2 McKnight Fault Lines Fractured Families'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 17.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 17.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 Bowen Nuclear Family Emotional System and'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 Bowen Nuclear Family Emotional System and'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 Cauley It Didnt Start with You'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 Cauley It Didnt Start with You'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 Guzman Song of the Cell'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 Guzman Song of the Cell'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 McKnight Bowlbys Attachment Theory and Bowens'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 McKnight Bowlbys Attachment Theory and Bowens'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 Millikin Bowen Coachs Attempt at a'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 Millikin Bowen Coachs Attempt at a'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 18.2 Noone FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 18.2 Noone FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.1 (1) Bowen  Psycho formulation Schiz 17-47'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.1 (1) Bowen Psycho formulation Schiz 17-47'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.1 (1) Toman 3-16'
+    type: article-journal
+    authors: [{family: 'Toman', given: 'Walter'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.1 (1) Toman 3-16'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.1 (3) COM Ferrera 48-61'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.1 (3) COM Ferrera 48-61'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.1 (4) FCC 62-84 Holt Family with multi problems '
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.1 (4) FCC 62-84 Holt Family with multi problems'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.2 (2) Noone 116-135'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.2 (2) Noone 116-135'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 2.2 p101 FSJ V2 P101 Relationship as Primary Regulators Rausso'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 2.2 p101 FSJ V2 P101 Relationship as Primary Regulators Rausso'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 3.1 (1) 5-32 Baker Gippenreiter'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 3.1 (1) 5-32 Baker Gippenreiter'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 3.1 (3) Holt 52 -62 Gender and Bowen Theory'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 3.1 (3) Holt 52 -62 Gender and Bowen Theory'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 3.1 (4) BR Papero 64-68'
+    type: article-journal
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 3.1 (4) BR Papero 64-68'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 3.1 (5) FCC Murphy 69-84'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 3.1 (5) FCC Murphy 69-84'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.1  Kerr  From the Editor V4 N1'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.1 Kerr From the Editor V4 N1'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.1 (1) deWall and Embree 5-18'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.1 (1) deWall and Embree 5-18'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.1 (4 BR) Harrison 49-62'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.1 (4 BR) Harrison 49-62'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Brooks Family Process and Variability'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Brooks Family Process and Variability'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Crews Biology and Relationships Adaptation'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Crews Biology and Relationships Adaptation'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Kerr From the Editor'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Kerr From the Editor'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Meagher Instincts of Reproduction'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Meagher Instincts of Reproduction'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 4.2 Papero Stephen Emlen Biological Basis'
+    type: article-journal
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 4.2 Papero Stephen Emlen Biological Basis'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Book Reviews Health of Nations'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Book Reviews Health of Nations'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Caskie Bowen Theory and Health Care'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Caskie Bowen Theory and Health Care'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Caskie Bowen Theory and Health Care Costs'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Caskie Bowen Theory and Health Care Costs'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Ferrera What is Help A Theoretical'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Ferrera What is Help A Theoretical'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Ferrera What is Help Commentary'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Ferrera What is Help Commentary'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Jones Anxiety and Differentiation'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Jones Anxiety and Differentiation'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Jones Anxiety and Differentiation; Factors in'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Jones Anxiety and Differentiation; Factors in'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Kerr From the Editor'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Kerr From the Editor'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Kerr Projection Process in Health Care'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Kerr Projection Process in Health Care'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Noone From the Guest Editor'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Noone From the Guest Editor'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Quinn Health Maintenance Organization'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Quinn Health Maintenance Organization'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Quinn Health Maintenance Organization as an'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Quinn Health Maintenance Organization as an'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 5.1 Reed Social Responsibility Brief Report'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 5.1 Reed Social Responsibility Brief Report'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 6.1 (1) Saffo 3-19'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 6.1 (1) Saffo 3-19'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 6.1 (2) DeShong 21-43'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 6.1 (2) DeShong 21-43'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 6.2 (2) Dysinger 117-134 Action Dialog'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 6.2 (2) Dysinger 117-134 Action Dialog'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 6.2 (3) Gilbert 135-146'
+    type: article-journal
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 6.2 (3) Gilbert 135-146'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 7.1 (2) Bowen 29-44'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 7.1 (2) Bowen 29-44'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 8.1 (1) Fine 5-19'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 8.1 (1) Fine 5-19'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 8.1 (2) Noone 21-34'
+    type: article-journal
+    authors: [{family: 'Noone', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 8.1 (2) Noone 21-34'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 8.2 (1) Ferrera 101 - 124'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 8.2 (1) Ferrera 101 - 124'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 8.2 (5) Murphy 163-176'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 8.2 (5) Murphy 163-176'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 Butler Sarah E. Lorenz Our Son,'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 Butler Sarah E. Lorenz Our Son,'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 East Triangles, Togetherness, and the Challenge'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 East Triangles, Togetherness, and the Challenge'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 Kerr FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 Kerr FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 Kerr John Williams Stoner'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 Kerr John Williams Stoner'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 McKnight Challenge of Neutrality in Defining'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 McKnight Challenge of Neutrality in Defining'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 Thompson Self-Harm and Bowen Theory'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 Thompson Self-Harm and Bowen Theory'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.1 Wilgus Suicide and Systems'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.1 Wilgus Suicide and Systems'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science'
+    type: article-journal
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'FSJ 9.2 Kerr FROM THE EDITOR'
+    type: article-journal
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 'n.d.'        # no year in filename
+    title: 'FSJ 9.2 Kerr FROM THE EDITOR'
+    # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
+    publisher: ''
+    verified: false
+
+  - pattern: 'A Family Affair Guerin'
+    type: generic
+    authors: [{family: 'Guerin', given: 'Philip'}]
+    year: 'n.d.'        # no year in filename
+    title: 'A Family Affair Guerin'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems and Marriage Papero side A'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems and Marriage Papero side A'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen Family Systems and Marriage Papero side B'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen Family Systems and Marriage Papero side B'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Empathy defeats Therapy Friedman'
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Empathy defeats Therapy Friedman'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Systems Therapy Papero'
+    type: generic
+    authors: [{family: 'Papero', given: 'Daniel'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Systems Therapy Papero'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Systems Thinking a new view of man Friedman'
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Systems Thinking a new view of man Friedman'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Operating Principles III Facts and Feelings Fogarty'
+    type: generic
+    authors: [{family: 'Fogarty', given: 'Thomas'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Operating Principles III Facts and Feelings Fogarty'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Resources for Healing and Survival in Families Friedman Chapter 2 Models and Methods No Date'
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Resources for Healing and Survival in Families Friedman Chapter 2 Models and Methods No Date'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Sensitivity to Context Variable Friedman '
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Sensitivity to Context Variable Friedman'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Sensitivity to Context Variable Friedman back '
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Sensitivity to Context Variable Friedman back'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The Birthday Party An Experiment on Obtaining Chagine in One''s Extended Family Friedman 1970'
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 1970
+    title: 'The Birthday Party An Experiment on Obtaining Chagine in One''s Extended Family Friedman 1970'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The distancer and the Pursuer Fogarty '
+    type: generic
+    authors: [{family: 'Fogarty', given: 'Thomas'}]
+    year: 'n.d.'        # no year in filename
+    title: 'The distancer and the Pursuer Fogarty'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The Myth of the Shiksa Friedman 1979 07 '
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 1979
+    title: 'The Myth of the Shiksa Friedman 1979 07'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The play''s the thing Ed Friedman'
+    type: generic
+    authors: [{family: 'Friedman', given: 'Edwin'}]
+    year: 'n.d.'        # no year in filename
+    title: 'The play''s the thing Ed Friedman'
+    publisher: ''
+    verified: false
+
+  - pattern: '099_Tempermental Categories'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Tempermental Categories'
+    publisher: ''
+    verified: false
+
+  - pattern: '14.2 galloway How Emotions Are Made'
+    type: generic
+    authors: [{family: 'Galloway', given: 'Dave'}]
+    year: 'n.d.'        # no year in filename
+    title: '14.2 galloway How Emotions Are Made'
+    publisher: ''
+    verified: false
+
+  - pattern: '1951-TEMCY-paper'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 1951
+    title: 'TEMCY-paper'
+    publisher: ''
+    verified: false
+
+  - pattern: '2011 04 Making a Difference in Self and Family Public Lecture - Michael Kerr - 2011-04-23'
+    type: speech
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 2011
+    title: '04 Making a Difference in Self and Family Public Lecture - Michael Kerr - 2011-04-23'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Basamania_marked'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Basamania marked'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Beautiful Boy Review - Kathleen Kerr - 2023-02-16'
+    type: generic
+    authors: [{family: 'Kerr', given: 'Kathleen'}]
+    year: 2023
+    title: 'Beautiful Boy Review - Kathleen Kerr - 2023-02-16'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Beautiful Boy Webinar - Kathleen Kerr - 2022-02-17'
+    type: speech
+    authors: [{family: 'Kerr', given: 'Kathleen'}]
+    year: 2022
+    title: 'Beautiful Boy Webinar - Kathleen Kerr - 2022-02-17'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Bowen_marked'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Bowen marked'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Brief intervention of procrastination'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Brief intervention of procrastination'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Clergy Care System Nel'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Clergy Care System Nel'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Consulation Using Family Systems in the workplace Richardson'
+    type: generic
+    authors: [{family: 'Richardson', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Consulation Using Family Systems in the workplace Richardson'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Counselling Interview Session Format Rickardson No Date'
+    type: interview
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Counselling Interview Session Format Rickardson No Date'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Cultural Persistance and Differentiation Stein'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Cultural Persistance and Differentiation Stein'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Death Squared The explosive Growth and Demise of Mouse Population Calhoun'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Death Squared The explosive Growth and Demise of Mouse Population Calhoun'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Dianna and Lillie Can a Feminist stil Like Murray Bowen  Lerner 1985 article'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1985
+    title: 'Dianna and Lillie Can a Feminist stil Like Murray Bowen Lerner 1985 article'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Don''t Just Do Someting Sit There Phillps'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Don''t Just Do Someting Sit There Phillps'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Emotional Regression and Cancer - Michael Kerr - 2021-01-15'
+    type: generic
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 2021
+    title: 'Emotional Regression and Cancer - Michael Kerr - 2021-01-15'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Examing Family of Origin Issues at work Weinberg Mauksch'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Examing Family of Origin Issues at work Weinberg Mauksch'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family as the Unit of Study Artical'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family as the Unit of Study Artical'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family as the Unit of Study Workshop'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family as the Unit of Study Workshop'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy with one person  Carter McGoldrick'
+    type: generic
+    authors: [{family: 'Carter', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy with one person Carter McGoldrick'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy''s Neglected Prophet side a'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy''s Neglected Prophet side a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family Therapy''s Neglected Prophet side b'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Therapy''s Neglected Prophet side b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Family_Unit_of_Study__combined_marked'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Family Unit of Study combined marked'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Gilbert_Iatrogenic_Addictions_formatted'
+    type: generic
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Gilbert Iatrogenic Addictions formatted'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Gilbert_Iatrogenic_Addictions_formatted_STRICT'
+    type: generic
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Gilbert Iatrogenic Addictions formatted STRICT'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Gilbert_Iatrogenic_Addictions_formatted_v2'
+    type: generic
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Gilbert Iatrogenic Addictions formatted v2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'I tried to not procrastinate for a week. Here’s what helped the most _ Well actually _ The Guardian'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'I tried to not procrastinate for a week. Here’s what helped the most Well actually The Guardian'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Iatrogeric Addictions Gilbert'
+    type: generic
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Iatrogeric Addictions Gilbert'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Iatrogeric Addictions Gilbert BACK'
+    type: generic
+    authors: [{family: 'Gilbert', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Iatrogeric Addictions Gilbert BACK'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Individualtion and Relationship Violence. Bartle Rosen 1994 '
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 1994
+    title: 'Individualtion and Relationship Violence. Bartle Rosen 1994'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Jackson_marked'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Jackson marked'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Lessons From nature on leadership Ferrera'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Lessons From nature on leadership Ferrera'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Loneliness and Solitude Noawer side a'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Loneliness and Solitude Noawer side a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Loneliness and Solitude Noawer side b'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Loneliness and Solitude Noawer side b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Monika Baege Interview - Michael Kerr - 2010-09-23'
+    type: interview
+    authors: [{family: 'Kerr', given: 'Michael'}]
+    year: 2010
+    title: 'Monika Baege Interview - Michael Kerr - 2010-09-23'
+    publisher: ''
+    verified: false
+
+  - pattern: 'My Trip into Separateness and Connectedness'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'My Trip into Separateness and Connectedness'
+    publisher: ''
+    verified: false
+
+  - pattern: 'New Life at the Graveyard Individuation from a Dead Parent  Williamson'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'New Life at the Graveyard Individuation from a Dead Parent Williamson'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Not Getting Caught Up In The Family System Lynch 1978'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 1978
+    title: 'Not Getting Caught Up In The Family System Lynch 1978'
+    publisher: ''
+    verified: false
+
+  - pattern: 'NS Counselling Counference 2001 Defining A self Papers 1'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'NS Counselling Counference 2001 Defining A self Papers 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'NS Counselling Counference 2001 Defining A self Papers 2'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'NS Counselling Counference 2001 Defining A self Papers 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'NS Counselling Counference 2001 Defining A self Papers 2 copy'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'NS Counselling Counference 2001 Defining A self Papers 2 copy'
+    publisher: ''
+    verified: false
+
+  - pattern: 'NS Counselling Counference 2001 Defining A self Papers 3 Frost'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'NS Counselling Counference 2001 Defining A self Papers 3 Frost'
+    publisher: ''
+    verified: false
+
+  - pattern: 'NS Counselling Counference 2001 Defining A self Papers 4 Lois Molly a'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'NS Counselling Counference 2001 Defining A self Papers 4 Lois Molly a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'On Emptiness and Closeness Fogerty'
+    type: generic
+    authors: [{family: 'Fogarty', given: 'Thomas'}]
+    year: 'n.d.'        # no year in filename
+    title: 'On Emptiness and Closeness Fogerty'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Parents should not present a united front Interview of Bowen by Ciervo  No Date'
+    type: interview
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 'n.d.'        # no year in filename
+    title: 'Parents should not present a united front Interview of Bowen by Ciervo No Date'
+    publisher: ''
+    verified: false
+
+  - pattern: 'QUICK_START'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'QUICK START'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Remarried Couples - Presention notes Richardson 1988'
+    type: generic
+    authors: [{family: 'Richardson', given: ''}]
+    year: 1988
+    title: 'Remarried Couples - Presention notes Richardson 1988'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Richardson_1996_Temperamental_Categories_formatted (1)'
+    type: generic
+    authors: [{family: 'Richardson', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Richardson 1996 Temperamental Categories formatted (1)'
+    publisher: ''
+    verified: false
+
+  - pattern: 'START_marked'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'START marked'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Tempermental Categories'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Tempermental Categories'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The Evolution of Circular Questions Training Family Therapists Fleuridas et al 1986 April Journal MFT'
+    type: article-journal
+    authors: []            # UNKNOWN — add author(s)
+    year: 1986
+    title: 'The Evolution of Circular Questions Training Family Therapists Fleuridas et al 1986 April Journal MFT'
+    publisher: ''
+    verified: false
+
+  - pattern: 'The Function of Triangles in the Process of Differentiation Kuhn 2001 NS Counselling Conference'
+    type: speech
+    authors: []            # UNKNOWN — add author(s)
+    year: 2001
+    title: 'The Function of Triangles in the Process of Differentiation Kuhn 2001 NS Counselling Conference'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Transference and Ference Lorio no date'
+    type: generic
+    authors: [{family: 'Lorio', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Transference and Ference Lorio no date'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Transference_and_Ference_Summary'
+    type: generic
+    authors: []            # UNKNOWN — add author(s)
+    year: 'n.d.'        # no year in filename
+    title: 'Transference and Ference Summary'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Transgenerational Psychosomatic Respiratory Symptoms Freeman et al'
+    type: generic
+    authors: [{family: 'Freeman', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Transgenerational Psychosomatic Respiratory Symptoms Freeman et al'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Transgenerational Scripts and Nuclear Family Stress Carter  No Date'
+    type: generic
+    authors: [{family: 'Carter', given: ''}]
+    year: 'n.d.'        # no year in filename
+    title: 'Transgenerational Scripts and Nuclear Family Stress Carter No Date'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Houston TX 2009 1'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2009
+    title: 'Wisdom of the Ages Houston TX 2009 1'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Houston TX 2009 2'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2009
+    title: 'Wisdom of the Ages Houston TX 2009 2'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Houston TX 2009 3'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2009
+    title: 'Wisdom of the Ages Houston TX 2009 3'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 1a'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 1a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 1b'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 1b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 2a'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 2a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 2b'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 2b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 3a'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 3a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 1998 3b'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 1998
+    title: 'Wisdom of the Ages Pittsburgh 1998 3b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 2002 1a'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2002
+    title: 'Wisdom of the Ages Pittsburgh 2002 1a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 2002 1b'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2002
+    title: 'Wisdom of the Ages Pittsburgh 2002 1b'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 2002 2a'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2002
+    title: 'Wisdom of the Ages Pittsburgh 2002 2a'
+    publisher: ''
+    verified: false
+
+  - pattern: 'Wisdom of the Ages Pittsburgh 2002 2b'
+    type: generic
+    authors: [{family: 'Bowen', given: 'Murray'}]
+    year: 2002
+    title: 'Wisdom of the Ages Pittsburgh 2002 2b'
+    publisher: ''
+    verified: false
