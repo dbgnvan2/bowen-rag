@@ -475,7 +475,18 @@ sources:
     verified: true
 ```
 
-Records are matched to documents by `pattern` (a case-insensitive substring of the filename); when several match, the **longest/most-specific** wins. The Streamlit **Settings → Citations** panel shows how many records are verified so you can track your progress. No index rebuild is needed — edit the file and restart the app.
+Records are matched to documents by `pattern` (a case-insensitive substring of the filename); when several match, the **longest/most-specific** wins. No index rebuild is needed — edit the file and restart the app.
+
+### Editing records in the app (Settings → Citations)
+
+You don't have to edit the YAML by hand. In the Streamlit app, open **Settings → Citations → "✏️ Edit bibliographic records (sources.yml)"**:
+
+1. **Filter** and **select** a source (a ✅ marks verified records, ◻️ unverified).
+2. Fill in **Authors** (type them naturally as "Given Family", separated by `;`), **Year**, **Title**, **Type**, **Publisher**, journal/**volume/issue/pages**, and tick **Verified** once you've confirmed the details.
+3. A live **Reference preview** shows exactly how the citation will render in your chosen style.
+4. **Save** applies the change to your current session's reports immediately (and writes `sources.yml`); **Download** saves the updated file.
+
+**Persistence on Railway:** the hosted app's filesystem is *ephemeral* — a **Save** lasts only for that session and is lost on the next redeploy. To make edits permanent on Railway, use **Download**, then commit the downloaded `sources.yml` to the repo and push (Railway redeploys with it). Running locally (desktop app or local Streamlit), **Save** persists normally.
 
 ---
 

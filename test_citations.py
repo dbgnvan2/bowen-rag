@@ -315,6 +315,21 @@ class TestLoaderAndHelpers(unittest.TestCase):
         self.assertEqual(C.normalize_style("nonsense"), "APA")
         self.assertEqual(C.normalize_style(""), "APA")
 
+    def test_dump_sources_round_trip(self):
+        # The editor writes via dump_sources; it must load back through load_sources
+        # with fields intact, and internal/empty keys dropped.
+        recs = [dict(BOOK_BOWEN), C.synth_record("099_Foo", author_lookup=lambda d: "Unknown")]
+        text = C.dump_sources(recs)
+        self.assertNotIn("_fallback", text)              # internal key stripped
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "sources.yml").write_text(text, encoding="utf-8")
+            loaded = C.load_sources(Path(d))
+        self.assertEqual(len(loaded), 2)
+        m = C.match_source("Family Therapy in_Clinical_Practice_Chapter01", loaded)
+        self.assertEqual(m["year"], 1978)
+        self.assertEqual(m["authors"], [{"family": "Bowen", "given": "Murray"}])
+        self.assertTrue(m["verified"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

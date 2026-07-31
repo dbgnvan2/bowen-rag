@@ -1486,7 +1486,9 @@ def page_report(idx: IndexManager):
         refs_md  = "\n".join(f"[[{num}]] {name}"
                              for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         # Deterministic bibliographic record per cited number (sources.yml → filename fallback).
-        num_to_record = {ref_map[dn]: citations.record_for_doc(dn, SOURCES, doc_author)
+        # Use session-edited records when present (Settings bibliography editor), else the file.
+        _srcs = st.session_state.get("sources") or SOURCES
+        num_to_record = {ref_map[dn]: citations.record_for_doc(dn, _srcs, doc_author)
                          for dn in docs}
         context_parts = [
             f"### [[{ref_map[dn]}]] {dn}"
@@ -1677,6 +1679,97 @@ Develop the topic in depth with these sections:
                 st.warning(f"PDF export unavailable: {e}")
 
 
+def _sources_editor():
+    """Structured editor for sources.yml: pick a source, edit its bibliographic fields,
+    preview the formatted reference, then Save (updates this session's records + writes
+    the file) or Download (the durable path on Railway, whose filesystem is ephemeral)."""
+    if "sources" not in st.session_state:
+        st.session_state.sources = list(SOURCES)
+    sources = st.session_state.sources
+    if not sources:
+        st.info("No sources.yml found. Run `python3 seed_sources.py` to create one, then reload.")
+        return
+
+    st.caption("Edits apply to this session's reports immediately. **On Railway, Save is not "
+               "permanent** — the filesystem resets on redeploy. Use **Download** and commit the "
+               "file to the repo for a lasting change.")
+
+    flt = st.text_input("Filter", placeholder="type part of a document name or title…",
+                        key="src_flt").lower()
+    options = [i for i, r in enumerate(sources)
+               if not flt or flt in str(r.get("pattern", "")).lower()
+               or flt in str(r.get("title", "")).lower()]
+    if not options:
+        st.warning("No sources match that filter.")
+        return
+
+    def _label(i):
+        r = sources[i]
+        return ("✅ " if r.get("verified") else "◻️ ") + str(r.get("pattern", ""))[:70]
+
+    idx = st.selectbox("Source", options, format_func=_label, key="src_sel")
+    rec = sources[idx]
+
+    c1, c2 = st.columns(2)
+    with c1:
+        authors_str = "; ".join(f"{a.get('given','')} {a.get('family','')}".strip()
+                                for a in citations._authors_list(rec))
+        f_authors = st.text_input("Authors — 'Given Family', separate multiple with ';'",
+                                  value=authors_str, key=f"src_a_{idx}")
+        f_year = st.text_input("Year", value=str(rec.get("year", "") or ""), key=f"src_y_{idx}")
+        f_title = st.text_input("Title", value=rec.get("title", ""), key=f"src_t_{idx}")
+        TYPES = ["book", "chapter", "article-journal", "speech", "interview",
+                 "report", "webpage", "generic"]
+        ct = rec.get("type", "generic")
+        f_type = st.selectbox("Type", TYPES,
+                              index=TYPES.index(ct) if ct in TYPES else len(TYPES) - 1,
+                              key=f"src_ty_{idx}")
+    with c2:
+        f_pub = st.text_input("Publisher", value=rec.get("publisher", ""), key=f"src_p_{idx}")
+        f_place = st.text_input("Publisher place", value=rec.get("publisher_place", ""),
+                                key=f"src_pl_{idx}")
+        f_cont = st.text_input("Journal / book title (for articles & chapters)",
+                               value=rec.get("container_title", ""), key=f"src_c_{idx}")
+        v1, v2, v3 = st.columns(3)
+        f_vol = v1.text_input("Volume", value=str(rec.get("volume", "") or ""), key=f"src_v_{idx}")
+        f_iss = v2.text_input("Issue", value=str(rec.get("issue", "") or ""), key=f"src_i_{idx}")
+        f_pg = v3.text_input("Pages", value=str(rec.get("page", "") or ""), key=f"src_pg_{idx}")
+    f_ver = st.checkbox("Verified — I have confirmed these details",
+                        value=bool(rec.get("verified")), key=f"src_ve_{idx}")
+
+    yr = f_year.strip()
+    edited = dict(rec)
+    edited.pop("_fallback", None)
+    edited["authors"] = citations.parse_author_string(f_authors) if f_authors.strip() else []
+    edited["year"] = int(yr) if yr.isdigit() else (yr or "n.d.")
+    edited.update({"title": f_title.strip(), "type": f_type, "publisher": f_pub.strip(),
+                   "publisher_place": f_place.strip(), "container_title": f_cont.strip(),
+                   "volume": f_vol.strip(), "issue": f_iss.strip(), "page": f_pg.strip(),
+                   "verified": f_ver})
+
+    style = citations.normalize_style(st.session_state.get("citation_style", citations.DEFAULT_STYLE))
+    st.markdown(f"**Reference preview ({style}):**")
+    st.markdown("> " + citations.format_reference(edited, style))
+    st.caption("In-text: " + (citations.format_intext(edited, style, number=idx + 1) or "—"))
+
+    b1, b2 = st.columns(2)
+    with b1:
+        if st.button("💾 Save this source", use_container_width=True, key=f"src_save_{idx}"):
+            sources[idx] = edited
+            try:
+                (BASE_DIR / "sources.yml").write_text(citations.dump_sources(sources),
+                                                      encoding="utf-8")
+                st.success("Saved. This session's reports now use the update. On Railway, also "
+                           "Download and commit the file for a permanent change.")
+            except Exception as e:
+                st.warning(f"Updated for this session, but writing the file failed ({e}). "
+                           "Use Download to keep your changes.")
+    with b2:
+        st.download_button("⬇ Download sources.yml", data=citations.dump_sources(sources),
+                           file_name="sources.yml", mime="text/yaml",
+                           use_container_width=True, key=f"src_dl_{idx}")
+
+
 def page_settings():
     st.header("Settings")
 
@@ -1726,14 +1819,20 @@ def page_settings():
              "honestly (e.g. 'n.d.') and are never invented.",
     )
     st.session_state.citation_style = _style
-    _verified = sum(1 for r in SOURCES if r.get("verified"))
-    if SOURCES:
-        st.caption(f"sources.yml: {len(SOURCES)} records, {_verified} verified. "
+    if "sources" not in st.session_state:
+        st.session_state.sources = list(SOURCES)
+    _srcs = st.session_state.sources
+    _verified = sum(1 for r in _srcs if r.get("verified"))
+    if _srcs:
+        st.caption(f"sources.yml: {len(_srcs)} records, {_verified} verified. "
                    "Unverified records still cite with best-available data; verify the "
                    "works you cite (author, year, title, publisher) for exact references.")
     else:
         st.caption("No sources.yml found — references fall back to document filenames. "
                    "Run `python3 seed_sources.py` to create one.")
+
+    with st.expander("✏️ Edit bibliographic records (sources.yml)"):
+        _sources_editor()
 
     st.divider()
     st.subheader("LLM Provider")

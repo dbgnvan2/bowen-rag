@@ -70,6 +70,34 @@ def load_sources(base_dir: Path | None = None) -> list:
         return []
 
 
+def dump_sources(records: list) -> str:
+    """
+    Serialize records back to sources.yml text (for the in-app editor). Drops
+    internal keys (those starting with '_', e.g. the synth fallback marker) and
+    empty values, so a saved file stays clean and re-loadable by load_sources.
+    """
+    import yaml
+    FIELD_ORDER = ["pattern", "type", "authors", "year", "title", "container_title",
+                   "publisher", "publisher_place", "volume", "issue", "page",
+                   "editor", "url", "doi", "verified"]
+    clean = []
+    for r in records:
+        rec = {}
+        for k in FIELD_ORDER:
+            if k not in r:
+                continue
+            v = r[k]
+            if v in (None, "", []) and k != "verified":
+                continue
+            rec[k] = v
+        # keep any non-internal keys not in FIELD_ORDER
+        for k, v in r.items():
+            if k not in rec and not k.startswith("_") and v not in (None, "", []):
+                rec[k] = v
+        clean.append(rec)
+    return yaml.safe_dump({"sources": clean}, sort_keys=False, allow_unicode=True, width=100)
+
+
 def match_source(doc_name: str, sources: list) -> dict | None:
     """
     Record whose `pattern` is a substring of doc_name (case-insensitive). When
