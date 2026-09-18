@@ -105,6 +105,24 @@ class TestReferenceGolden(unittest.TestCase):
             "Kerr M. Chronic anxiety and defining a self. "
             "The Atlantic. 1988;262(3):35-58.")
 
+    def test_m2a_vancouver_year_without_locators(self):
+        """Regression: an article-journal record with a year but no volume/issue/page
+        rendered 'n.d.;.' — a dangling separator. The ';' after the year is only
+        correct when locators actually follow it."""
+        rec = {"type": "article-journal", "year": "n.d.",
+               "title": "FSJ 13.1 Bowen Systems View of the Aging",
+               "authors": [{"family": "Bowen", "given": "Murray"}]}
+        self.assertEqual(
+            C.format_reference(rec, "Vancouver"),
+            "Bowen M. FSJ 13.1 Bowen Systems View of the Aging. n.d.")
+        # ...and the separator survives when there is something to separate.
+        rec.update({"year": "1988", "volume": "262", "issue": "3", "page": "35-58",
+                    "container_title": "Family Systems Journal",
+                    "title": "Emotional Process"})
+        self.assertEqual(
+            C.format_reference(rec, "Vancouver"),
+            "Bowen M. Emotional Process. Family Systems Journal. 1988;262(3):35-58.")
+
     def test_m2a_two_authors_join(self):
         self.assertEqual(
             C.format_reference(BOOK_TWO_AUTHORS, "APA"),
@@ -310,10 +328,13 @@ class TestLoaderAndHelpers(unittest.TestCase):
         self.assertEqual(C._initials("Murray"), "M.")
         self.assertEqual(C._initials("Michael E", period=False, spaced=False), "ME")
 
-    def test_normalize_style_defaults_to_apa(self):
+    def test_normalize_style_defaults(self):
         self.assertEqual(C.normalize_style("apa"), "APA")
-        self.assertEqual(C.normalize_style("nonsense"), "APA")
-        self.assertEqual(C.normalize_style(""), "APA")
+        self.assertEqual(C.normalize_style("vancouver"), "Vancouver")
+        # Unknown or empty input falls back to DEFAULT_STYLE — asserted against the
+        # constant, not a literal, so changing the app default doesn't break this.
+        self.assertEqual(C.normalize_style("nonsense"), C.DEFAULT_STYLE)
+        self.assertEqual(C.normalize_style(""), C.DEFAULT_STYLE)
 
     def test_dump_sources_round_trip(self):
         # The editor writes via dump_sources; it must load back through load_sources

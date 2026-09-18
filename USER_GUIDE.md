@@ -174,7 +174,7 @@ If you see this warning, consider:
 | **Chunks per source** | How many text chunks to include per source document | 1–2 for broad coverage; 3–4 when you want depth on each source. Higher values use more of the context window. |
 | **Authority boost** | Prioritizes Bowen, Kerr, Papero as sources (does not eliminate other sources) | Leave on for most reports; turn off when you specifically want secondary sources included on equal footing. Carries over from the Search page automatically. |
 | **Include sources as Appendix** | Append full section texts after the report body | Use when you want a self-contained document with all sources readable in one place. Adds significant length. Included in the downloaded file. |
-| **Citation style** | The style used for in-text citations and the References list | APA (default), MLA, Chicago, Harvard, or Vancouver. Set it in the Streamlit app under **Settings → Citations**, or on the **Report tab** in the desktop app. See [Citation style](#citation-style) below. |
+| **Citation style** | The style used for in-text citations and the References list | Vancouver (default), APA, MLA, Chicago, or Harvard. Set it in the Streamlit app under **Settings → Citations**, or on the **Report tab** in the desktop app. See [Citation style](#citation-style) below. |
 
 ### Report structure
 
@@ -182,7 +182,7 @@ Generated reports follow this three-part structure:
 
 1. **Executive Summary** (300–500 words) — concise overview of the topic for quick reading
 2. **Full Report** — in-depth treatment with sections covering Introduction & Definition, Theoretical Foundations, Key Dimensions, Relationships to Other Concepts, Clinical Presentation, Clinical Implications, Direct Quotations, and Gaps & Limitations
-3. **References** — the source list, formatted in your chosen citation style (appears once, at the end). For author–date styles it lists only the works actually cited, in alphabetical order; for Vancouver it is numbered in citation order.
+3. **References** — the source list, formatted in your chosen citation style (appears once, at the end). For author–date styles it lists only the works actually cited, in alphabetical order; for Vancouver the cited works keep their numbers from the source list, so `[3]` in the text is entry 3 below (gaps in the numbering are normal — uncited sources are omitted).
 
 ### Citation style
 
@@ -190,11 +190,11 @@ The Report formats its in-text citations and reference list in one of five style
 
 | Style | In-text looks like | Reference list |
 |---|---|---|
-| **APA** (default) | (Bowen, 1978) — quotes add a page: (Bowen, 1978, p. 45) | Alphabetical by author |
+| **Vancouver** (default) | [1] — the number matches that source's entry in the reference list | Numbered, in source-list order |
+| **APA** | (Bowen, 1978) — quotes add a page: (Bowen, 1978, p. 45) | Alphabetical by author |
 | **MLA** | (Bowen 45) | Alphabetical by author |
 | **Chicago** (author–date) | (Bowen 1978, 45) | Alphabetical by author |
 | **Harvard** | (Bowen, 1978, p. 45) | Alphabetical by author |
-| **Vancouver** | [1] | Numbered, in citation order |
 
 **Where the citation data comes from.** Full references need author, year, title, and publisher — details the search index does not store. They live in a separate file, **`sources.yml`**, which an admin creates by running `seed_sources.py` (see [Bibliography — sources.yml](#bibliography--sourcesyml) in the Admin guide). Until a source is verified there, its citation shows only what is known and marks the rest honestly — a missing year appears as **`n.d.`** ("no date"), and a source with no record falls back to a cleaned version of its filename. **The app never invents a citation detail.** For polished references, verify the works you cite in `sources.yml`.
 

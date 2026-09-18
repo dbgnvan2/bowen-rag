@@ -34,7 +34,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # ── Style registry ───────────────────────────────────────────────────────────
 STYLES = ["APA", "MLA", "Chicago", "Harvard", "Vancouver"]
 NUMBERED_STYLES = {"Vancouver"}
-DEFAULT_STYLE = "APA"
+DEFAULT_STYLE = "Vancouver"   # numbered [1] … [n]; override with CITATION_STYLE
 
 
 def normalize_style(style: str) -> str:
@@ -368,7 +368,10 @@ def format_reference(record: dict, style: str) -> str:
 
     if style == "Vancouver":
         if is_article:
-            vip = _clean_join([f"{year};" if year else "", vol,
+            # Year takes the "1987;" separator only when volume/issue/pages follow it —
+            # otherwise a record with a year but no other locators renders "n.d.;."
+            vip = _clean_join([f"{year};" if year and (vol or issue or pages) else year,
+                               vol,
                                f"({issue})" if issue else "",
                                f":{pages}" if pages else ""], "")
             return _clean_join([f"{A}." if A else "", f"{title}.",
