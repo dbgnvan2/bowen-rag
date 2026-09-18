@@ -881,7 +881,10 @@ class App:
         self._claude_models = list(dict.fromkeys(CLAUDE_MODELS + extra_claude))
         self._openai_models = list(dict.fromkeys(OPENAI_MODELS + extra_oai))
         self.top_k          = tk.IntVar(value=15)
-        self.srch_mode      = tk.StringVar(value="top-docs")
+        # Hybrid (BM25 + embedding) is the default: it finds both exact terminology
+        # and conceptual matches. Falls back to top-docs where embeddings aren't built.
+        _default_mode       = "hybrid" if (EMBEDDING_AVAILABLE and BM25_AVAILABLE) else "top-docs"
+        self.srch_mode      = tk.StringVar(value=_default_mode)
         self._use_boost     = tk.BooleanVar(value=True)
         self._rpt_use_boost = tk.BooleanVar(value=True)
         self._author_filter = tk.StringVar(value="All authors")
@@ -1843,7 +1846,9 @@ class App:
             self._bg).pack(side="left", padx=(2, 16))
 
         ttk.Label(r2, text="Mode:").pack(side="left")
-        self._rpt_mode = tk.StringVar(value="top-docs")
+        self._rpt_mode = tk.StringVar(
+            value="hybrid" if (EMBEDDING_AVAILABLE and BM25_AVAILABLE)
+            else "top-docs (recommended)")
         _rpt_modes = ["top-docs (recommended)", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE:
             _rpt_modes.append("embedding")
