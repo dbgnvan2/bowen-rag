@@ -80,6 +80,9 @@ The Streamlit app is deployed to Railway. Push to `main` on GitHub triggers an a
 - `LLM_PROVIDER` — e.g. `deepseek`
 - `DEEPSEEK_API_KEY` — your DeepSeek key
 - `APP_PASSWORD` — optional; if set, users must enter this password to access the app
+- `DAILY_TOKEN_CAP_PER_USER` (default 300000), `DAILY_TOKEN_CAP_GLOBAL` (default 2000000), `REPORT_MIN_BUDGET` (default 60000), `USAGE_DIR` — DeepSeek daily token limits, see below
+
+**Daily token limits** (`usage_limit.py`, spec `docs/spec_usage_limits.md`, tests `test_usage_limit.py`): the web app has no logins, so a visitor is a `bowen_uid` browser cookie. Each visitor gets 300K DeepSeek tokens per UTC day and all visitors share a 2M global cap. A call is refused before it starts when a limit is reached; a Report needs `REPORT_MIN_BUDGET` left. Usage is recorded from the API's token counts (estimated, with a logged warning, if absent). Clearing cookies resets a visitor's own budget — the global cap is the spend backstop. Counters persist best-effort to `USAGE_DIR`; Railway's filesystem is ephemeral, so mount a volume and point `USAGE_DIR` at it, otherwise counts reset on every redeploy. Only the DeepSeek provider is metered.
 
 The `Procfile` tells Railway how to start the app:
 ```

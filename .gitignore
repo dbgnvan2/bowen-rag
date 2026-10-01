@@ -31,3 +31,6 @@ dist/
 
 # macOS
 .DS_Store
+
+# Daily token usage counters (written by the web app)
+usage_data/

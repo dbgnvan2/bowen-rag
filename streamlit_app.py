@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 import citations
+import usage_limit
 
 # Load .env so local runs pick up API keys without manual export
 try:
@@ -550,8 +551,12 @@ class IndexManager:
 # LLM streaming
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _llm_stream(messages: list, system: str):
-    """Generator that yields tokens from the configured LLM provider."""
+def _llm_stream(messages: list, system: str, min_budget: int = 1):
+    """Generator that yields tokens from the configured LLM provider.
+
+    `min_budget` is the minimum daily token budget that must remain (DeepSeek only).
+    Raises usage_limit.UsageLimitError before any call when a daily limit is reached.
+    """
     ss       = st.session_state
     provider = ss.get("provider", "claude")
 
@@ -589,16 +594,23 @@ def _llm_stream(messages: list, system: str):
         if not key:
             raise RuntimeError("DeepSeek API key not set — go to Settings.")
         import anthropic
-        client = anthropic.Anthropic(api_key=key, base_url=DEEPSEEK_BASE_URL)
-        with client.messages.stream(
-            model=ss.get("deepseek_model", "deepseek-v4-flash"),
-            # deepseek-v4-flash is a reasoning model: its thinking block counts against
-            # max_tokens. 8000 could be fully consumed by thinking on a large report,
-            # leaving no text. 32000 leaves ample room for thinking + a full report.
-            max_tokens=32000, system=system, messages=messages
-        ) as s:
-            for token in s.text_stream:
-                yield token
+        # Daily per-visitor / global token limits (spec: docs/spec_usage_limits.md).
+        limiter = _get_limiter()
+        input_chars = len(system) + sum(len(m["content"]) for m in messages)
+        res = limiter.begin(ss.get("usage_uid", ""), input_chars, min_budget)
+        try:
+            client = anthropic.Anthropic(api_key=key, base_url=DEEPSEEK_BASE_URL)
+            with client.messages.stream(
+                model=ss.get("deepseek_model", "deepseek-v4-flash"),
+                # deepseek-v4-flash is a reasoning model: its thinking block counts against
+                # max_tokens. 8000 could be fully consumed by thinking on a large report,
+                # leaving no text. 32000 leaves ample room for thinking + a full report.
+                max_tokens=32000, system=system, messages=messages
+            ) as s:
+                yield from limiter.meter(res, input_chars, s.text_stream,
+                                         lambda: s.get_final_message().usage)
+        finally:
+            limiter.finish(res, 0)   # no-op if meter already recorded; frees a failed open
 
     else:  # ollama
         import requests
@@ -635,6 +647,48 @@ def _get_index() -> IndexManager:
     idx = IndexManager()
     idx.load(REFS_DIR)
     return idx
+
+
+@st.cache_resource
+def _get_limiter() -> "usage_limit.UsageLimiter":
+    per_user, global_cap, _ = usage_limit.caps_from_env()
+    directory = os.environ.get("USAGE_DIR")
+    if not directory:
+        logging.getLogger(__name__).warning(
+            "USAGE_DIR is not set: daily token counts live on the container filesystem "
+            "and reset on every redeploy. Mount a volume and set USAGE_DIR.")
+        directory = str(BASE_DIR / "usage_data")
+    return usage_limit.UsageLimiter(directory, per_user, global_cap)
+
+
+def _ensure_visitor_id():
+    """Identify the visitor by the `bowen_uid` cookie (spec U6).
+
+    The cookie is only visible to the server on the next session after it is set, so a
+    first-time visitor uses the new id for this session and the browser stores it.
+    """
+    if st.session_state.get("usage_uid"):
+        return
+    uid = None
+    try:
+        uid = st.context.cookies.get(usage_limit.COOKIE_NAME)
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            "Cannot read visitor cookie (%s); per-visitor limits will reset each session.", e)
+    if not usage_limit.valid_uid(uid):
+        uid = usage_limit.new_uid()
+        import streamlit.components.v1 as components
+        components.html(
+            "<script>try{var s=window.parent.location.protocol==='https:'?'; Secure':'';"
+            f"window.parent.document.cookie='{usage_limit.COOKIE_NAME}={uid}; "
+            "max-age=31536000; path=/; SameSite=Lax'+s;}catch(e){}</script>",
+            height=0,
+        )
+    st.session_state["usage_uid"] = uid
+
+
+def _report_min_budget() -> int:
+    return usage_limit.caps_from_env()[2]
 
 
 def _init_session():
@@ -1321,6 +1375,9 @@ def page_chat(idx: IndexManager):
         with st.chat_message("assistant"):
             try:
                 response = st.write_stream(_llm_stream(messages_to_send, system))
+            except usage_limit.UsageLimitError as e:
+                st.warning(str(e))
+                return
             except Exception as e:
                 st.error(f"LLM error: {e}")
                 return
@@ -1554,11 +1611,15 @@ Develop the topic in depth with these sections:
             # knows it is working; it clears once text starts arriving / on completion.
             with st.spinner("Reading the sources and writing the report — the model analyzes "
                             "everything before it starts writing, which can take up to a minute…"):
-                for tok in _llm_stream([{"role": "user", "content": prompt}], system):
+                for tok in _llm_stream([{"role": "user", "content": prompt}], system,
+                                       min_budget=_report_min_budget()):
                     acc.append(tok)
                     if len(acc) % 12 == 0:          # throttle live re-render
                         report_ph.markdown("".join(acc))
             result = "".join(acc)
+        except usage_limit.UsageLimitError as e:
+            st.warning(str(e))
+            return
         except Exception as e:
             st.error(f"LLM error: {e}")
             return
@@ -1909,6 +1970,8 @@ def page_settings():
                     "You are a test assistant."
                 ))
                 st.success(f"Connected — response: {result[:80]}")
+            except usage_limit.UsageLimitError as e:
+                st.warning(str(e))
             except Exception as e:
                 st.error(f"Connection failed: {e}")
 
@@ -1953,6 +2016,7 @@ def main():
 
 
     _init_session()
+    _ensure_visitor_id()
     _check_auth()
 
     idx = _get_index()
@@ -1994,6 +2058,11 @@ def main():
                 f'🤖 {_provider} · {_model}</div>',
                 unsafe_allow_html=True,
             )
+        if _provider == "deepseek":
+            _lim = _get_limiter()
+            _left, _ = _lim.remaining(st.session_state.get("usage_uid", ""))
+            st.caption(f"Tokens left today: {_left:,} of "
+                       f"{_lim.per_user_cap:,} (resets 00:00 UTC)")
         st.divider()
         for _name, _desc in _NAV:
             _selected = st.session_state["nav_page"] == _name
