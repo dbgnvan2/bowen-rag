@@ -2033,13 +2033,28 @@ def page_index(idx: IndexManager):
 # Main
 # ══════════════════════════════════════════════════════════════════════════════
 
+# Streamlit shows a row of changing icons at the top right while the script runs. Replace it
+# with a single thinking face; the widget only exists while a run is in progress.
+_RUNNING_INDICATOR_CSS = """
+<style>
+[data-testid="stStatusWidget"] > * { display: none !important; }
+[data-testid="stStatusWidget"]::before {
+    content: "\\1F914  Thinking\\2026";
+    font-size: 0.95rem;
+    animation: bowen-think 1.6s ease-in-out infinite;
+}
+@keyframes bowen-think { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+</style>
+"""
+
+
 def main():
     st.set_page_config(
         page_title="Bowen Theory RAG",
         layout="wide",
         initial_sidebar_state="expanded",
     )
-
+    st.markdown(_RUNNING_INDICATOR_CSS, unsafe_allow_html=True)
 
     _init_session()
     _ensure_visitor_id()
