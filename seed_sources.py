@@ -36,7 +36,11 @@ import citations as C
 BASE_DIR = Path(__file__).resolve().parent
 CHUNKS = BASE_DIR / "rag-document-search" / "references" / "chunk_metadata.json"
 
-_YEAR_RE = re.compile(r'\b(19|20)\d{2}\b')
+# A year is a 4-digit run not touching other digits. `\b` would miss "Richardson_1996"
+# because "_" is a word character. A year that is part of a range ("1943-2017") is a
+# pair of dates (for example life dates), not a publication year, so it is skipped.
+_YEAR_RE = re.compile(r'(?<!\d)(19|20)\d{2}(?!\d)')
+_RANGE_RE = re.compile(r'(?<!\d)\d{4}\s*[-\u2013]\s*\d{4}(?!\d)')
 
 
 def _load_yaml(path: Path, key: str) -> list:
@@ -63,8 +67,12 @@ def _first_match(doc_name: str, entries: list, value_key: str):
 
 
 def guess_year(doc_name: str):
-    """Return the first plausible 4-digit year (1900–2030) in the filename, else None."""
+    """Return the first plausible 4-digit year (1900–2030) in the filename, else None.
+    Years inside a range such as "(1943-2017)" are ignored."""
+    in_range = [m.span() for m in _RANGE_RE.finditer(doc_name)]
     for m in _YEAR_RE.finditer(doc_name):
+        if any(a <= m.start() < b for a, b in in_range):
+            continue
         y = int(m.group(0))
         if 1900 <= y <= 2030:
             return y

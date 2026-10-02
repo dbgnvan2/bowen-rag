@@ -228,7 +228,7 @@ In the desktop GUI, click **Save (.md / .docx / .pdf)** and choose the format in
 
 ## Daily Token Limits
 
-On the hosted web app, DeepSeek use is limited to 300,000 tokens per visitor per day, with a 2,000,000 shared daily cap. The sidebar shows how many tokens you have left. A full report uses roughly 60,000 tokens, so expect about five a day; a report is refused if fewer than 60,000 tokens remain. Limits reset at 00:00 UTC. Search never uses tokens. Your allowance is tied to a browser cookie, so a different browser or cleared cookies counts as a new visitor.
+On the hosted web app, use of the AI model is limited per visitor per day (300,000 tokens by default), with a shared daily cap for everyone (2,000,000). The sidebar shows how much of your budget is left. More expensive models use the budget faster: the sidebar shows "this model counts ×N". A full report needs roughly 60,000–100,000 tokens, so expect about three to five a day on the default model. Until the operator sets real cost weights in `model_weights.yml`, other models count ×10: they can answer short chat questions while you have plenty of budget left, but a full report on them will be refused. A request that cannot fit in your remaining budget is refused before anything is sent, with a message telling you what to lower (for example "Retrieve top N" or "Chunks per source"). Limits reset at 00:00 UTC. Search never uses tokens. Your allowance is tied to a browser cookie, so a different browser or cleared cookies counts as a new visitor.
 
 ## Search Tips
 
@@ -293,7 +293,7 @@ cp .env.example .env
 | `OLLAMA_MODEL` | Default Ollama model | e.g. `llama3` |
 | `OLLAMA_URL` | Ollama server URL | Default: `http://localhost:11434` |
 | `APP_PASSWORD` | Optional access password | Web app only; leave blank for open access |
-| `DAILY_TOKEN_CAP_PER_USER` / `DAILY_TOKEN_CAP_GLOBAL` / `REPORT_MIN_BUDGET` / `USAGE_DIR` | Daily DeepSeek token limits (defaults 300000 / 2000000 / 60000); `USAGE_DIR` should be a Railway volume | Web app only |
+| `DAILY_TOKEN_CAP_PER_USER` / `DAILY_TOKEN_CAP_GLOBAL` / `REPORT_MIN_BUDGET` / `USAGE_DIR` | Daily token limits (defaults 300000 / 2000000 / 60000); `USAGE_DIR` should be a Railway volume. Per-model cost weights are in `model_weights.yml` | Web app only |
 | `CLAUDE_EXTRA_MODELS` | Extra Claude model IDs | Comma-separated; added to the model dropdown |
 | `OPENAI_EXTRA_MODELS` | Extra OpenAI model IDs | Comma-separated; added to the model dropdown |
 

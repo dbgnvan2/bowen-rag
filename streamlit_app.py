@@ -9,6 +9,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from types import SimpleNamespace
 
 import citations
 import usage_limit
@@ -278,7 +279,6 @@ class IndexManager:
     def load(self, refs_dir: Path = REFS_DIR) -> dict:
         meta_path  = refs_dir / "chunk_metadata.json"
         matrix_npz = refs_dir / "tfidf_matrix.npz"
-        matrix_npy = refs_dir / "tfidf_matrix.npy"
 
         if not meta_path.exists():
             raise FileNotFoundError(f"Index not found at {refs_dir}.")
@@ -286,11 +286,14 @@ class IndexManager:
         with open(meta_path) as f:
             self.chunks = json.load(f)
 
-        if matrix_npz.exists():
-            self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
-        else:
-            self.matrix = np.load(str(matrix_npy))
+        if not matrix_npz.exists():
+            raise FileNotFoundError(
+                f"{matrix_npz} not found. Rebuild the index (an old dense "
+                "tfidf_matrix.npy is not read).")
+        self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
 
+        # Re-fit vectorizer on stored texts. These settings MUST equal TFIDF_PARAMS in
+        # rag-document-search/scripts/build_index.py (test_index_consistency.py checks).
         texts = [c["text"] for c in self.chunks]
         self.vectorizer = TfidfVectorizer(
             max_features=8000, stop_words="english",
@@ -298,6 +301,7 @@ class IndexManager:
             min_df=2, sublinear_tf=True
         )
         self.vectorizer.fit(texts)
+        self._check_index_in_sync(refs_dir)
         self.loaded = True
 
         self._doc_chunk_ids: dict = {}
@@ -316,6 +320,21 @@ class IndexManager:
 
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
+
+    def _check_index_in_sync(self, refs_dir: Path):
+        """Fail loudly if the saved index files disagree, instead of ranking wrong chunks."""
+        features = self.vectorizer.get_feature_names_out().tolist()
+        if self.matrix.shape != (len(self.chunks), len(features)):
+            raise RuntimeError(
+                f"Index files in {refs_dir} are out of sync (matrix {self.matrix.shape}, "
+                f"{len(self.chunks)} chunks, {len(features)} features). Rebuild the index.")
+        saved = refs_dir / "vectorizer.json"
+        if saved.exists():
+            with open(saved) as f:
+                if features != json.load(f).get("feature_names", features):
+                    raise RuntimeError(
+                        f"vectorizer.json in {refs_dir} does not match the chunk texts. "
+                        "Rebuild the index.")
 
     def get_context_window(self, chunk_id: int, window: int = 2) -> list:
         doc_name = self.chunks[chunk_id]["doc_name"]
@@ -551,66 +570,103 @@ class IndexManager:
 # LLM streaming
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _begin_metered(ss, model: str, messages: list, system: str, min_budget: int):
+    """Check the daily limits and reserve this call's estimated cost (before any API call).
+    Raises usage_limit.UsageLimitError when the call cannot fit in the visitor's or the
+    global budget. Returns (limiter, input_chars, weight, reservation)."""
+    limiter = _get_limiter()
+    input_chars = len(system) + sum(len(m["content"]) for m in messages)
+    weight = limiter.weight(model)
+    res = limiter.begin(ss.get("usage_uid", ""), input_chars, min_budget, weight)
+    return limiter, input_chars, weight, res
+
+
 def _llm_stream(messages: list, system: str, min_budget: int = 1):
     """Generator that yields tokens from the configured LLM provider.
 
-    `min_budget` is the minimum daily token budget that must remain (DeepSeek only).
-    Raises usage_limit.UsageLimitError before any call when a daily limit is reached.
+    `min_budget` is the minimum daily budget (in weighted tokens) that must remain.
+    Claude, OpenAI and DeepSeek calls raise usage_limit.UsageLimitError before any API
+    call when the daily limits cannot cover them; Ollama is not metered.
     """
     ss       = st.session_state
     provider = ss.get("provider", "claude")
 
+    # Claude, OpenAI and DeepSeek use the operator's server-side keys, so all three go
+    # through the daily token limiter (spec: docs/spec_usage_limits.md, U7/U9/U10).
+    # Ollama is self-hosted and costs the operator nothing, so it is not metered.
     if provider == "claude":
         key = ss.get("claude_key", "")
         if not key:
             raise RuntimeError("Claude API key not set — go to Settings.")
         import anthropic
-        client = anthropic.Anthropic(api_key=key)
-        with client.messages.stream(
-            model=ss.get("claude_model", "claude-sonnet-4-6"),
-            max_tokens=16000, system=system, messages=messages
-        ) as s:
-            for token in s.text_stream:
-                yield token
+        model = ss.get("claude_model", "claude-sonnet-4-6")
+        limiter, input_chars, weight, res = _begin_metered(ss, model, messages, system,
+                                                           min_budget)
+        try:
+            client = anthropic.Anthropic(api_key=key)
+            with client.messages.stream(
+                model=model, max_tokens=16000, system=system, messages=messages
+            ) as s:
+                yield from limiter.meter(res, input_chars, s.text_stream,
+                                         lambda: s.get_final_message().usage, weight)
+        finally:
+            limiter.finish(res, 0)   # no-op if meter already recorded; frees a failed open
 
     elif provider == "openai":
         key = ss.get("openai_key", "")
         if not key:
             raise RuntimeError("OpenAI API key not set — go to Settings.")
         import openai
-        client = openai.OpenAI(api_key=key)
-        full = [{"role": "system", "content": system}] + messages
-        with client.chat.completions.create(
-            model=ss.get("openai_model", "gpt-4o"),
-            max_tokens=16000, messages=full, stream=True
-        ) as s:
-            for chunk in s:
-                t = chunk.choices[0].delta.content or ""
-                if t:
-                    yield t
+        model = ss.get("openai_model", "gpt-4o")
+        limiter, input_chars, weight, res = _begin_metered(ss, model, messages, system,
+                                                           min_budget)
+        try:
+            client = openai.OpenAI(api_key=key)
+            full = [{"role": "system", "content": system}] + messages
+            usage: dict = {}
+            with client.chat.completions.create(
+                model=model, max_tokens=16000, messages=full, stream=True,
+                stream_options={"include_usage": True}
+            ) as s:
+                def _texts():
+                    for chunk in s:
+                        if getattr(chunk, "usage", None):
+                            usage["u"] = chunk.usage     # final chunk: usage, no choices
+                        if chunk.choices:
+                            t = chunk.choices[0].delta.content or ""
+                            if t:
+                                yield t
+
+                def _usage():
+                    u = usage["u"]    # KeyError if absent: meter then records an estimate
+                    return SimpleNamespace(input_tokens=u.prompt_tokens,
+                                           output_tokens=u.completion_tokens)
+
+                yield from limiter.meter(res, input_chars, _texts(), _usage, weight)
+        finally:
+            limiter.finish(res, 0)
 
     elif provider == "deepseek":
         key = ss.get("deepseek_key", "")
         if not key:
             raise RuntimeError("DeepSeek API key not set — go to Settings.")
         import anthropic
-        # Daily per-visitor / global token limits (spec: docs/spec_usage_limits.md).
-        limiter = _get_limiter()
-        input_chars = len(system) + sum(len(m["content"]) for m in messages)
-        res = limiter.begin(ss.get("usage_uid", ""), input_chars, min_budget)
+        model = ss.get("deepseek_model", "deepseek-v4-flash")
+        limiter, input_chars, weight, res = _begin_metered(ss, model, messages, system,
+                                                           min_budget)
         try:
             client = anthropic.Anthropic(api_key=key, base_url=DEEPSEEK_BASE_URL)
             with client.messages.stream(
-                model=ss.get("deepseek_model", "deepseek-v4-flash"),
+                model=model,
                 # deepseek-v4-flash is a reasoning model: its thinking block counts against
                 # max_tokens. 8000 could be fully consumed by thinking on a large report,
                 # leaving no text. 32000 leaves ample room for thinking + a full report.
                 max_tokens=32000, system=system, messages=messages
             ) as s:
                 yield from limiter.meter(res, input_chars, s.text_stream,
-                                         lambda: s.get_final_message().usage)
+                                         lambda: s.get_final_message().usage, weight)
         finally:
-            limiter.finish(res, 0)   # no-op if meter already recorded; frees a failed open
+            limiter.finish(res, 0)
 
     else:  # ollama
         import requests
@@ -658,7 +714,8 @@ def _get_limiter() -> "usage_limit.UsageLimiter":
             "USAGE_DIR is not set: daily token counts live on the container filesystem "
             "and reset on every redeploy. Mount a volume and set USAGE_DIR.")
         directory = str(BASE_DIR / "usage_data")
-    return usage_limit.UsageLimiter(directory, per_user, global_cap)
+    weights = usage_limit.load_weights(BASE_DIR / "model_weights.yml")
+    return usage_limit.UsageLimiter(directory, per_user, global_cap, weights=weights)
 
 
 def _ensure_visitor_id():
@@ -2058,11 +2115,13 @@ def main():
                 f'🤖 {_provider} · {_model}</div>',
                 unsafe_allow_html=True,
             )
-        if _provider == "deepseek":
+        if _provider != "ollama":
             _lim = _get_limiter()
             _left, _ = _lim.remaining(st.session_state.get("usage_uid", ""))
-            st.caption(f"Tokens left today: {_left:,} of "
-                       f"{_lim.per_user_cap:,} (resets 00:00 UTC)")
+            _w = _lim.weight(_model)
+            st.caption(f"Budget left today: {_left:,} of {_lim.per_user_cap:,} "
+                       f"(resets 00:00 UTC)"
+                       + (f" · this model counts ×{_w:g}" if _w != 1 else ""))
         st.divider()
         for _name, _desc in _NAV:
             _selected = st.session_state["nav_page"] == _name

@@ -21,6 +21,22 @@ except ImportError:
     PDF_SUPPORT = False
     print("Warning: PyPDF2 not installed. PDF indexing will be skipped.")
 
+# The TF-IDF settings live here ONCE. semantic_search.py imports them so the query
+# vectorizer can never drift from the one the saved matrix was built with.
+TFIDF_PARAMS = dict(
+    max_features=8000,
+    stop_words='english',
+    lowercase=True,
+    ngram_range=(1, 2),
+    min_df=2,
+    sublinear_tf=True,
+)
+
+# "## Section 3 – Title". Accepts an en dash, em dash or hyphen. Used for both the
+# "is this a sectioned document" test and the split, so the two cannot disagree.
+_SECTION_HEADING = r'## Section \d+ [\u2013\u2014-] [^\r\n]+'
+
+
 class DocumentIndexer:
     def __init__(self, doc_dir: str, chunk_size: int = 1500, overlap: int = 200):
         """
@@ -47,7 +63,7 @@ class DocumentIndexer:
         txt_files = sorted(Path(self.doc_dir).glob("*.txt"))
         for filepath in txt_files:
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, 'r', encoding='utf-8-sig') as f:
                     content = f.read()
                     documents.append((filepath.stem, content))
             except UnicodeDecodeError:
@@ -108,17 +124,37 @@ class DocumentIndexer:
         each section becomes its own chunk.  Otherwise fall back to overlapping
         word-count chunks.
         """
-        if re.search(r'^## Section \d+', content, re.MULTILINE):
-            return self._chunk_by_sections(doc_name, content)
+        content = content.lstrip("\ufeff")        # a UTF-8 BOM would hide a heading at byte 0
+        headings = re.findall(r'^' + _SECTION_HEADING, content, re.MULTILINE)
+        if headings:
+            chunks = self._chunk_by_sections(doc_name, content)
+            if not chunks:
+                print(f"  WARNING: {doc_name}: {len(headings)} section headings but no "
+                      f"indexable sections; falling back to word-count chunks")
+                return self._chunk_by_wordcount(doc_name, content)
+            if len(chunks) < len(headings):
+                print(f"  WARNING: {doc_name}: only {len(chunks)} of {len(headings)} "
+                      f"sections indexed (the rest were empty)")
+            return chunks
         return self._chunk_by_wordcount(doc_name, content)
 
     def _chunk_by_sections(self, doc_name: str, content: str) -> List[Dict]:
-        """One chunk per ## Section heading — preserves semantic boundaries."""
-        parts = re.split(r'\n(## Section \d+ – [^\n]+)\n', content)
+        """One chunk per ## Section heading — preserves semantic boundaries.
+
+        The heading may be at byte 0 (transcripts written by process_transcripts.py
+        start with it), so the split accepts start-of-text as well as a newline.
+        """
+        # The newline after a heading is NOT consumed (lookahead), so a heading that
+        # directly follows another heading is still recognised as a heading.
+        parts = re.split(r'(?:^|\r?\n)(' + _SECTION_HEADING + r')(?=\r?\n|\Z)', content)
+        preamble = parts[0].strip()
+        if preamble:
+            print(f"  Note: {doc_name}: {len(preamble)} chars before the first section "
+                  f"heading are not indexed")
         chunks = []
-        it = iter(parts[1:])   # skip content before first heading
+        it = iter(parts[1:])
         for heading, body in zip(it, it):
-            m = re.match(r'## Section \d+ – (.+?)(?:\s*\(\[[\d:]+\]\))?\.?\s*$', heading)
+            m = re.match(r'## Section \d+ [\u2013\u2014-] (.+?)(?:\s*\(\[[\d:]+\]\))?\.?\s*$', heading)
             section_title = m.group(1).strip() if m else heading.strip()
             body_clean = body.strip()
             if not body_clean:
@@ -221,14 +257,7 @@ class DocumentIndexer:
         print("Building TF-IDF index...")
         chunk_texts = [c["text"] for c in self.chunks]
 
-        self.vectorizer = TfidfVectorizer(
-            max_features=8000,
-            stop_words='english',
-            lowercase=True,
-            ngram_range=(1, 2),
-            min_df=2,
-            sublinear_tf=True
-        )
+        self.vectorizer = TfidfVectorizer(**TFIDF_PARAMS)
         self.tfidf_matrix = self.vectorizer.fit_transform(chunk_texts)
 
         # Build per-document chunk position map: chunk_index → (1-based pos, total in doc)
@@ -273,12 +302,14 @@ class DocumentIndexer:
         with open(metadata_path, 'w') as f:
             json.dump(self.metadata, f, indent=2)
 
-        # Save vectorizer metadata (don't serialize full params, just feature names)
+        # Save vectorizer metadata: feature names plus the settings actually used
         vectorizer_path = os.path.join(output_dir, "vectorizer.json")
         vectorizer_data = {
             "feature_names": self.vectorizer.get_feature_names_out().tolist(),
-            "max_features": 500,
-            "ngram_range": [1, 2]
+            "max_features": TFIDF_PARAMS["max_features"],
+            "ngram_range": list(TFIDF_PARAMS["ngram_range"]),
+            "min_df": TFIDF_PARAMS["min_df"],
+            "sublinear_tf": TFIDF_PARAMS["sublinear_tf"],
         }
         with open(vectorizer_path, 'w') as f:
             json.dump(vectorizer_data, f, indent=2)

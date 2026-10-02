@@ -32,6 +32,15 @@ class TestGuessers(unittest.TestCase):
         self.assertEqual(S.guess_year("2011 04 Making a Difference - Michael Kerr"), 2011)
         self.assertEqual(S.guess_year("1951-TEMCY-paper"), 1951)
 
+    def test_m1b_guess_year_underscore_delimited(self):
+        # \b would miss this because "_" is a word character.
+        self.assertEqual(S.guess_year("Richardson_1996_Temperamental Categories"), 1996)
+
+    def test_m1b_guess_year_ignores_year_ranges_life_dates(self):
+        # (1943-2017) are life dates, not a publication year.
+        self.assertIsNone(S.guess_year("FSJ 12.2 Noone Jaak Panksepp (1943-2017)"))
+        self.assertEqual(S.guess_year("Noone Panksepp (1943-2017) obituary 2018"), 2018)
+
     def test_m1b_guess_year_none_when_absent(self):
         self.assertIsNone(S.guess_year("Bowen on Triangles"))
         self.assertIsNone(S.guess_year("099_Tempermental Categories"))  # 099 is not a year

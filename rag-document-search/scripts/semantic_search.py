@@ -8,8 +8,16 @@ import json
 import numpy as np
 from pathlib import Path
 from typing import List, Dict, Tuple
+from scipy import sparse as sp_sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# The TF-IDF settings are defined once, in build_index.py, so the query vectorizer
+# here cannot drift from the one the saved matrix was built with.
+try:
+    from build_index import TFIDF_PARAMS          # run as a script from scripts/
+except ImportError:                                # imported as scripts.semantic_search
+    from scripts.build_index import TFIDF_PARAMS
 
 
 class SemanticSearcher:
@@ -34,26 +42,30 @@ class SemanticSearcher:
         with open(metadata_path, 'r') as f:
             self.metadata = json.load(f)
 
-        # Load TF-IDF matrix
-        matrix_path = os.path.join(self.index_dir, "tfidf_matrix.npy")
-        self.tfidf_matrix = np.load(matrix_path)
+        # Load the sparse TF-IDF matrix written by build_index.py
+        matrix_path = os.path.join(self.index_dir, "tfidf_matrix.npz")
+        if not os.path.exists(matrix_path):
+            raise FileNotFoundError(
+                f"{matrix_path} not found. Run build_index.py first "
+                "(an old dense tfidf_matrix.npy is NOT compatible and is not read).")
+        self.tfidf_matrix = sp_sparse.load_npz(matrix_path).tocsr()
 
-        # Reconstruct vectorizer from saved params
         vectorizer_path = os.path.join(self.index_dir, "vectorizer.json")
         with open(vectorizer_path, 'r') as f:
             vectorizer_data = json.load(f)
 
-        self.vectorizer = TfidfVectorizer(
-            max_features=500,
-            stop_words='english',
-            lowercase=True,
-            ngram_range=(1, 2)
-        )
-
-        # Fit on feature names to recreate the same feature space
-        # This is a workaround since we need the same vocabulary
-        chunk_texts = [m["text"] for m in self.metadata]
-        self.vectorizer.fit(chunk_texts)
+        # Refit with the SAME settings the matrix was built with, then check the result
+        # against the saved index: a mismatch means the files are out of sync, and
+        # searching anyway would return wrong chunks.
+        self.vectorizer = TfidfVectorizer(**TFIDF_PARAMS)
+        self.vectorizer.fit([m["text"] for m in self.metadata])
+        features = self.vectorizer.get_feature_names_out().tolist()
+        if (self.tfidf_matrix.shape != (len(self.metadata), len(features))
+                or features != vectorizer_data["feature_names"]):
+            raise RuntimeError(
+                f"Index files in {self.index_dir} are out of sync "
+                f"(matrix {self.tfidf_matrix.shape}, {len(self.metadata)} chunks, "
+                f"{len(features)} features). Rebuild the index with build_index.py.")
 
     def search(self, query: str, top_k: int = 5) -> List[Dict]:
         """

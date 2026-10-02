@@ -1,0 +1,15 @@
+# Cost weights for the daily token limit (usage_limit.py).
+#
+# The daily limit counts "weighted tokens": a model's real tokens are multiplied by its
+# weight, so one budget covers every provider. The budget is expressed in DeepSeek
+# deepseek-v4-flash tokens, so that model's weight is 1. A model that costs 10x as much
+# per token should have weight 10.
+#
+# SET THESE FROM THE PROVIDERS' CURRENT PRICE LISTS. The values below are NOT prices:
+# only deepseek-v4-flash is a known baseline (1). Any model not listed uses
+# default_weight, which is deliberately high so an unlisted, pricier model is
+# over-counted rather than under-counted.
+default_weight: 10
+
+weights:
+  deepseek-v4-flash: 1

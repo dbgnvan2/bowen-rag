@@ -269,7 +269,6 @@ class IndexManager:
     def load(self, refs_dir: Path = REFS_DIR) -> dict:
         meta_path   = refs_dir / "chunk_metadata.json"
         matrix_npz  = refs_dir / "tfidf_matrix.npz"
-        matrix_npy  = refs_dir / "tfidf_matrix.npy"
 
         if not meta_path.exists():
             raise FileNotFoundError(f"Index not found at {refs_dir}. Rebuild first.")
@@ -277,12 +276,14 @@ class IndexManager:
         with open(meta_path) as f:
             self.chunks = json.load(f)
 
-        if matrix_npz.exists():
-            self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
-        else:
-            self.matrix = np.load(str(matrix_npy))
+        if not matrix_npz.exists():
+            raise FileNotFoundError(
+                f"{matrix_npz} not found. Rebuild the index (an old dense "
+                "tfidf_matrix.npy is not read).")
+        self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
 
-        # Re-fit vectorizer on stored texts (preserves vocab / IDF ordering)
+        # Re-fit vectorizer on stored texts. These settings MUST equal TFIDF_PARAMS in
+        # rag-document-search/scripts/build_index.py (test_index_consistency.py checks).
         texts = [c["text"] for c in self.chunks]
         self.vectorizer = TfidfVectorizer(
             max_features=8000, stop_words="english",
@@ -290,6 +291,7 @@ class IndexManager:
             min_df=2, sublinear_tf=True
         )
         self.vectorizer.fit(texts)
+        self._check_index_in_sync(refs_dir)
         self.loaded = True
 
         # Build per-document ordered chunk index for context-window expansion
@@ -312,6 +314,21 @@ class IndexManager:
 
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
+
+    def _check_index_in_sync(self, refs_dir: Path):
+        """Fail loudly if the saved index files disagree, instead of ranking wrong chunks."""
+        features = self.vectorizer.get_feature_names_out().tolist()
+        if self.matrix.shape != (len(self.chunks), len(features)):
+            raise RuntimeError(
+                f"Index files in {refs_dir} are out of sync (matrix {self.matrix.shape}, "
+                f"{len(self.chunks)} chunks, {len(features)} features). Rebuild the index.")
+        saved = refs_dir / "vectorizer.json"
+        if saved.exists():
+            with open(saved) as f:
+                if features != json.load(f).get("feature_names", features):
+                    raise RuntimeError(
+                        f"vectorizer.json in {refs_dir} does not match the chunk texts. "
+                        "Rebuild the index.")
 
     def get_context_window(self, chunk_id: int, window: int = 2) -> list:
         """Return ordered texts of chunks within ±window of chunk_id in the same doc."""

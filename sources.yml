@@ -965,7 +965,7 @@ sources:
 
   - pattern: 'FSJ 10.2 Jones Epigenetics, Social Genomics, and Bowen'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Jones', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 10.2 Jones Epigenetics, Social Genomics, and Bowen'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1127,7 +1127,7 @@ sources:
 
   - pattern: 'FSJ 12.1 Riordan Marriage Preparation Programs and Bowen'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Riordan', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 12.1 Riordan Marriage Preparation Programs and Bowen'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1200,7 +1200,7 @@ sources:
   - pattern: 'FSJ 12.2 Noone Jaak Panksepp (1943-2017)'
     type: article-journal
     authors: [{family: 'Noone', given: ''}]
-    year: 1943
+    year: 'n.d.'        # title's (1943-2017) are life dates, not a publication year
     title: 'FSJ 12.2 Noone Jaak Panksepp (1943-2017)'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
     publisher: ''
@@ -1307,7 +1307,7 @@ sources:
 
   - pattern: 'FSJ 13.2 Harrison Difference Bowen Theory Makes in'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Harrison', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 13.2 Harrison Difference Bowen Theory Makes in'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1577,7 +1577,7 @@ sources:
 
   - pattern: 'FSJ 17.1 Ferrera Family and Self Bowen Theory'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Ferrera', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 17.1 Ferrera Family and Self Bowen Theory'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1694,7 +1694,7 @@ sources:
 
   - pattern: 'FSJ 18.2 McKnight Bowlbys Attachment Theory and Bowens'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'McKnight', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 18.2 McKnight Bowlbys Attachment Theory and Bowens'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1703,7 +1703,7 @@ sources:
 
   - pattern: 'FSJ 18.2 Millikin Bowen Coachs Attempt at a'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Millikin', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 18.2 Millikin Bowen Coachs Attempt at a'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1784,7 +1784,7 @@ sources:
 
   - pattern: 'FSJ 3.1 (3) Holt 52 -62 Gender and Bowen Theory'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Holt', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 3.1 (3) Holt 52 -62 Gender and Bowen Theory'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1910,7 +1910,7 @@ sources:
 
   - pattern: 'FSJ 5.1 Caskie Bowen Theory and Health Care'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Caskie', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 5.1 Caskie Bowen Theory and Health Care'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -1919,7 +1919,7 @@ sources:
 
   - pattern: 'FSJ 5.1 Caskie Bowen Theory and Health Care Costs'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Caskie', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 5.1 Caskie Bowen Theory and Health Care Costs'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -2144,7 +2144,7 @@ sources:
 
   - pattern: 'FSJ 9.1 Thompson Self-Harm and Bowen Theory'
     type: article-journal
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Thompson', given: ''}]
     year: 'n.d.'        # no year in filename
     title: 'FSJ 9.1 Thompson Self-Harm and Bowen Theory'
     # title hint (from authority_tiers): FSJ article PDFs (files renamed from 'Copy of' to 'FSJ')
@@ -2404,7 +2404,7 @@ sources:
 
   - pattern: 'Dianna and Lillie Can a Feminist stil Like Murray Bowen  Lerner 1985 article'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: [{family: 'Lerner', given: ''}]
     year: 1985
     title: 'Dianna and Lillie Can a Feminist stil Like Murray Bowen Lerner 1985 article'
     publisher: ''
@@ -2748,7 +2748,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Houston TX 2009 1'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2009
     title: 'Wisdom of the Ages Houston TX 2009 1'
     publisher: ''
@@ -2756,7 +2756,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Houston TX 2009 2'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2009
     title: 'Wisdom of the Ages Houston TX 2009 2'
     publisher: ''
@@ -2764,7 +2764,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Houston TX 2009 3'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2009
     title: 'Wisdom of the Ages Houston TX 2009 3'
     publisher: ''
@@ -2772,7 +2772,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 1a'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 1a'
     publisher: ''
@@ -2780,7 +2780,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 1b'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 1b'
     publisher: ''
@@ -2788,7 +2788,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 2a'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 2a'
     publisher: ''
@@ -2796,7 +2796,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 2b'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 2b'
     publisher: ''
@@ -2804,7 +2804,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 3a'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 3a'
     publisher: ''
@@ -2812,7 +2812,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 1998 3b'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 1998
     title: 'Wisdom of the Ages Pittsburgh 1998 3b'
     publisher: ''
@@ -2820,7 +2820,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 2002 1a'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2002
     title: 'Wisdom of the Ages Pittsburgh 2002 1a'
     publisher: ''
@@ -2828,7 +2828,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 2002 1b'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2002
     title: 'Wisdom of the Ages Pittsburgh 2002 1b'
     publisher: ''
@@ -2836,7 +2836,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 2002 2a'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2002
     title: 'Wisdom of the Ages Pittsburgh 2002 2a'
     publisher: ''
@@ -2844,7 +2844,7 @@ sources:
 
   - pattern: 'Wisdom of the Ages Pittsburgh 2002 2b'
     type: generic
-    authors: [{family: 'Bowen', given: 'Murray'}]
+    authors: []            # conference-recording transcript; speakers not recorded
     year: 2002
     title: 'Wisdom of the Ages Pittsburgh 2002 2b'
     publisher: ''

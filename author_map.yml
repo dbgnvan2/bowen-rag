@@ -20,6 +20,39 @@ authors:
   - pattern: "Michael Kerr"
     author: "Michael Kerr"
 
+  # ── FSJ / other articles by other authors whose TITLE contains "Bowen" ────
+  # These must come before the bare "Bowen" catch-all below, which would otherwise
+  # credit Murray Bowen with them. The author is the surname in the filename.
+  - pattern: "FSJ 10.2 Jones"
+    author: "Jones"
+
+  - pattern: "FSJ 12.1 Riordan"
+    author: "Riordan"
+
+  - pattern: "FSJ 13.2 Harrison"
+    author: "Harrison"
+
+  - pattern: "FSJ 17.1 Ferrera"
+    author: "Ferrera"
+
+  - pattern: "FSJ 18.2 McKnight"
+    author: "McKnight"
+
+  - pattern: "FSJ 18.2 Millikin"
+    author: "Millikin"
+
+  - pattern: "FSJ 3.1 (3) Holt"
+    author: "Holt"
+
+  - pattern: "FSJ 5.1 Caskie"
+    author: "Caskie"
+
+  - pattern: "FSJ 9.1 Thompson"
+    author: "Thompson"
+
+  - pattern: "Lerner 1985"
+    author: "Lerner"
+
   # ── Bowen–Kerr joint works (before individual Bowen/Kerr catches) ─────────
   - pattern: "BOWEN-KERR INTERVIEW SERIES"
     author: "Bowen & Kerr"
@@ -50,8 +83,9 @@ authors:
   - pattern: "Psychotherapy Past Present Future"
     author: "Murray Bowen"
 
-  - pattern: "Wisdom of the Ages"
-    author: "Murray Bowen"
+  # "Wisdom of the Ages" files are conference-recording transcripts, NOT Bowen's own
+  # words, and the speakers are not recorded in the filenames, so they have no entry
+  # here and are labelled "Unknown" until someone records the speakers.
 
   - pattern: "A Family Concept of Schizophrenia Bowen"
     author: "Murray Bowen"

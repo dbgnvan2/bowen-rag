@@ -82,7 +82,7 @@ The Streamlit app is deployed to Railway. Push to `main` on GitHub triggers an a
 - `APP_PASSWORD` — optional; if set, users must enter this password to access the app
 - `DAILY_TOKEN_CAP_PER_USER` (default 300000), `DAILY_TOKEN_CAP_GLOBAL` (default 2000000), `REPORT_MIN_BUDGET` (default 60000), `USAGE_DIR` — DeepSeek daily token limits, see below
 
-**Daily token limits** (`usage_limit.py`, spec `docs/spec_usage_limits.md`, tests `test_usage_limit.py`): the web app has no logins, so a visitor is a `bowen_uid` browser cookie. Each visitor gets 300K DeepSeek tokens per UTC day and all visitors share a 2M global cap. A call is refused before it starts when a limit is reached; a Report needs `REPORT_MIN_BUDGET` left. Usage is recorded from the API's token counts (estimated, with a logged warning, if absent). Clearing cookies resets a visitor's own budget — the global cap is the spend backstop. Counters persist best-effort to `USAGE_DIR`; Railway's filesystem is ephemeral, so mount a volume and point `USAGE_DIR` at it, otherwise counts reset on every redeploy. Only the DeepSeek provider is metered.
+**Daily token limits** (`usage_limit.py`, spec `docs/spec_usage_limits.md`, tests `test_usage_limit.py` and `test_llm_stream_limits.py`): the web app has no logins, so a visitor is a `bowen_uid` browser cookie. Each visitor gets 300K tokens per UTC day and all visitors share a 2M global cap. The budget is in *weighted* tokens so it covers every provider that uses a server-side key (Claude, OpenAI, DeepSeek; Ollama is not metered): a model's real tokens are multiplied by its weight in `model_weights.yml` (deepseek-v4-flash = 1, unlisted models use `default_weight`, 10 — placeholders to set from the providers' prices, not prices; until you do, any model other than deepseek-v4-flash needs about 160K weighted tokens in reserve for even a short chat and cannot run a full report). A call is refused *before* any API request if its estimated cost ((input estimate + 16K output floor) × weight) does not fit the visitor's or the global remaining budget, or `REPORT_MIN_BUDGET` for a Report; the reservation is released and real usage recorded when the stream ends (estimated, with a logged warning, if the API gives none). Clearing cookies resets a visitor's own budget and the cookie is not signed — the global cap is the spend backstop, and a script minting fresh ids can exhaust it. Counters persist best-effort to `USAGE_DIR`; Railway's filesystem is ephemeral, so mount a volume and point `USAGE_DIR` at it, otherwise counts reset on every redeploy.
 
 The `Procfile` tells Railway how to start the app:
 ```
@@ -95,7 +95,7 @@ web: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
 python3 rag-document-search/scripts/build_index.py source_files/ rag-document-search/references/
 ```
 
-Run this after adding or changing documents in `source_files/`. The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json`.
+Run this after adding or changing documents in `source_files/`. A sectioned transcript (`## Section N –` headings) is split per section — including a heading at the very first line — and the build prints a warning when a sectioned document yields fewer chunks than headings, or none. The TF-IDF settings are defined in `TFIDF_PARAMS` in `build_index.py`; the CLI search imports them, and the two apps repeat the values when they re-fit the vectorizer on load — `test_index_consistency.py` fails if the copies drift. Both apps also refuse to load an index whose matrix, chunk metadata and `vectorizer.json` disagree (no silent fallback to an old dense `tfidf_matrix.npy`). The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json`.
 
 **After rebuilding, always rebuild the embedding index too** — the chunk count changes and a stale `embed_matrix.npy` will cause a startup error.
 
@@ -140,6 +140,10 @@ After importing, rebuild the index (the script prints the command as a reminder)
 cd rag-document-search
 python3 test_skill.py   # runs 3 sample queries; writes results to test_results.json
 ```
+
+`rag-document-search/scripts/semantic_search.py` is a plain TF-IDF command-line search (`python3 scripts/semantic_search.py references/ "query" 5`). It stops with a "rebuild the index" error if the index files disagree. It has no authority boost and no embedding/hybrid mode, so its ranking differs from the apps.
+
+The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency`.
 
 ## Building the macOS app
 

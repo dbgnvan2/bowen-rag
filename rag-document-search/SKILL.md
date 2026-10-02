@@ -25,7 +25,7 @@ python3 scripts/build_index.py /path/to/source_files/ references/
 Writes to `references/`:
 - `chunk_metadata.json` — chunk text and document metadata
 - `tfidf_matrix.npz` — sparse TF-IDF matrix
-- `vectorizer.json` — vocabulary and IDF weights
+- `vectorizer.json` — feature names and the TF-IDF settings used (no IDF weights)
 
 Chunking strategy: documents with `## Section N –` headings (transcript format) are split at headings. All others use overlapping word-count chunks (~1500 chars, 200-char overlap).
 
@@ -37,7 +37,7 @@ CLI search against the TF-IDF index.
 python3 scripts/semantic_search.py references/ "your query" 5
 ```
 
-**Note:** currently loads `tfidf_matrix.npy` (old dense format). `build_index.py` now writes `tfidf_matrix.npz` (sparse). Needs updating to use `scipy.sparse.load_npz`. The GUI (`IndexManager`) handles both formats.
+Reads the sparse `tfidf_matrix.npz` written by `build_index.py` and refits the query vectorizer with the same settings (`TFIDF_PARAMS`, imported from `build_index.py`). If the saved files disagree with each other it stops with a "rebuild the index" error instead of returning wrong chunks. An old dense `tfidf_matrix.npy` is ignored and can be deleted.
 
 ## References directory
 
