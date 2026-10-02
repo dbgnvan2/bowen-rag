@@ -1,0 +1,411 @@
+books:
+  fticp:
+    title: Family Therapy in Clinical Practice
+    authors:
+    - family: Bowen
+      given: Murray
+    year: 1978
+    publisher: Jason Aronson
+    place: New York
+    doc_pattern: Family Therapy in_Clinical_Practice
+  family_evaluation:
+    title: 'Family Evaluation: An Approach Based on Bowen Theory'
+    authors:
+    - family: Kerr
+      given: Michael E.
+    - family: Bowen
+      given: Murray
+    year: 1988
+    publisher: W. W. Norton & Company
+    place: New York
+    doc_pattern: Family Evaluation_
+  papero:
+    title: Bowen Family Systems Theory
+    authors:
+    - family: Papero
+      given: Daniel V.
+    year: 1990
+    publisher: Allyn and Bacon
+    place: Boston
+    doc_pattern: Bowen Family Systems Theory_
+  kerr_secrets:
+    title: 'Bowen Theory''s Secrets: Revealing the Hidden Life of Families'
+    authors:
+    - family: Kerr
+      given: Michael E.
+    year: 2019
+    publisher: W. W. Norton & Company
+    place: New York
+    doc_pattern: Bowen Theory Secrets_
+    in_corpus: true
+chapters:
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter01
+  chapter: 1
+  title: Treatment of Family Groups With a Schizophrenic Member
+  page_start: 3
+  page_end: 16
+  orig_year: 1957
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter02
+  chapter: 2
+  title: The Role of the Father in Families With a Schizophrenic Patient
+  page_start: 17
+  page_end: 22
+  orig_year: 1959
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter03
+  chapter: 3
+  title: Family Relationships in Schizophrenia
+  page_start: 23
+  page_end: 44
+  orig_year: 1959
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter04
+  chapter: 4
+  title: A Family Concept of Schizophrenia
+  page_start: 45
+  page_end: 70
+  orig_year: 1960
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter05
+  chapter: 5
+  title: Family Psychotherapy
+  page_start: 71
+  page_end: 90
+  orig_year: 1961
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter06
+  chapter: 6
+  title: Out-Patient Family Psychotherapy
+  page_start: 91
+  page_end: 102
+  orig_year: 1961
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter07
+  chapter: 7
+  title: Intrafamily Dynamics in Emotional Illness
+  page_start: 103
+  page_end: 116
+  orig_year: 1965
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter08
+  chapter: 8
+  title: Family Psychotherapy With Schizophrenia in the Hospital and Private Practice
+  page_start: 117
+  page_end: 146
+  orig_year: 1965
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter09
+  chapter: 9
+  title: The Use of Family Theory in Clinical Practice
+  page_start: 147
+  page_end: 182
+  orig_year: 1966
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter10
+  chapter: 10
+  title: Family Therapy and Family Group Therapy
+  page_start: 183
+  page_end: 240
+  orig_year: 1971
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter11
+  chapter: 11
+  title: Principles and Techniques of Multiple Family Therapy
+  page_start: 241
+  page_end: 258
+  orig_year: 1971
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter12
+  chapter: 12
+  title: Alcoholism and the Family
+  page_start: 259
+  page_end: 268
+  orig_year: 1974
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter13
+  chapter: 13
+  title: Societal Regression as Viewed Through Family Systems Theory
+  page_start: 269
+  page_end: 284
+  orig_year: 1974
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter14
+  chapter: 14
+  title: Family Therapy After Twenty Years
+  page_start: 285
+  page_end: 320
+  orig_year: 1975
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter15
+  chapter: 15
+  title: Family Reaction to Death
+  page_start: 321
+  page_end: 336
+  orig_year: 1976
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter16
+  chapter: 16
+  title: Theory in the Practice of Psychotherapy
+  page_start: 337
+  page_end: 388
+  orig_year: 1976
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter17
+  chapter: 17
+  title: An Interview With Murray Bowen
+  page_start: 389
+  page_end: 412
+  orig_year: 1976
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter18
+  chapter: 18
+  title: Society, Crisis, and Systems Theory
+  page_start: 413
+  page_end: 452
+  orig_year: 1973
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter19
+  chapter: 19
+  title: Problems of Medical Practice Presented by Families With a Schizophrenic Member
+  extra_authors:
+  - Robert H. Dysinger
+  page_start: 453
+  page_end: 460
+  orig_year: 1959
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter20
+  chapter: 20
+  title: Toward the Differentiation of Self in Administrative Systems
+  page_start: 461
+  page_end: 466
+  orig_year: 1972
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter21
+  chapter: 21
+  title: On the Differentiation of Self
+  page_start: 467
+  page_end: 528
+  orig_year: 1972
+- doc_pattern: Family Therapy in_Clinical_Practice_Chapter22
+  chapter: 22
+  title: Toward the Differentiation of Self in One's Family of Origin
+  page_start: 529
+  page_end: 548
+  orig_year: 1974
+- doc_pattern: Family Evaluation_Chapter01
+  chapter: 1
+  title: Toward a Natural Systems Theory
+  page_start: 3
+  page_end: 26
+- doc_pattern: Family Evaluation_Chapter02
+  chapter: 2
+  title: The Emotional System
+  page_start: 27
+  page_end: 58
+- doc_pattern: Family Evaluation_Chapter03
+  chapter: 3
+  title: Individuality and Togetherness
+  page_start: 59
+  page_end: 88
+- doc_pattern: Family Evaluation_Chapter04
+  chapter: 4
+  title: Differentiation of Self
+  page_start: 89
+  page_end: 111
+- doc_pattern: Family Evaluation_Chapter05
+  chapter: 5
+  title: Chronic Anxiety
+  page_start: 112
+  page_end: 133
+- doc_pattern: Family Evaluation_Chapter06
+  chapter: 6
+  title: Triangles
+  page_start: 134
+  page_end: 162
+- doc_pattern: Family Evaluation_Chapter07
+  chapter: 7
+  title: Nuclear Family Emotional System
+  page_start: 163
+  page_end: 220
+- doc_pattern: Family Evaluation_Chapter08
+  chapter: 8
+  title: Multigenerational Emotional Process
+  page_start: 221
+  page_end: 255
+- doc_pattern: Family Evaluation_Chapter09
+  chapter: 9
+  title: Symptom Development
+  page_start: 256
+  page_end: 281
+- doc_pattern: Family Evaluation_Chapter10
+  chapter: 10
+  title: Family Evaluation
+  page_start: 282
+  page_end: 338
+- doc_pattern: Family Evaluation_Chapter11
+  chapter: null
+  chapter_label: Epilogue
+  title: An Odyssey Toward Science
+  page_start: 339
+  page_end: 386
+- doc_pattern: Bowen Family Systems Theory_Chapter01
+  chapter: 1
+  title: Bowen Theory in Perspective
+  page_start: 1
+  page_end: 20
+- doc_pattern: Bowen Family Systems Theory_Chapter02
+  chapter: 2
+  title: The Family as a Unit
+  page_start: 21
+  page_end: 36
+- doc_pattern: Bowen Family Systems Theory_Chapter03
+  chapter: 3
+  title: Bowen Family Systems Theory
+  page_start: 37
+  page_end: 66
+- doc_pattern: Bowen Family Systems Theory_Chapter04
+  chapter: 4
+  title: Family Systems Theory in Clinical Practice
+  page_start: 67
+  page_end: 82
+- doc_pattern: Bowen Family Systems Theory_Chapter05
+  chapter: 5
+  title: 'A Clinical Situation: The "B" Family'
+  page_start: 83
+  page_end: 98
+- doc_pattern: Bowen Family Systems Theory_Chapter06
+  chapter: 6
+  title: Training in Theory, Thought, and Therapy
+  page_start: 99
+  page_end: 110
+- doc_pattern: Bowen Family Systems Theory_Forewords
+  chapter: null
+  chapter_label: Forewords
+  title: Forewords (Foley, Kerr, Bowen)
+  page_start: null
+  page_end: null
+- doc_pattern: Bowen Family Systems Theory_Preface
+  chapter: null
+  chapter_label: Preface
+  title: Preface
+  page_start: null
+  page_end: null
+- doc_pattern: Bowen Theory Secrets_Introduction
+  title: Introduction
+  page_start: 8
+  page_end: 22
+  chapter: null
+  chapter_label: Introduction
+- doc_pattern: Bowen Theory Secrets_Chapter01
+  title: Systems Thinking
+  page_start: 24
+  page_end: 28
+  chapter: 1
+- doc_pattern: Bowen Theory Secrets_Chapter02
+  title: Evolution and the Emotional System
+  page_start: 29
+  page_end: 35
+  chapter: 2
+- doc_pattern: Bowen Theory Secrets_Chapter03
+  title: The Molecule of an Emotional System
+  page_start: 36
+  page_end: 45
+  chapter: 3
+- doc_pattern: Bowen Theory Secrets_Chapter04
+  title: Patterns of Emotional Functioning
+  page_start: 46
+  page_end: 71
+  chapter: 4
+- doc_pattern: Bowen Theory Secrets_Chapter05
+  title: Differentiation of Self
+  page_start: 72
+  page_end: 92
+  chapter: 5
+- doc_pattern: Bowen Theory Secrets_Chapter06
+  title: Emotional Regression
+  page_start: 93
+  page_end: 106
+  chapter: 6
+- doc_pattern: Bowen Theory Secrets_Chapter07
+  title: Emotional Regression and the Individuality-Togetherness Balance
+  page_start: 107
+  page_end: 116
+  chapter: 7
+- doc_pattern: Bowen Theory Secrets_Chapter08
+  title: Emotional Objectivity
+  page_start: 117
+  page_end: 122
+  chapter: 8
+- doc_pattern: Bowen Theory Secrets_Chapter09
+  title: Emotional Programming
+  page_start: 123
+  page_end: 137
+  chapter: 9
+- doc_pattern: Bowen Theory Secrets_Chapter10
+  title: Chronic Anxiety
+  page_start: 138
+  page_end: 149
+  chapter: 10
+- doc_pattern: Bowen Theory Secrets_Chapter11
+  title: The Multigenerational Family Organism
+  page_start: 150
+  page_end: 164
+  chapter: 11
+- doc_pattern: Bowen Theory Secrets_Chapter12
+  title: Sibling Position
+  page_start: 165
+  page_end: 174
+  chapter: 12
+- doc_pattern: Bowen Theory Secrets_Chapter13
+  title: Emotional Cutoff
+  page_start: 175
+  page_end: 180
+  chapter: 13
+- doc_pattern: Bowen Theory Secrets_Chapter14
+  title: Societal Emotional Process
+  page_start: 181
+  page_end: 199
+  chapter: 14
+- doc_pattern: Bowen Theory Secrets_Chapter15
+  title: Key Ingredients in the Process of Differentiation
+  page_start: 201
+  page_end: 215
+  chapter: 15
+- doc_pattern: Bowen Theory Secrets_Chapter16
+  title: Personal Vignettes of the Process of Differentiation
+  page_start: 216
+  page_end: 238
+  chapter: 16
+- doc_pattern: Bowen Theory Secrets_Chapter17
+  title: Clinical Example of the Process of Differentiation
+  page_start: 239
+  page_end: 251
+  chapter: 17
+- doc_pattern: Bowen Theory Secrets_Chapter18
+  title: 'The Process of Differentiation: Theory, Method, and Technique'
+  page_start: 252
+  page_end: 263
+  chapter: 18
+- doc_pattern: Bowen Theory Secrets_Chapter19
+  title: The Unabomber and His Family
+  page_start: 266
+  page_end: 281
+  chapter: 19
+- doc_pattern: Bowen Theory Secrets_Chapter20
+  title: Gary Gilmore and His Family
+  page_start: 282
+  page_end: 303
+  chapter: 20
+- doc_pattern: Bowen Theory Secrets_Chapter21
+  title: Adam Lanza and His Family
+  page_start: 304
+  page_end: 316
+  chapter: 21
+- doc_pattern: Bowen Theory Secrets_Chapter22
+  title: 'John Nash: A Beautiful Mind'
+  page_start: 317
+  page_end: 341
+  chapter: 22
+- doc_pattern: Bowen Theory Secrets_Chapter23
+  title: 'Unidisease: A Proposed New Concept in Bowen Theory'
+  page_start: 343
+  page_end: 370
+  chapter: 23
+- doc_pattern: Bowen Theory Secrets_Chapter24
+  title: Toward a Systems Concept of Supernatural Phenomena
+  page_start: 371
+  page_end: 379
+  chapter: 24
+- doc_pattern: Bowen Theory Secrets_Epilogue
+  title: Applying Bowen Theory to My Own Family
+  page_start: 380
+  page_end: 405
+  chapter: null
+  chapter_label: Epilogue
+- doc_pattern: Family Evaluation_Introduction
+  chapter: null
+  chapter_label: Introduction
+  title: Introduction
+  page_start: null
+  page_end: null

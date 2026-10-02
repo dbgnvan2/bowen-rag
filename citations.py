@@ -498,3 +498,71 @@ def cited_numbers(text: str, valid: set | None = None) -> set:
             if valid is None or n in valid:
                 nums.add(n)
     return nums
+
+
+# ── Enriched chunk → citation (workstream D) ────────────────────────────────
+def record_from_chunk(chunk: dict) -> dict:
+    """Build a citation record from enriched chunk metadata (author/date/chapter/container).
+
+    The chunk carries author as a list of full-name strings ("Murray Bowen"); parse
+    each into {family, given} so the existing formatters work unchanged.
+    """
+    authors = []
+    for name in (chunk.get("author") or []):
+        authors.extend(parse_author_string(name))
+    title = (chunk.get("chapter_title") or chunk.get("title")
+             or clean_title_from_filename(chunk.get("doc_name", "")))
+    return {
+        "authors": authors,
+        "year": str(chunk["date"]) if chunk.get("date") else None,
+        "title": title,
+        "container_title": chunk.get("container"),
+        "chapter": chunk.get("chapter"),
+        "chapter_label": chunk.get("chapter_label"),
+        "type": "chapter" if chunk.get("chapter") is not None else
+                ("article-journal" if chunk.get("container") else "generic"),
+        "verified": False,
+    }
+
+
+def passage_locator(chunk: dict) -> str:
+    """Human locator for a chunk: 'Ch. 4 ¶ 12–14' / 'Epilogue ¶ 3' / '¶ 12' / 'p. 63'.
+
+    Priority: chapter (or front-matter label) + paragraph range; page only when the
+    chunk has no paragraph number (older PDF chunks). Empty string when nothing is
+    known — the reference then renders without a locator rather than a made-up one.
+    """
+    parts = []
+    if chunk.get("chapter") is not None:
+        parts.append(f"Ch. {chunk['chapter']}")
+    elif chunk.get("chapter_label"):
+        parts.append(chunk["chapter_label"])
+    ps, pe = chunk.get("paragraph_start"), chunk.get("paragraph_end")
+    if ps is not None:
+        parts.append(f"¶ {ps}" if (pe is None or ps == pe) else f"¶ {ps}–{pe}")
+    elif chunk.get("page") is not None:
+        parts.append(f"p. {chunk['page']}")
+    return ", ".join(parts)
+
+
+def format_passage_reference(record: dict, locator: str, number: int | None = None) -> str:
+    """Traceability-first reference entry with the locator prominent.
+
+    'Author (Year). *Title* [Ch. 4 ¶ 70]. In *Container*.' — the locator is never
+    dropped (fixes the numbered-style page-stripping defect: the locator lives in the
+    reference entry, not an inline marker).
+    """
+    authors = _authors_list(record)
+    fams = [a["family"] for a in authors if a.get("family")]
+    head = ", ".join(fams) if fams else ""
+    head = f"{head} ({_year_str(record)})" if head else f"({_year_str(record)})"
+    title = (record.get("title") or "Untitled").strip()
+    core = _italic(title) + (f" [{locator}]" if locator else "")
+    out = [head, core]
+    container = (record.get("container_title") or "").strip()
+    if container and container.lower() != (record.get("title") or "").lower():
+        out.append(f"In {_italic(container)}")
+    entry = " ".join(out).rstrip(".")
+    if number is not None:
+        entry = f"{number}. {entry}"
+    return entry + "."

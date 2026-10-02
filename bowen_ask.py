@@ -2,20 +2,19 @@
 """bowen_ask.py — headless port of the Bowen RAG app's **Report** page.
 
 The email bot runs exactly one command; this is it. The output is the same
-artefact the app produces on its Report page: numbered sources, `[[N]]` inline
-citations with page locators where a page is unambiguous, the 8-section report
-structure, then those markers rewritten into the chosen citation style with a
-reference list built from the cited sources only.
+artefact the app produces on its Report page: each retrieved chunk becomes a
+numbered source with its own precise locator (chapter + paragraph, or page),
+the 8-section report structure, then the `[[N]]` markers rewritten into the
+chosen citation style with a reference list that carries the locators.
 
   echo "What does Bowen theory say about triangles?" | python3 bowen_ask.py
 
-Options (defaults match the Report page's defaults):
+Options:
   --mode NAME  retrieval mode                (default hybrid; also top-docs, semantic,
                                               keyword, both, embedding)
-  --top N      retrieved documents           (default 30; page: "Retrieve top")
-  --words N    target minimum word count     (default 2000; page: "Target words")
-  --cpd N      chunks per source             (default 5; page: "Chunks per source")
-  --style NAME citations.DEFAULT_STYLE default (vancouver)
+  --top N      retrieved chunks              (default 30)
+  --words N    target minimum word count     (default 2000)
+  --style NAME citation style                (default citations.DEFAULT_STYLE = vancouver)
 
 Exit codes: 0 ok · 1 no answer produced (index unreadable, retrieval failed, or no
 relevant sources found) · 2 bad input (no question) · 3 the model produced no text ·
@@ -24,7 +23,6 @@ relevant sources found) · 2 bad input (no question) · 3 the model produced no 
 import argparse
 import importlib.util
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -45,21 +43,15 @@ import anthropic  # noqa: E402
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 
 
-def build_prompt(query, docs, refs_md, doc_page, target_words):
-    """The Report page's prompt, verbatim (streamlit_app.py page_report)."""
-    context_parts = [
-        f"### [[{i + 1}]] {dn}" + (f" (p. {doc_page[dn]})" if dn in doc_page else "") + "\n"
-        + "\n…\n".join(txts)
-        for i, (dn, txts) in enumerate(sorted(docs.items()))
-    ]
-    context = "\n\n---\n\n".join(context_parts)
+def build_prompt(query, context, refs_md, n_sources, target_words):
+    """The Report prompt. Each source header carries its locator (Ch. N ¶ M / p. X)."""
     return f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
 
 **Topic / Question:** {query}
 
 ---
 
-## SOURCE EXCERPTS ({len(docs)} documents)
+## SOURCE EXCERPTS ({n_sources} passages)
 
 {context}
 
@@ -70,7 +62,7 @@ def build_prompt(query, docs, refs_md, doc_page, target_words):
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
 - **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
-- **When you quote a specific passage** and that source's header shows a page (e.g. "(p. 45)"), cite it as [[N, p. 45]]. If no page is shown, just use [[N]]. Do not invent page numbers.
+- **Cite the NUMBER only.** Each source's header above already shows its exact location (chapter and paragraph, or page), and that location will appear in the References section automatically. Do NOT add page or paragraph numbers inside the brackets.
 - Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
 
 ## REPORT STRUCTURE
@@ -101,7 +93,6 @@ def main() -> None:
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("--top", type=int, default=30)
     ap.add_argument("--words", type=int, default=2000)
-    ap.add_argument("--cpd", type=int, default=5)
     ap.add_argument("--mode", default="hybrid",
                     choices=["hybrid", "top-docs", "semantic", "keyword", "both",
                              "embedding"],
@@ -125,9 +116,7 @@ def main() -> None:
         sys.exit(1)
 
     # Retrieval mode — hybrid by default, matching the app's Report page. Downgrade to
-    # top-docs only when the requested mode's own pieces are missing; embedding needs the
-    # embedding index alone, hybrid needs BM25 as well (the app offers them on exactly
-    # those terms). Neither raises once its pieces are present.
+    # top-docs only when the requested mode's own pieces are missing.
     mode = args.mode
     mode_substituted_from = None
     have_emb = bool(app.EMBEDDING_AVAILABLE) and idx.embed_matrix is not None
@@ -159,46 +148,27 @@ def main() -> None:
         print("no relevant sources found for that question", file=sys.stderr)
         sys.exit(1)
 
-    # Group chunks by document, expanding a context window around each hit —
-    # mirroring the Report page's "Chunks per source" setting.
-    docs: dict = {}
-    window = max(0, (args.cpd - 1) // 2)
-    for c in chunks:
-        cid = c.get("id")
-        expanded = (idx.get_context_window(cid, window=window)
-                    if cid is not None and hasattr(idx, "_doc_chunk_ids")
-                    else [c["text"]])
-        existing = set(docs.get(c["doc_name"], []))
-        for t in expanded:
-            if t not in existing:
-                docs.setdefault(c["doc_name"], []).append(t)
-                existing.add(t)
+    # Each retrieved chunk is its own citable unit with a precise locator
+    # (chapter + paragraph, or page). No context-window expansion — that would
+    # smear one chunk across multiple paragraphs and make its locator wrong.
+    num_to_chunk = dict(enumerate(chunks, start=1))
+    num_to_record = {n: citations.record_from_chunk(c) for n, c in num_to_chunk.items()}
 
-    ref_map = {name: i + 1 for i, name in enumerate(sorted(docs))}
+    context_parts, refs_md_lines = [], []
+    for n, c in num_to_chunk.items():
+        loc = citations.passage_locator(c)
+        tag = f" — {loc}" if loc else ""
+        context_parts.append(f"### [[{n}]] {c['doc_name']}{tag}\n{c['text']}")
+        refs_md_lines.append(f"[[{n}]] {c['doc_name']}{tag}")
+    context = "\n\n---\n\n".join(context_parts)
+    refs_md = "\n".join(refs_md_lines)
 
-    # A page locator only when the retrieved chunks for that document all sit on
-    # ONE page — otherwise it would be confidently wrong.
-    doc_pages: dict = {}
-    for c in chunks:
-        p = c.get("page")
-        if p is not None:
-            doc_pages.setdefault(c["doc_name"], set()).add(p)
-    doc_page = {dn: next(iter(ps)) for dn, ps in doc_pages.items() if len(ps) == 1}
-
-    refs_md = "\n".join(f"[[{num}]] {name}"
-                        for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
-    srcs = citations.load_sources(REPO)
-    num_to_record = {ref_map[dn]: citations.record_for_doc(dn, srcs, app.doc_author)
-                     for dn in docs}
-
-    prompt = build_prompt(query, docs, refs_md, doc_page, args.words)
+    prompt = build_prompt(query, context, refs_md, len(num_to_chunk), args.words)
 
     api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:
         print("DEEPSEEK_API_KEY is not set (missing from the environment or the "
               "corpus repo's .env)", file=sys.stderr)
-        # Config fault, not caller error: keep it distinct from exit 2 (empty question) so
-        # an operator monitoring exit codes sees a misconfigured bot, not bad input.
         sys.exit(4)
 
     client = anthropic.Anthropic(api_key=api_key, base_url=DEEPSEEK_BASE_URL,
@@ -223,21 +193,23 @@ def main() -> None:
         styled_body = citations.apply_intext_citations(result, num_to_record, style)
         raw_cited = citations.cited_numbers(result, set(num_to_record))
         if not raw_cited and len(result.strip()) > 200:
-            # Same loud-fail as the app (streamlit_app.py page_report): zero markers means
-            # the model ignored the required format, so the list below names every
-            # retrieved source with nothing in the body pointing at them. Warn, and still
-            # exit 0 — an unmarked real report beats no report.
+            # Zero markers means the model ignored the required format, so the list
+            # below names every retrieved source with nothing in the body pointing at
+            # them. Warn, and still exit 0 — an unmarked real report beats no report.
             print("warning: the model emitted no [[N]] citation markers — the reference "
                   "list below covers all retrieved sources, not the cited ones",
                   file=sys.stderr)
         cited = raw_cited or set(num_to_record)
-        refs_body = citations.build_reference_list_md(num_to_record, style, cited)
+        refs_body = "\n".join(
+            citations.format_passage_reference(
+                num_to_record[n], citations.passage_locator(num_to_chunk[n]), number=n)
+            for n in sorted(cited)
+        )
         final_report = styled_body + f"\n\n## References\n\n{refs_body}\n"
-    except Exception as e:  # a bad sources.yml record must not lose the report
-        plain = re.sub(r"\[\[\s*(\d[^\]]*?)\s*\]\]", r"[\1]", result)
-        plain_refs = "\n".join(f"{n}. {nm}"
-                               for nm, n in sorted(ref_map.items(), key=lambda x: x[1]))
-        final_report = plain + f"\n\n## References\n\n{plain_refs}\n"
+    except Exception as e:  # a bad record must not lose the report
+        plain = "\n".join(
+            f"{n}. {c['doc_name']}" for n, c in sorted(num_to_chunk.items()))
+        final_report = result + f"\n\n## References\n\n{plain}\n"
         print(f"(citation styling failed: {e})", file=sys.stderr)
 
     if mode_substituted_from:

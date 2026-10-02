@@ -1,302 +1,261 @@
 #!/usr/bin/env python3
-"""
-Build semantic search index from text and PDF documents.
-Chunks documents and creates embeddings for RAG search.
-"""
+"""Enriched, paragraph-aligned Bowen RAG indexer.
 
-import os
+Rebuilds chunk_metadata.json + tfidf_matrix.npz with every chunk carrying
+author / date / chapter / paragraph metadata, resolved from:
+  - chapter_map.yml        (chapter docs -> book citation + chapter number/title)
+  - headers_candidates.yml (articles/transcripts -> header/author/year/title)
+
+Chunking is paragraph-aligned: chunks are built from WHOLE paragraphs (a chunk
+never splits a paragraph), so a stable "Ch. N, ¶ M" locator is possible.
+
+Run:
+    python3 build_index.py            # repo defaults (source_files -> references)
+Then rebuild the embedding index (build_embeddings.py) — the chunk count changes.
+"""
 import json
 import re
+import sys
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
-import numpy as np
+
+import yaml
 from scipy import sparse as sp_sparse
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 try:
-    import PyPDF2
+    import fitz  # PyMuPDF
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
-    print("Warning: PyPDF2 not installed. PDF indexing will be skipped.")
 
-class DocumentIndexer:
-    def __init__(self, doc_dir: str, chunk_size: int = 1500, overlap: int = 200):
-        """
-        Initialize indexer.
+REPO = Path(__file__).resolve().parents[2]
+SRC = REPO / "source_files"
+REFS = REPO / "rag-document-search" / "references"
+CHUNK_CHARS = 1500
 
-        Args:
-            doc_dir: Directory containing text documents
-            chunk_size: Approximate characters per chunk
-            overlap: Character overlap between chunks
-        """
-        self.doc_dir = doc_dir
-        self.chunk_size = chunk_size
-        self.overlap = overlap
-        self.chunks = []
-        self.metadata = []
-        self.vectorizer = None
-        self.tfidf_matrix = None
 
-    def load_documents(self) -> List[Tuple[str, str]]:
-        """Load all text and PDF files from directory."""
-        documents = []
+def load_yaml(p: Path):
+    try:
+        return yaml.safe_load(p.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return {}
 
-        # Load .txt files
-        txt_files = sorted(Path(self.doc_dir).glob("*.txt"))
-        for filepath in txt_files:
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    documents.append((filepath.stem, content))
-            except UnicodeDecodeError:
-                try:
-                    with open(filepath, 'r', encoding='utf-16') as f:
-                        content = f.read()
-                    documents.append((filepath.stem, content))
-                    print(f"  Note: read {filepath.name} as UTF-16")
-                except Exception:
-                    try:
-                        with open(filepath, 'r', encoding='utf-16', errors='replace') as f:
-                            content = f.read()
-                        documents.append((filepath.stem, content))
-                        print(f"  Note: read {filepath.name} as UTF-16 with replacement characters (file may be truncated)")
-                    except Exception:
-                        try:
-                            with open(filepath, 'r', encoding='latin-1') as f:
-                                content = f.read()
-                            documents.append((filepath.stem, content))
-                            print(f"  Note: read {filepath.name} as latin-1 fallback")
-                        except Exception as e:
-                            print(f"Error reading {filepath}: {e}")
-            except Exception as e:
-                print(f"Error reading {filepath}: {e}")
 
-        # Load .pdf files if PyPDF2 is available
-        if PDF_SUPPORT:
-            pdf_files = sorted(Path(self.doc_dir).glob("*.pdf"))
-            for filepath in pdf_files:
-                try:
-                    text = self._extract_pdf_text(filepath)
-                    if text.strip():
-                        documents.append((filepath.stem, text))
-                except Exception as e:
-                    print(f"Error reading PDF {filepath}: {e}")
-
-        return documents
-
-    def _extract_pdf_text(self, filepath: Path) -> str:
-        """Extract text from PDF file, inserting [PDF_PAGE:N] markers between pages."""
-        parts = []
+def read_text(path: Path) -> str:
+    raw = path.read_bytes()
+    for enc in ("utf-8", "utf-16", "latin-1"):
         try:
-            with open(filepath, 'rb') as f:
-                pdf_reader = PyPDF2.PdfReader(f)
-                for i, page in enumerate(pdf_reader.pages):
-                    page_text = page.extract_text()
-                    if page_text and page_text.strip():
-                        parts.append(f"[PDF_PAGE:{i + 1}]{page_text}")
-        except Exception as e:
-            print(f"  Warning: Could not fully extract text from {filepath.name}: {e}")
+            return raw.decode(enc)
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    return raw.decode("utf-8", errors="replace")
 
-        return "\n".join(parts)
 
-    def chunk_document(self, doc_name: str, content: str) -> List[Dict]:
-        """
-        Split document into chunks.
-        If the document contains '## Section N –' headings (formatted transcripts),
-        each section becomes its own chunk.  Otherwise fall back to overlapping
-        word-count chunks.
-        """
-        if re.search(r'^## Section \d+', content, re.MULTILINE):
-            return self._chunk_by_sections(doc_name, content)
-        return self._chunk_by_wordcount(doc_name, content)
+def load_metadata():
+    cm = load_yaml(REPO / "chapter_map.yml")
+    chapters = [(c.get("doc_pattern", "").lower(), c)
+                for c in cm.get("chapters", []) if c.get("doc_pattern")]
+    books = [(b.get("doc_pattern", "").lower(), b)
+             for b in cm.get("books", {}).values() if b.get("doc_pattern")]
+    hd = load_yaml(REPO / "headers_candidates.yml")
+    headers = {c.get("doc_name"): c for c in hd.get("candidates", []) if c.get("doc_name")}
+    return chapters, books, headers
 
-    def _chunk_by_sections(self, doc_name: str, content: str) -> List[Dict]:
-        """One chunk per ## Section heading — preserves semantic boundaries."""
-        parts = re.split(r'\n(## Section \d+ – [^\n]+)\n', content)
-        chunks = []
-        it = iter(parts[1:])   # skip content before first heading
-        for heading, body in zip(it, it):
-            m = re.match(r'## Section \d+ – (.+?)(?:\s*\(\[[\d:]+\]\))?\.?\s*$', heading)
-            section_title = m.group(1).strip() if m else heading.strip()
-            body_clean = body.strip()
-            if not body_clean:
-                continue
-            full_text = f"[{section_title}]\n\n{body_clean}"
-            chunks.append({
-                "doc_name": doc_name,
-                "section_title": section_title,
-                "text": full_text,
-                "char_count": len(full_text),
-                "page": None,
-            })
-        return chunks
 
-    _PDF_PAGE_RE = re.compile(r'\[PDF_PAGE:(\d+)\]')
+def longest_match(doc_name: str, pairs):
+    dn = doc_name.lower()
+    best, bl = None, -1
+    for pat, val in pairs:
+        if pat and pat in dn and len(pat) > bl:
+            best, bl = val, len(pat)
+    return best
 
-    def _chunk_by_wordcount(self, doc_name: str, content: str) -> List[Dict]:
-        """Split document into overlapping chunks at sentence boundaries.
-        Tracks PDF page numbers from [PDF_PAGE:N] markers inserted by _extract_pdf_text.
-        """
-        # Split content into (page_num_or_None, segment_text) pairs
-        segments: List[Tuple[Optional[int], str]] = []
-        current_page: Optional[int] = None
-        last_pos = 0
-        for m in self._PDF_PAGE_RE.finditer(content):
-            if m.start() > last_pos:
-                segments.append((current_page, content[last_pos:m.start()]))
-            current_page = int(m.group(1))
-            last_pos = m.end()
-        if last_pos < len(content):
-            segments.append((current_page, content[last_pos:]))
 
-        # Build a flat list of (sentence, page_num) pairs
-        sentences_with_pages: List[Tuple[str, Optional[int]]] = []
-        for page_num, seg_text in segments:
-            for sent in re.split(r'(?<=[.!?])\s+', seg_text):
-                if sent.strip():
-                    sentences_with_pages.append((sent, page_num))
-
-        # Produce overlapping chunks, recording the page of the first sentence
-        chunks = []
-        chunk_buf: List[Tuple[str, Optional[int]]] = []
-        current_chars = 0
-
-        for sentence, page_num in sentences_with_pages:
-            projected = current_chars + len(sentence) + (1 if chunk_buf else 0)
-            if projected > self.chunk_size and chunk_buf:
-                chunk_text = " ".join(s for s, _ in chunk_buf).strip()
-                chunks.append({
-                    "doc_name": doc_name,
-                    "text": chunk_text,
-                    "char_count": len(chunk_text),
-                    "page": chunk_buf[0][1],
-                })
-                # overlap: carry last N chars of sentences forward
-                overlap_buf: List[Tuple[str, Optional[int]]] = []
-                overlap_chars = 0
-                for s, p in reversed(chunk_buf):
-                    if overlap_chars + len(s) < self.overlap:
-                        overlap_buf.insert(0, (s, p))
-                        overlap_chars += len(s) + 1
-                    else:
-                        break
-                chunk_buf = overlap_buf + [(sentence, page_num)]
-                current_chars = sum(len(s) + 1 for s, _ in chunk_buf)
-            else:
-                chunk_buf.append((sentence, page_num))
-                current_chars += len(sentence) + (1 if current_chars else 0)
-
-        if chunk_buf:
-            chunk_text = " ".join(s for s, _ in chunk_buf).strip()
-            chunks.append({
-                "doc_name": doc_name,
-                "text": chunk_text,
-                "char_count": len(chunk_text),
-                "page": chunk_buf[0][1],
-            })
-
-        return chunks
-
-    def build_index(self) -> Dict:
-        """Build complete search index."""
-        print("Loading documents...")
-        documents = self.load_documents()
-
-        if not documents:
-            raise ValueError(f"No .txt files found in {self.doc_dir}")
-
-        print(f"Found {len(documents)} documents")
-
-        # Chunk all documents
-        print("Chunking documents...")
-        for doc_name, content in documents:
-            chunks = self.chunk_document(doc_name, content)
-            self.chunks.extend(chunks)
-
-        print(f"Created {len(self.chunks)} chunks")
-
-        # Build TF-IDF vectors for similarity
-        print("Building TF-IDF index...")
-        chunk_texts = [c["text"] for c in self.chunks]
-
-        self.vectorizer = TfidfVectorizer(
-            max_features=8000,
-            stop_words='english',
-            lowercase=True,
-            ngram_range=(1, 2),
-            min_df=2,
-            sublinear_tf=True
-        )
-        self.tfidf_matrix = self.vectorizer.fit_transform(chunk_texts)
-
-        # Build per-document chunk position map: chunk_index → (1-based pos, total in doc)
-        doc_seq: Dict[str, List[int]] = {}
-        for i, chunk in enumerate(self.chunks):
-            doc_seq.setdefault(chunk["doc_name"], []).append(i)
-        pos_map: Dict[int, Tuple[int, int]] = {}
-        for ids in doc_seq.values():
-            total = len(ids)
-            for pos, idx in enumerate(ids):
-                pos_map[idx] = (pos + 1, total)
-
-        # Create metadata without embedding vectors (they're sparse and large)
-        print("Saving metadata...")
-        self.metadata = [
-            {
-                "id": i,
-                "doc_name": chunk["doc_name"],
-                "section_title": chunk.get("section_title", ""),
-                "text": chunk["text"],
-                "char_count": chunk["char_count"],
-                "page": chunk.get("page"),
-                "chunk_pos": pos_map[i][0],
-                "doc_chunk_count": pos_map[i][1],
-                "preview": chunk["text"][:150] + "..."
-            }
-            for i, chunk in enumerate(self.chunks)
-        ]
-
+def resolve_metadata(doc_name, chapters, books, headers):
+    ch = longest_match(doc_name, chapters)
+    if ch is not None:
+        bk = longest_match(doc_name, books) or {}
+        authors = bk.get("authors") or []
         return {
-            "num_documents": len(documents),
-            "num_chunks": len(self.chunks),
-            "vectorizer_features": len(self.vectorizer.get_feature_names_out())
+            "kind": "chapter",
+            "author": [(f"{a.get('given','')} {a.get('family','')}".strip() or a.get("family", ""))
+                       for a in authors],
+            "date": str(bk["year"]) if bk.get("year") else None,
+            "chapter": ch.get("chapter"),
+            "chapter_label": ch.get("chapter_label"),
+            "chapter_title": ch.get("title"),
+            "container": bk.get("title"),
+        }
+    h = headers.get(doc_name)
+    if h:
+        au = h.get("author")
+        return {
+            "kind": "article",
+            "author": [au] if au else [],
+            "date": h.get("year"),
+            "title": h.get("title"),
+            "chapter": None,
+            "chapter_label": None,
+            "chapter_title": None,
+            "container": h.get("container"),
+        }
+    return {"kind": "unknown", "author": [], "date": None, "chapter": None,
+            "chapter_label": None, "chapter_title": None, "container": None}
+
+
+def txt_paragraphs(text: str) -> list:
+    paras = []
+
+    def add_body(body, section):
+        for p in re.split(r"\n\s*\n", body):
+            p = re.sub(r"\s+", " ", p).strip()
+            if p:
+                paras.append({"text": p, "page": None, "section": section})
+
+    if re.search(r"^## Section \d+", text, re.M):
+        parts = re.split(r"\n(## Section \d+ – [^\n]+)\n", text)
+        if parts and parts[0].strip():
+            add_body(parts[0], None)
+        it = iter(parts[1:])
+        for heading in it:
+            body = next(it)
+            m = re.match(r"## Section \d+ – (.+?)(?:\s*\(\[[\d:]+\]\))?\.?\s*$", heading)
+            add_body(body, m.group(1).strip() if m else heading.strip())
+    else:
+        add_body(text, None)
+    return paras
+
+
+def pdf_paragraphs(path: Path) -> list:
+    doc = fitz.open(str(path))
+    paras = []
+    for pi in range(doc.page_count):
+        for b in sorted(doc[pi].get_text("blocks"), key=lambda b: (b[1], b[0])):
+            if b[6] != 0:          # skip image blocks
+                continue
+            t = re.sub(r"\s+", " ", b[4]).strip()
+            if t:
+                paras.append({"text": t, "page": pi + 1, "section": None})
+    return paras
+
+
+def paragraphs_for(path: Path) -> list:
+    if path.suffix.lower() == ".pdf" and PDF_SUPPORT:
+        return pdf_paragraphs(path)
+    return txt_paragraphs(read_text(path))
+
+
+def build_chunks(doc_name: str, paras: list) -> list:
+    for i, p in enumerate(paras):
+        p["num"] = i + 1
+    chunks, buf, chars = [], [], 0
+
+    def flush():
+        sec = buf[0]["section"]
+        body = "\n\n".join(p["text"] for p in buf)
+        text = (f"[{sec}]\n\n" + body) if sec else body
+        return {
+            "text": text,
+            "char_count": len(text),
+            "page": buf[0]["page"],
+            "section_title": sec or "",
+            "paragraph_start": buf[0]["num"],
+            "paragraph_end": buf[-1]["num"],
         }
 
-    def save_index(self, output_dir: str):
-        """Save index to disk."""
-        os.makedirs(output_dir, exist_ok=True)
+    for p in paras:
+        if buf and chars + len(p["text"]) > CHUNK_CHARS:
+            chunks.append(flush())
+            buf, chars = [], 0
+        buf.append(p)
+        chars += len(p["text"]) + 2
+    if buf:
+        chunks.append(flush())
+    return chunks
 
-        # Save metadata
-        metadata_path = os.path.join(output_dir, "chunk_metadata.json")
-        with open(metadata_path, 'w') as f:
-            json.dump(self.metadata, f, indent=2)
 
-        # Save vectorizer metadata (don't serialize full params, just feature names)
-        vectorizer_path = os.path.join(output_dir, "vectorizer.json")
-        vectorizer_data = {
-            "feature_names": self.vectorizer.get_feature_names_out().tolist(),
-            "max_features": 500,
-            "ngram_range": [1, 2]
-        }
-        with open(vectorizer_path, 'w') as f:
-            json.dump(vectorizer_data, f, indent=2)
+def main():
+    doc_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else SRC
+    out_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else REFS
+    chapters, books, headers = load_metadata()
 
-        # Save matrix in sparse format (much smaller than dense)
-        matrix_path = os.path.join(output_dir, "tfidf_matrix.npz")
-        sp_sparse.save_npz(matrix_path, self.tfidf_matrix)
+    all_chunks = []
+    stats = {"docs": 0}
+    for f in sorted(doc_dir.iterdir()):
+        if f.suffix.lower() not in (".txt", ".pdf"):
+            continue
+        paras = paragraphs_for(f)
+        if not paras:
+            continue
+        meta = resolve_metadata(f.stem, chapters, books, headers)
+        stats["docs"] += 1
+        stats[meta["kind"]] = stats.get(meta["kind"], 0) + 1
+        for c in build_chunks(f.stem, paras):
+            c.update({
+                "doc_name": f.stem,
+                "author": meta["author"],
+                "date": meta["date"],
+                "title": meta.get("title"),
+                "chapter": meta["chapter"],
+                "chapter_label": meta["chapter_label"],
+                "chapter_title": meta["chapter_title"],
+                "container": meta["container"],
+            })
+            all_chunks.append(c)
 
-        print(f"Index saved to {output_dir}")
+    doc_seq = {}
+    for i, c in enumerate(all_chunks):
+        doc_seq.setdefault(c["doc_name"], []).append(i)
+    pos_map = {}
+    for ids in doc_seq.values():
+        for pos, idx in enumerate(ids):
+            pos_map[idx] = (pos + 1, len(ids))
+
+    metadata = []
+    for i, c in enumerate(all_chunks):
+        metadata.append({
+            "id": i,
+            "doc_name": c["doc_name"],
+            "author": c["author"],
+            "date": c["date"],
+            "title": c.get("title"),
+            "chapter": c["chapter"],
+            "chapter_label": c["chapter_label"],
+            "chapter_title": c["chapter_title"],
+            "container": c["container"],
+            "paragraph_start": c["paragraph_start"],
+            "paragraph_end": c["paragraph_end"],
+            "page": c["page"],
+            "section_title": c["section_title"],
+            "text": c["text"],
+            "char_count": c["char_count"],
+            "chunk_pos": pos_map[i][0],
+            "doc_chunk_count": pos_map[i][1],
+            "preview": c["text"][:150],
+        })
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with open(out_dir / "chunk_metadata.json", "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False)
+
+    vec = TfidfVectorizer(max_features=8000, stop_words="english", lowercase=True,
+                          ngram_range=(1, 2), min_df=2, sublinear_tf=True)
+    matrix = vec.fit_transform([c["text"] for c in metadata])
+    sp_sparse.save_npz(out_dir / "tfidf_matrix.npz", matrix)
+    with open(out_dir / "vectorizer.json", "w", encoding="utf-8") as f:
+        json.dump({"feature_names": vec.get_feature_names_out().tolist(),
+                   "max_features": 8000, "ngram_range": [1, 2]}, f)
+
+    with_auth = sum(1 for c in metadata if c["author"])
+    with_date = sum(1 for c in metadata if c["date"])
+    with_chap = sum(1 for c in metadata if c["chapter"])
+    with_para = sum(1 for c in metadata if c["paragraph_start"])
+    print(f"docs: {stats['docs']} (chapter {stats.get('chapter', 0)}, "
+          f"article {stats.get('article', 0)}, unknown {stats.get('unknown', 0)})")
+    print(f"chunks: {len(metadata)}")
+    print(f"  author: {with_auth}  date: {with_date}  chapter: {with_chap}  paragraph: {with_para}")
+    print(f"saved -> {out_dir}")
 
 
 if __name__ == "__main__":
-    import sys
-
-    doc_dir = sys.argv[1] if len(sys.argv) > 1 else "."
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else "."
-
-    indexer = DocumentIndexer(doc_dir)
-    stats = indexer.build_index()
-    print(f"Index stats: {stats}")
-    indexer.save_index(output_dir)
+    main()

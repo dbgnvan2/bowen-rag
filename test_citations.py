@@ -352,5 +352,58 @@ class TestLoaderAndHelpers(unittest.TestCase):
         self.assertTrue(m["verified"])
 
 
+class TestEnrichedChunkCitations(unittest.TestCase):
+    """Workstream D — enriched chunk metadata -> locator + reference entry."""
+
+    CH = {
+        "doc_name": "Family Evaluation_Chapter04",
+        "author": ["Michael E. Kerr", "Murray Bowen"],
+        "date": "1988",
+        "chapter": 4,
+        "chapter_title": "Differentiation of Self",
+        "container": "Family Evaluation: An Approach Based on Bowen Theory",
+        "paragraph_start": 70,
+        "paragraph_end": 72,
+        "page": None,
+    }
+
+    def test_record_from_chunk_parses_authors(self):
+        rec = C.record_from_chunk(self.CH)
+        self.assertEqual(rec["authors"],
+                         [{"family": "Kerr", "given": "Michael E."},
+                          {"family": "Bowen", "given": "Murray"}])
+        self.assertEqual(rec["year"], "1988")
+        self.assertEqual(rec["type"], "chapter")
+        self.assertEqual(rec["title"], "Differentiation of Self")
+
+    def test_passage_locator_chapter_range(self):
+        self.assertEqual(C.passage_locator(self.CH), "Ch. 4, ¶ 70–72")
+
+    def test_passage_locator_single_paragraph(self):
+        self.assertEqual(C.passage_locator(dict(self.CH, paragraph_end=70)), "Ch. 4, ¶ 70")
+
+    def test_passage_locator_epilogue_label(self):
+        ch = dict(self.CH, chapter=None, chapter_label="Epilogue",
+                  paragraph_start=3, paragraph_end=3)
+        self.assertEqual(C.passage_locator(ch), "Epilogue, ¶ 3")
+
+    def test_passage_locator_page_fallback(self):
+        ch = dict(self.CH, paragraph_start=None, paragraph_end=None, page=63)
+        self.assertEqual(C.passage_locator(ch), "Ch. 4, p. 63")
+
+    def test_format_passage_reference_keeps_locator(self):
+        ref = C.format_passage_reference(C.record_from_chunk(self.CH), "Ch. 4 ¶ 70–72", number=3)
+        self.assertTrue(ref.startswith("3."))
+        self.assertIn("Kerr, Bowen (1988)", ref)
+        self.assertIn("[Ch. 4 ¶ 70–72]", ref)
+
+    def test_format_passage_reference_no_container(self):
+        ch = dict(self.CH, container=None, chapter=None, chapter_label=None,
+                  chapter_title=None, author=["Murray Bowen"], date=None)
+        ref = C.format_passage_reference(C.record_from_chunk(ch), "¶ 1", number=1)
+        self.assertIn("(n.d.)", ref)
+        self.assertNotIn("In ", ref)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
