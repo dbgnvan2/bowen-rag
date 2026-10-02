@@ -293,6 +293,48 @@ class TestBuild(unittest.TestCase):
         self.assertEqual(stats["files_skipped"], [])
         self.assertTrue(any("doc0: both .txt and .pdf present" in m for m in self.log))
 
+    def test_idx_ocr_manifest_marks_only_the_listed_documents(self):
+        (self.cfg / "ocr_manifest.yml").write_text(yaml.safe_dump({"ocr": [
+            {"doc_name": "doc1", "mean_word_confidence": 91.5}]}))
+        stats = self.run_build()
+        meta = json.loads((self.out / "chunk_metadata.json").read_text())
+        flags = {d: {c["ocr"] for c in meta if c["doc_name"] == d} for d in ("doc0", "doc1", "doc2")}
+        self.assertEqual(flags, {"doc0": {False}, "doc1": {True}, "doc2": {False}})
+        self.assertEqual({c["ocr_confidence"] for c in meta if c["doc_name"] == "doc1"}, {91.5})
+        self.assertTrue(all(c["ocr_confidence"] is None for c in meta if not c["ocr"]))
+        self.assertEqual(stats["ocr_chunks"], 3)
+        self.assertTrue(any("1 documents were read from scans by OCR" in m for m in self.log))
+
+    def test_idx_ocr_manifest_entry_with_no_source_file_is_reported(self):
+        (self.cfg / "ocr_manifest.yml").write_text(yaml.safe_dump({"ocr": [
+            {"doc_name": "ghost", "mean_word_confidence": 80}]}))
+        self.run_build()
+        self.assertTrue(any("ocr_manifest.yml lists 1 documents with no source file" in m
+                            for m in self.log))
+
+    def test_idx_ocr_manifest_entry_whose_txt_is_not_in_this_checkout_is_warned(self):
+        # source_files/ is not in git: on a fresh clone the OCR .txt is absent and only the
+        # bare scan remains, which would silently drop out of the index.
+        (self.src / "scan.pdf").write_bytes(b"%PDF-1.4 not parsed")
+        (self.cfg / "ocr_manifest.yml").write_text(yaml.safe_dump({"ocr": [
+            {"doc_name": "scan", "words": 5000, "mean_word_confidence": 92}]}))
+        with mock.patch.object(B, "pdf_paragraphs", return_value=[]):
+            self.run_build()
+        self.assertTrue(any("1 documents in ocr_manifest.yml have no OCR .txt" in m
+                            for m in self.log))
+
+    def test_idx_low_confidence_ocr_documents_are_counted_in_the_log(self):
+        (self.cfg / "ocr_manifest.yml").write_text(yaml.safe_dump({"ocr": [
+            {"doc_name": "doc1", "mean_word_confidence": 80},
+            {"doc_name": "doc2", "mean_word_confidence": 95}]}))
+        self.run_build()
+        self.assertTrue(any("1 of them have mean confidence under 85" in m for m in self.log))
+
+    def test_idx_no_manifest_means_no_chunk_is_marked_ocr(self):
+        self.run_build()
+        meta = json.loads((self.out / "chunk_metadata.json").read_text())
+        self.assertFalse(any(c["ocr"] for c in meta))
+
     def test_idx_directory_with_no_documents_is_an_error(self):
         for f in self.src.iterdir():
             f.unlink()

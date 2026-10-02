@@ -260,7 +260,7 @@ def help_btn(parent, text: str, bg: str) -> tk.Label:
 class IndexManager:
     def __init__(self):
         self.chunks: list  = []
-        self.matrix        = None   # np.ndarray (N, tfidf_features)
+        self.matrix        = None   # scipy CSR matrix (N, tfidf_features)
         self.vectorizer    = None   # TfidfVectorizer, fitted
         self.bm25          = None   # BM25Okapi index
         self.embed_matrix  = None   # np.ndarray (N, 384), sentence embeddings
@@ -281,7 +281,9 @@ class IndexManager:
             raise FileNotFoundError(
                 f"{matrix_npz} not found. Rebuild the index (an old dense "
                 "tfidf_matrix.npy is not read).")
-        self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
+        # Kept sparse (CSR): densifying 12,329 x 8,000 float64 cost ~790 MB resident and
+        # grows with the corpus. cosine_similarity accepts a sparse matrix unchanged.
+        self.matrix = sp_sparse.load_npz(str(matrix_npz)).tocsr()
 
         # Re-fit vectorizer on stored texts. These settings MUST equal TFIDF_PARAMS in
         # rag-document-search/scripts/build_index.py (test_index_consistency.py checks).

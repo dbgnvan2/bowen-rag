@@ -337,7 +337,7 @@ The first command writes three files to `references/`:
 
 The second rebuilds `embed_matrix.npy`. **Always run both:** the chunk count changes, and a stale `embed_matrix.npy` makes Embedding and Hybrid search fail.
 
-The build lists anything it could not index instead of skipping it quietly. In particular, **scanned PDFs with no text layer cannot be searched** until they are run through OCR; the build names each one. A malformed `chapter_map.yml` or `headers_candidates.yml` stops the build with an error.
+The build lists anything it could not index instead of skipping it quietly. **Scanned PDFs with no text layer cannot be searched** until they are run through OCR (`rag-document-search/scripts/ocr_scans.py`, which needs `brew install tesseract`); the build names each one. OCR'd documents show an **OCR** badge on search results, a warning in the View dialog and "(scan, OCR)" in Chat sources, and web reports (and the email bot) that cite one end with a note that it was read by OCR and may contain recognition errors, so check any quotation against the original. The desktop app does not show this flag yet. A malformed `chapter_map.yml` or `headers_candidates.yml` stops the build with an error.
 
 You can also rebuild from the **Desktop GUI**: Index tab → Rebuild Index. The web app's Index page only shows statistics; rebuild locally and commit the updated `references/` files.
 

@@ -291,7 +291,9 @@ class IndexManager:
             raise FileNotFoundError(
                 f"{matrix_npz} not found. Rebuild the index (an old dense "
                 "tfidf_matrix.npy is not read).")
-        self.matrix = sp_sparse.load_npz(str(matrix_npz)).toarray()
+        # Kept sparse (CSR): densifying 12,329 x 8,000 float64 cost ~790 MB resident and
+        # grows with the corpus. cosine_similarity accepts a sparse matrix unchanged.
+        self.matrix = sp_sparse.load_npz(str(matrix_npz)).tocsr()
 
         # Re-fit vectorizer on stored texts. These settings MUST equal TFIDF_PARAMS in
         # rag-document-search/scripts/build_index.py (test_index_consistency.py checks).
@@ -1006,8 +1008,21 @@ def _show_section_dialog() -> None:
     elif chunk_pos and doc_total > 1:
         parts.append(f"~{round(chunk_pos / doc_total * 100)}% through document")
     st.caption(" · ".join(parts))
+    if result.get("ocr"):
+        conf = result.get("ocr_confidence")
+        st.warning("This text was read from a scan by OCR"
+                   + (f" (mean word confidence {conf:.0f}%)" if conf else "")
+                   + " and may contain recognition errors. Check any quotation against the "
+                     "original page before relying on it.")
     st.divider()
     st.markdown(_format_chunk_text(result.get("text", "")))
+
+
+def _ocr_doc_names(idx) -> set:
+    """Documents whose text came from OCR (computed once per loaded index)."""
+    if getattr(idx, "_ocr_docs", None) is None:
+        idx._ocr_docs = {c["doc_name"] for c in idx.chunks if c.get("ocr")}
+    return idx._ocr_docs
 
 
 def _score_color(result: dict) -> str:
@@ -1056,6 +1071,12 @@ def _result_card(result: dict, checkbox_key: str):
                     f'<span style="background:#64748b;color:white;padding:2px 8px;'
                     f'border-radius:4px;font-size:11px;margin-right:4px">~{pct}%</span>'
                 )
+        if result.get("ocr"):
+            badges += (
+                '<span title="Read from a scan by OCR; may contain recognition errors" '
+                'style="background:#b45309;color:white;padding:2px 8px;'
+                'border-radius:4px;font-size:11px;margin-right:4px">OCR</span>'
+            )
         st.markdown(
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True
@@ -1351,7 +1372,9 @@ def page_chat(idx: IndexManager):
                     for src_idx, src in enumerate(msg["sources"]):
                         sc, vc = st.columns([5, 1])
                         with sc:
-                            st.caption(f"**{src['doc']}** — {src['excerpt']}…")
+                            st.caption(f"**{src['doc']}**"
+                                       + (" *(scan, OCR)*" if src['doc'] in _ocr_doc_names(idx) else "")
+                                       + f" — {src['excerpt']}…")
                         with vc:
                             chunk = next((c for c in idx.chunks
                                           if c["doc_name"] == src["doc"]), None)
@@ -1454,7 +1477,9 @@ def page_chat(idx: IndexManager):
                 for src_idx, src in enumerate(sources):
                     sc, vc = st.columns([5, 1])
                     with sc:
-                        st.caption(f"**{src['doc']}** — {src['excerpt']}…")
+                        st.caption(f"**{src['doc']}**"
+                                   + (" *(scan, OCR)*" if src['doc'] in _ocr_doc_names(idx) else "")
+                                   + f" — {src['excerpt']}…")
                     with vc:
                         chunk = next((c for c in idx.chunks
                                       if c["doc_name"] == src["doc"]), None)

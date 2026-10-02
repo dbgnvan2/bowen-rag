@@ -78,7 +78,7 @@ sources:
 
   - pattern: 'Bowen Family Systems Theory_ Triangles and Scale of Differentiation'
     type: generic
-    authors: [{family: 'Papero', given: 'Daniel'}]
+    authors: [{family: 'Bowen', given: 'Murray'}]    # the file's own header: Presenter: Murray Bowen
     year: 'n.d.'        # no year in filename
     title: 'Bowen Family Systems Theory Triangles and Scale of Differentiation'
     publisher: ''

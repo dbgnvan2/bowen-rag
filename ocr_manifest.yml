@@ -1,0 +1,483 @@
+# OCR provenance. Every document listed here was read from a scan by OCR (a machine
+# reading, not a transcription): build_index.py marks its chunks `ocr: true` and
+# reports end with a note. Quality figures are tesseract word confidences (0-100).
+ocr:
+- doc_name: A Family Concept of Schizophrenia Bowen 1960
+  source_pdf: A Family Concept of Schizophrenia Bowen 1960.pdf
+  pages: 16
+  page_images: 32
+  blank_page_images: 1
+  words: 12868
+  mean_word_confidence: 92.8
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Beginners Guide to the first family interview Heller 1987
+  source_pdf: Beginners Guide to the first family interview Heller 1987.pdf
+  pages: 14
+  page_images: 16
+  blank_page_images: 0
+  words: 6798
+  mean_word_confidence: 93.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Bowen on Triangles Workshop 1 and II  Bowen 1974 Terkelson transcriber
+  source_pdf: Bowen on Triangles Workshop 1 and II  Bowen 1974 Terkelson transcriber.pdf
+  pages: 8
+  page_images: 8
+  blank_page_images: 1
+  words: 5919
+  mean_word_confidence: 86.2
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Bowen Theory and Therapy Friedman (Handbook of Family Therapy II) No Date
+  source_pdf: Bowen Theory and Therapy Friedman (Handbook of Family Therapy II) No
+    Date.pdf
+  pages: 37
+  page_images: 37
+  blank_page_images: 0
+  words: 27309
+  mean_word_confidence: 95.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Chronic Anxiety and Defining a Self Kerr
+  source_pdf: Chronic Anxiety and Defining a Self Kerr.pdf
+  pages: 20
+  page_images: 20
+  blank_page_images: 0
+  words: 16905
+  mean_word_confidence: 93.2
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Chronic Anxiety and Defining Self Kerr 1988 09 The Atlantic
+  source_pdf: Chronic Anxiety and Defining Self Kerr 1988 09 The Atlantic.pdf
+  pages: 21
+  page_images: 21
+  blank_page_images: 0
+  words: 17463
+  mean_word_confidence: 91.6
+  low_confidence_pages:
+  - '12'
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Clinical and Legal issues in the Family Therapy Records - Gansheroff,
+    Boszormenyl-Nagi, Matrullo
+  source_pdf: Clinical and Legal issues in the Family Therapy Records - Gansheroff,
+    Boszormenyl-Nagi, Matrullo.pdf
+  pages: 3
+  page_images: 6
+  blank_page_images: 0
+  words: 2503
+  mean_word_confidence: 87.7
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Critical choices Correspondence with Murry Bowen Kramer 1991 Dec
+  source_pdf: Critical choices Correspondence with Murry Bowen Kramer 1991 Dec.pdf
+  pages: 5
+  page_images: 5
+  blank_page_images: 0
+  words: 4287
+  mean_word_confidence: 92.8
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Crowding and Social Velocity Calhoun 1977
+  source_pdf: Crowding and Social Velocity Calhoun 1977.pdf
+  pages: 10
+  page_images: 20
+  blank_page_images: 0
+  words: 5984
+  mean_word_confidence: 92.8
+  low_confidence_pages:
+  - 1l
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Culture and Family Process Friedman
+  source_pdf: Culture and Family Process Friedman.pdf
+  pages: 10
+  page_images: 10
+  blank_page_images: 0
+  words: 4785
+  mean_word_confidence: 92.5
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Detriangulation and Conflict Management in Parent Adolescent Relationships
+    Johnsn 1993
+  source_pdf: Detriangulation and Conflict Management in Parent Adolescent Relationships
+    Johnsn 1993.pdf
+  pages: 6
+  page_images: 12
+  blank_page_images: 0
+  words: 3918
+  mean_word_confidence: 94.0
+  low_confidence_pages:
+  - 1r
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Developmental Challenges Freeman
+  source_pdf: Developmental Challenges Freeman.pdf
+  pages: 2
+  page_images: 2
+  blank_page_images: 2
+  words: 0
+  mean_word_confidence: 0.0
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Differentiating a Self in One's Family Anonymous Paper no date part 1
+  source_pdf: Differentiating a Self in One's Family Anonymous Paper no date part
+    1.pdf
+  pages: 35
+  page_images: 35
+  blank_page_images: 0
+  words: 16131
+  mean_word_confidence: 93.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Differentiating a Self in One's Family Anonymous Paper no date part 2
+  source_pdf: Differentiating a Self in One's Family Anonymous Paper no date part
+    2.pdf
+  pages: 29
+  page_images: 29
+  blank_page_images: 0
+  words: 14364
+  mean_word_confidence: 94.1
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Dislocations - Steps to Restablize  Carter and McGoldrick The Family Lifecycle
+    No Date
+  source_pdf: Dislocations - Steps to Restablize  Carter and McGoldrick The Family
+    Lifecycle No Date.pdf
+  pages: 3
+  page_images: 3
+  blank_page_images: 0
+  words: 861
+  mean_word_confidence: 85.3
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family as a System Kerr
+  source_pdf: Family as a System Kerr.pdf
+  pages: 5
+  page_images: 5
+  blank_page_images: 0
+  words: 3947
+  mean_word_confidence: 93.5
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family Center Reports v15 n03
+  source_pdf: Family Center Reports v15 n03.pdf
+  pages: 8
+  page_images: 8
+  blank_page_images: 0
+  words: 5446
+  mean_word_confidence: 91.8
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family Center Reports v16 n01
+  source_pdf: Family Center Reports v16 n01.pdf
+  pages: 8
+  page_images: 8
+  blank_page_images: 0
+  words: 5941
+  mean_word_confidence: 92.9
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family Center Reports v16 n02
+  source_pdf: Family Center Reports v16 n02.pdf
+  pages: 8
+  page_images: 8
+  blank_page_images: 0
+  words: 5101
+  mean_word_confidence: 91.7
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family Systems and Therapy Kerr (Handbook for Family Therapy Gurman) 1981
+  source_pdf: Family Systems and Therapy Kerr (Handbook for Family Therapy Gurman)
+    1981.pdf
+  pages: 20
+  page_images: 40
+  blank_page_images: 1
+  words: 29586
+  mean_word_confidence: 92.5
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Family Therapy Style Art and Theory Guerin  no date
+  source_pdf: Family Therapy Style Art and Theory Guerin  no date.pdf
+  pages: 6
+  page_images: 6
+  blank_page_images: 0
+  words: 4562
+  mean_word_confidence: 92.7
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: FSJ 1.2 (1) Toman 101-113
+  source_pdf: FSJ 1.2 (1) Toman 101-113.pdf
+  pages: 13
+  page_images: 13
+  blank_page_images: 0
+  words: 4976
+  mean_word_confidence: 94.6
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: FSJ 1.2 (2) Noone 114-126
+  source_pdf: FSJ 1.2 (2) Noone 114-126.pdf
+  pages: 13
+  page_images: 13
+  blank_page_images: 0
+  words: 4772
+  mean_word_confidence: 95.1
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: FSJ 5.2 (1) Smith 101-126 B
+  source_pdf: FSJ 5.2 (1) Smith 101-126 B.pdf
+  pages: 26
+  page_images: 26
+  blank_page_images: 0
+  words: 10393
+  mean_word_confidence: 95.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: 'Fusion - Fogarty '
+  source_pdf: Fusion - Fogarty .pdf
+  pages: 10
+  page_images: 10
+  blank_page_images: 0
+  words: 7695
+  mean_word_confidence: 88.8
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Making Family Visits Anon no date
+  source_pdf: Making Family Visits Anon no date.pdf
+  pages: 4
+  page_images: 4
+  blank_page_images: 0
+  words: 1992
+  mean_word_confidence: 89.1
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Modificaiton of Loss in Divorce Cristofori 1977
+  source_pdf: Modificaiton of Loss in Divorce Cristofori 1977.pdf
+  pages: 9
+  page_images: 9
+  blank_page_images: 0
+  words: 4493
+  mean_word_confidence: 94.6
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Multigenerational Systems Basic Assumption Hooopes 1987-10-01
+  source_pdf: Multigenerational Systems Basic Assumption Hooopes 1987-10-01.pdf
+  pages: 11
+  page_images: 11
+  blank_page_images: 0
+  words: 5275
+  mean_word_confidence: 93.2
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Myths about Change Fogarty 1990
+  source_pdf: Myths about Change Fogarty 1990.pdf
+  pages: 23
+  page_images: 23
+  blank_page_images: 0
+  words: 13018
+  mean_word_confidence: 94.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Phases of systems treatment with the individual and the Family  Fogarty
+    1982-03-12
+  source_pdf: Phases of systems treatment with the individual and the Family  Fogarty
+    1982-03-12.pdf
+  pages: 6
+  page_images: 6
+  blank_page_images: 0
+  words: 4919
+  mean_word_confidence: 90.5
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Practicing Family Therapy in Diverse Settings Friedman 1984
+  source_pdf: Practicing Family Therapy in Diverse Settings Friedman 1984.pdf
+  pages: 9
+  page_images: 18
+  blank_page_images: 0
+  words: 5880
+  mean_word_confidence: 92.7
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Psychotherapy Past Present Future Original Reprint Bowen 1987
+  source_pdf: Psychotherapy Past Present Future Original Reprint Bowen 1987.pdf
+  pages: 16
+  page_images: 16
+  blank_page_images: 0
+  words: 8823
+  mean_word_confidence: 94.9
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Reflections on 1 year in Family Therapy Morris No Date
+  source_pdf: Reflections on 1 year in Family Therapy Morris No Date.pdf
+  pages: 7
+  page_images: 7
+  blank_page_images: 0
+  words: 6049
+  mean_word_confidence: 95.0
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Separation Divorce Single Parent - Beal
+  source_pdf: Separation Divorce Single Parent - Beal.pdf
+  pages: 12
+  page_images: 24
+  blank_page_images: 0
+  words: 10456
+  mean_word_confidence: 83.1
+  low_confidence_pages:
+  - 1l
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Tansgenerational Family Therapy Lieberman 1979
+  source_pdf: Tansgenerational Family Therapy Lieberman 1979.pdf
+  pages: 10
+  page_images: 20
+  blank_page_images: 0
+  words: 8056
+  mean_word_confidence: 94.8
+  low_confidence_pages:
+  - 1r
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: The Involvment of children in therapy Freeman
+  source_pdf: The Involvment of children in therapy Freeman.pdf
+  pages: 16
+  page_images: 16
+  blank_page_images: 0
+  words: 4603
+  mean_word_confidence: 94.1
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: The Montgomery Case Pendagrase
+  source_pdf: The Montgomery Case Pendagrase.pdf
+  pages: 3
+  page_images: 3
+  blank_page_images: 0
+  words: 1430
+  mean_word_confidence: 92.2
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: The role of the Therapist in Family Systems Therapy Cain
+  source_pdf: The role of the Therapist in Family Systems Therapy Cain.pdf
+  pages: 8
+  page_images: 16
+  blank_page_images: 0
+  words: 5975
+  mean_word_confidence: 90.4
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Theology Triangels and Assessment Nel
+  source_pdf: Theology Triangels and Assessment Nel.pdf
+  pages: 2
+  page_images: 2
+  blank_page_images: 2
+  words: 0
+  mean_word_confidence: 0.0
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Treating Conduct Disordered Adolescents Roberts 1981 January
+  source_pdf: Treating Conduct Disordered Adolescents Roberts 1981 January.pdf
+  pages: 13
+  page_images: 13
+  blank_page_images: 0
+  words: 9279
+  mean_word_confidence: 91.3
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: 'Two Distinct Approaches To Family Therapy Bowan and Haley Roberts '
+  source_pdf: Two Distinct Approaches To Family Therapy Bowan and Haley Roberts .pdf
+  pages: 9
+  page_images: 9
+  blank_page_images: 0
+  words: 6724
+  mean_word_confidence: 91.8
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'
+- doc_name: Use of the Extended Family Beal
+  source_pdf: Use of the Extended Family Beal.pdf
+  pages: 9
+  page_images: 9
+  blank_page_images: 0
+  words: 3770
+  mean_word_confidence: 92.7
+  low_confidence_pages: []
+  engine: tesseract 5.5.1
+  dpi: 300
+  ocr_date: '2026-10-02'

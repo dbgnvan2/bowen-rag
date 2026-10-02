@@ -22,13 +22,20 @@ Purpose: turn individual bug fixes into a reusable theory of how this project fa
 
 ## Open risks
 - 2026-10-02: the desktop GUI's Report tab still uses the older per-document pipeline (page locators only when single-page), so its reports are structured differently from the web app's and bowen_ask.py's (P19). Not merged; documented in CLAUDE.md.
-- 2026-10-02: build_index.py exits 0 when files were skipped (42 scanned PDFs with no text layer are not searchable until OCR'd); a scripted rebuild will not notice (P2). The skipped files are listed in the build output.
+- 2026-10-02: build_index.py exits 0 when files were skipped (2 blank scans, Freeman and Nel, have no text to OCR; a scripted rebuild will not notice) (P2). The skipped files are listed in the build output.
+- 2026-10-02: OCR chunks have no PDF page (page is null) and the OCR flag is not shown in the desktop GUI; OCR text sits in gitignored source_files/ (only the drive copy has it) (P6). build_index warns when the manifest's .txt is absent. ocr_manifest.yml is written only after all PDFs finish.
 
 ## Misses
 (none recorded)
 
 ## Fix log
 Format: Issue -> Root cause (Pn) -> What would have caught it -> Fix -> Rule. Newest first.
+
+- 2026-10-02 OCR + sparse matrix (found by regenerating data and by learning-qa pre-flight, fixed before commit)
+  - Both apps densified the TF-IDF matrix (~790 MB) -> a convenience `.toarray()` on load -> a test that the loaded matrix stays sparse and scores equal the dense ones -> sparse CSR kept.
+  - Regenerating headers_candidates.yml lost corrections made to the file (Papero author, FSJ years such as 2013 taken from a reference-list entry) (P8) -> the corrections lived in the data file, not the generator -> test_extract_headers + test_sources_data fail on regeneration -> year rule (ranges ignored; FSJ year = copyright line) and author_map.yml hold the fixes. Never hand-edit a regenerated file.
+  - The OCR provenance flag was computed but shown only in the report footer (P6) -> the flag was added to one surface -> checking every place chunk text is shown -> OCR badge on search cards, warning in the View dialog, marker in Chat sources; docs narrowed to what each surface does.
+  - Tesseract reads a sheet turned one way as well as upright, and its orientation detector (OSD) was wrong on real pages (P7) -> a confident-word count tied between rotations -> dictionary-word scoring plus a pairing rule tested on measured score tables -> validate a heuristic against pages checked by eye.
 
 - 2026-10-01 usage_limit.py (found by learning-qa pre-flight, fixed before commit)
   - Concurrent calls all passed the check before any recorded spend -> check and spend were separate steps (P6) -> an interleaved-calls test -> `begin()` reserves worst-case tokens under the lock, `finish()` reconciles -> reserve resources atomically with the check.

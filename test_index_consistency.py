@@ -77,6 +77,21 @@ class TestLoadersFailLoudly(unittest.TestCase):
             info = cls().load(self.out)
             self.assertEqual(info["chunks"], 6, name)
 
+    def test_idx_loaders_keep_the_tfidf_matrix_sparse_and_score_like_dense(self):
+        # A dense copy of the matrix cost ~790 MB for the real corpus; scores must not change.
+        import numpy as np
+        from scipy import sparse
+        from sklearn.metrics.pairwise import cosine_similarity
+        for name, cls in self.managers():
+            mgr = cls()
+            mgr.load(self.out)
+            self.assertTrue(sparse.issparse(mgr.matrix), name)
+            qv = mgr.vectorizer.transform(["triangle anxiety two person system"])
+            np.testing.assert_allclose(cosine_similarity(qv, mgr.matrix),
+                                       cosine_similarity(qv, mgr.matrix.toarray()),
+                                       atol=1e-12, err_msg=name)
+            self.assertTrue(len(mgr.semantic_search("triangle anxiety", 3)) > 0, name)
+
     def test_idx_loaders_reject_metadata_from_a_different_build(self):
         meta = json.loads((self.out / "chunk_metadata.json").read_text())
         (self.out / "chunk_metadata.json").write_text(json.dumps(meta[:-1]))

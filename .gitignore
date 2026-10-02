@@ -35,3 +35,6 @@ dist/
 
 # Daily token usage counters (written by the web app)
 usage_data/
+
+# OCR output staging (corpus text; copied into source_files/ after review)
+source_files_ocr*/

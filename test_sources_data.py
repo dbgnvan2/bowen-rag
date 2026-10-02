@@ -129,7 +129,8 @@ class TestChunkMetadataAgreesWithSources(unittest.TestCase):
 
     def test_data_life_dates_are_not_a_chunk_year(self):
         _, meta = self.chunk_authors("FSJ 12.2 Noone Jaak Panksepp (1943-2017)")
-        self.assertIsNone(meta["date"])
+        # the life dates (1943-2017) are not read as a year; the year is the copyright line
+        self.assertEqual(meta["date"], "2017")
 
     def test_data_kerr_book_chapters_are_credited_to_kerr_in_both_maps(self):
         doc = "Bowen Theory Secrets_Chapter05_Differentiation_of_Self"

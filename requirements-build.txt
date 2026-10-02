@@ -3,3 +3,7 @@
 # The deployed apps do not need it. PyMuPDF is AGPL-3.0 licensed (or commercial).
 -r requirements.txt
 PyMuPDF
+# OCR of scanned PDFs (rag-document-search/scripts/ocr_scans.py) also needs the tesseract
+# program (brew install tesseract) and an English word list at /usr/share/dict/words.
+Pillow
+numpy

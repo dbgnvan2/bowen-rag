@@ -65,6 +65,11 @@ authors:
   - pattern: "Family Evaluation"
     author: "Kerr & Bowen"
 
+  # A Bowen lecture whose file name starts like Papero's book; its own header says
+  # "Presenter: Murray Bowen".
+  - pattern: "Bowen Family Systems Theory_ Triangles and Scale of Differentiation"
+    author: "Murray Bowen"
+
   # ── Papero works (before "Bowen" catches Papero's book title) ────────────
   - pattern: "Bowen Family Systems Theory"
     author: "Daniel Papero"
@@ -145,6 +150,22 @@ authors:
   # ── Others with author-in-filename ───────────────────────────────────────
   - pattern: "Heller"
     author: "Heller"
+
+  # Surnames read from OCR'd scans' file names (family name only, as in the name).
+  - pattern: "Crowding and Social Velocity Calhoun"
+    author: "Calhoun"
+  - pattern: "Modificaiton of Loss in Divorce Cristofori"
+    author: "Cristofori"
+  - pattern: "Tansgenerational Family Therapy Lieberman"
+    author: "Lieberman"
+  - pattern: "Family Systems Therapy Cain"
+    author: "Cain"
+  - pattern: "Reflections on 1 year in Family Therapy Morris"
+    author: "Morris"
+  - pattern: "Treating Conduct Disordered Adolescents Roberts"
+    author: "Roberts"
+  - pattern: "FSJ 5.2 (1) Smith"
+    author: "Smith"
 
   - pattern: "Noone"
     author: "Noone"

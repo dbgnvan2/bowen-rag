@@ -515,6 +515,22 @@ class TestAssembleReport(unittest.TestCase):
         report, _, _ = C.assemble_report(self.text, self.records, self.chunks, "vancouver")
         self.assertNotIn("unverified", report)
 
+    def test_assemble_report_says_when_cited_passages_were_read_by_ocr(self):
+        chunks = {1: dict(self.CH1, ocr=True), 2: self.CH2}
+        report, _, _ = C.assemble_report(self.text, self.records, chunks, "vancouver")
+        self.assertIn("1 of 2 cited passages come from scanned documents read by OCR", report)
+        self.assertIn("check any quotation against the original", report)
+
+    def test_assemble_report_has_no_ocr_line_when_nothing_cited_is_ocr(self):
+        report, _, _ = C.assemble_report(self.text, self.records, self.chunks, "vancouver")
+        self.assertNotIn("OCR", report)
+
+    def test_assemble_report_counts_only_cited_ocr_passages(self):
+        chunks = {1: self.CH1, 2: dict(self.CH2, ocr=True)}
+        only_first = "Triangles stabilise anxiety [[1]]. " * 10
+        report, _, _ = C.assemble_report(only_first, self.records, chunks, "vancouver")
+        self.assertNotIn("OCR", report)           # passage 2 (OCR) was not cited
+
     def test_assemble_report_without_markers_warns_and_lists_every_source(self):
         long_text = "A long report that forgot to cite anything at all. " * 10
         report, note, warn = C.assemble_report(long_text, self.records, self.chunks, "vancouver")

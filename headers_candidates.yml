@@ -43,6 +43,8 @@ candidates:
   year_source: none
 - doc_name: A Family Concept of Schizophrenia Bowen 1960
   verified: false
+  header_excerpt: THE Etiology of Schizophrenia Don D. Jackson, m.v., Editor Publishers Basic Books, Inc.
+    New York The editor of and contributors ta The Etiology of Schizophrenia ful thanks to t
   source: filename
   title: A Family Concept of Schizophrenia Bowen 1960
   author: Murray Bowen
@@ -207,6 +209,8 @@ candidates:
   year_source: filename
 - doc_name: Beginners Guide to the first family interview Heller 1987
   verified: false
+  header_excerpt: nterdisci- lth, anew _A BEGINNER’S GUIDE TO THE FIRST FAMILY INTERVIEW JUDY H. HELLER
+    Children’s Rehabilitation Hospital and Marriage Council of Philadelphia The importance of
   source: filename
   title: Beginners Guide to the first family interview Heller 1987
   author: Heller
@@ -274,7 +278,7 @@ candidates:
     Lecture date: "1979" Source recording: "Basic Series 1 Triangles and Scale of Differentiati'
   source: header
   title: Basic Series 1 Triangles and Scale of Differentiation
-  author: Papero
+  author: Murray Bowen
   year: '1979'
   year_source: header
 - doc_name: Bowen Family Systems and Marriage Papero side A
@@ -297,12 +301,17 @@ candidates:
   year_source: header
 - doc_name: Bowen Theory and Therapy Friedman (Handbook of Family Therapy II) No Date
   verified: false
+  header_excerpt: CHAPTER 5 Bowen Theory and Therapy Edwin H. Friedman, D.D. It would be difficult to
+    do justice to the depth and complexities of Bowen theory within the framework of an entire bo
   source: filename
   title: Bowen Theory and Therapy Friedman (Handbook of Family Therapy II) No Date
   author: Edwin Friedman
-  year_source: none
+  year: '1988'
+  year_source: header
 - doc_name: Bowen on Triangles Workshop 1 and II  Bowen 1974 Terkelson transcriber
   verified: false
+  header_excerpt: q 4 | } 4 4, 7k pA Ra Sari tg 3 fs Ei ett TI La aha oad A tiie . ~ Lyall Peletiew as
+    ee de ae de ‘BOWEN ON TRIANGLES ~ Sate A Man ra IRE. pat ‘5 ly , MARCH 1974 WORKSHOP -
   source: filename
   title: Bowen on Triangles Workshop 1 and II Bowen 1974 Terkelson transcriber
   author: Murray Bowen
@@ -336,6 +345,8 @@ candidates:
   year_source: header
 - doc_name: Chronic Anxiety and Defining Self Kerr 1988 09 The Atlantic
   verified: false
+  header_excerpt: seer | THE ATLANTIC MONTHLY nee An introduction to family systems theory, which, unlike
+    psychoanalysis, sees human beings— young or old, married or single—as elements in a struct
   source: filename
   title: Chronic Anxiety and Defining Self Kerr 1988 09 The Atlantic
   author: Michael Kerr
@@ -343,6 +354,8 @@ candidates:
   year_source: filename
 - doc_name: Chronic Anxiety and Defining a Self Kerr
   verified: false
+  header_excerpt: '. THE ATLANTIC MONTHLY : y SE | ‘ '' I i ‘ '' 4 t ee ad ee assessinent is too narrow
+    in scope, the therapy will probably be ineffective. A physician can repeatedly prescribe a d'
   source: filename
   title: Chronic Anxiety and Defining a Self Kerr
   author: Michael Kerr
@@ -357,9 +370,12 @@ candidates:
   year_source: header
 - doc_name: Clinical and Legal issues in the Family Therapy Records - Gansheroff, Boszormenyl-Nagi, Matrullo
   verified: false
+  header_excerpt: '| | | CBD Row RK ettaRdeon/ Chapter 35 CLINICAL AND LEGAL ISSUES IN THE FAMILY THERAPY
+    RECORD NEAL GANSHEROFF, IVAN BOSZORMENYI-NAGY, AND JOHN MATRULLO I n writing a family t'
   source: filename
   title: Clinical and Legal issues in the Family Therapy Records - Gansheroff, Boszormenyl-Nagi, Matrullo
-  year_source: none
+  year: '1977'
+  year_source: header
 - doc_name: Consulation Using Family Systems in the workplace Richardson
   verified: false
   header_excerpt: 'I gene se a dele g l Iris for the for posts ens sicted. 1 # n . r 1 "CONSULTATION USING
@@ -377,6 +393,8 @@ candidates:
   year_source: none
 - doc_name: Critical choices Correspondence with Murry Bowen Kramer 1991 Dec
   verified: false
+  header_excerpt: 'CRITICAL CHOICES: CORRESPONDENCE WITH MURRAY BOWEN Jeannette R. Kramer (Reprinted from
+    the Summer, 199] issue, due to errors in that printing) In the following exchange of lette'
   source: filename
   title: Critical choices Correspondence with Murry Bowen Kramer 1991 Dec
   author: Murray Bowen
@@ -384,8 +402,11 @@ candidates:
   year_source: filename
 - doc_name: Crowding and Social Velocity Calhoun 1977
   verified: false
+  header_excerpt: '“ rn t URBS DOC. NO. 2: World View, Volume’2 i Eeifcd by Dr. Siva Aricti and Dr. Gerard
+    Chr. wski : Published by ichn Wiley éson8, | fe : 32 . SOCIAL VELOCITY JOHN 8. CALHOUN'
   source: filename
   title: Crowding and Social Velocity Calhoun 1977
+  author: Calhoun
   year: '1977'
   year_source: filename
 - doc_name: Cultural Persistance and Differentiation Stein
@@ -398,6 +419,8 @@ candidates:
   year_source: header
 - doc_name: Culture and Family Process Friedman
   verified: false
+  header_excerpt: CULTURE AND FAMILY PROCESS by Rabbi Edwin H. Friedman The relation between family and
+    culture is usually described in terms of how families transmit culture or how families are in
   source: filename
   title: Culture and Family Process Friedman
   author: Edwin Friedman
@@ -412,6 +435,8 @@ candidates:
   year_source: header
 - doc_name: Detriangulation and Conflict Management in Parent Adolescent Relationships Johnsn 1993
   verified: false
+  header_excerpt: 'DETRIANGULATION AND CONFLICT MANAGEMENT IN PARENT-ADOLESCENT RELATIONSHIPS: A MODEL
+    Carl] F. Johnson ABSTRACT: This article describes a model for preventing and resolving parent'
   source: filename
   title: Detriangulation and Conflict Management in Parent Adolescent Relationships Johnsn 1993
   year: '1993'
@@ -433,16 +458,22 @@ candidates:
   year_source: filename
 - doc_name: Differentiating a Self in One's Family Anonymous Paper no date part 1
   verified: false
+  header_excerpt: 'Toward the Differentiation of a Self in One''s Own Family ANONYMOUS Dr. Framo: This
+    is the second day of the conference on Systematic Research on Family Interaction. Yesterday, in'
   source: filename
   title: Differentiating a Self in One's Family Anonymous Paper no date part 1
   year_source: none
 - doc_name: Differentiating a Self in One's Family Anonymous Paper no date part 2
   verified: false
+  header_excerpt: 146 Differentiation of Self in One’s Family frequent hunting and fishing trips, and
+    in my teen years I took frequent business trips by car with him. We had long conversations abou
   source: filename
   title: Differentiating a Self in One's Family Anonymous Paper no date part 2
   year_source: none
 - doc_name: Dislocations - Steps to Restablize  Carter and McGoldrick The Family Lifecycle No Date
   verified: false
+  header_excerpt: oo. - DISLOCATIONS::OF THE FAMILY LIFE CYCLE REQUIRING ADDITIONAL STEPS TO RESTABILIZE
+    AND PROCEED DEVELOPMENTALLY Phase Emotional Process of Transition Developmental Issues Pre
   source: filename
   title: Dislocations - Steps to Restablize Carter and McGoldrick The Family Lifecycle No Date
   author: Carter
@@ -454,6 +485,15 @@ candidates:
   source: filename
   title: Don't Just Do Someting Sit There Phillps
   year_source: none
+- doc_name: Emotional Regression and Cancer - Michael Kerr - 2021-01-15
+  verified: false
+  header_excerpt: '# Transcript Formatting - Thematic Sections - v12-Lite ## Section 1 – Introduction
+    and Webcast Focus on Societal Regression. All right, you''re on. OK. Welcome to this webcast. Ho'
+  source: filename
+  title: Emotional Regression and Cancer
+  author: Michael Kerr
+  year: '2021'
+  year_source: filename
 - doc_name: Empathy defeats Therapy Friedman
   verified: false
   header_excerpt: FAMILY THERATI NEWS SAPIeMDElIUCIODI 1900 r a g o I N FOCUS Empathy Defeats Therapy
@@ -489,16 +529,22 @@ candidates:
   year_source: header
 - doc_name: FSJ 1.2 (1) Toman 101-113
   verified: false
+  header_excerpt: FAMILY CONSTELLATION THEORY REVISITED PART I* Walter Toman, PhD After a brief historical
+    introduction the theory of family constellation is presented in a simple paradigm, follow
   source: filename
   title: FSJ 1.2 (1) Toman 101-113
   author: Walter Toman
-  year_source: none
+  year: '1951'
+  year_source: header
 - doc_name: FSJ 1.2 (2) Noone 114-126
   verified: false
+  header_excerpt: INTERGENERATIONAL ATTACHMENT AND THE FAMILY Robert J. Noone, PhD The family has been
+    observed to function as an interdependent system. The integration of individuals into a more
   source: filename
   title: FSJ 1.2 (2) Noone 114-126
   author: Noone
-  year_source: none
+  year: '1994'
+  year_source: header
 - doc_name: FSJ 10.2 Ferrera Rational Optimist How Prosperity Evolves
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: The Rational Optimist: How Prosperity Evolves
@@ -510,8 +556,8 @@ candidates:
   title: 'The Rational Optimist: How Prosperity Evolves'
   author: Ferrera
   pages: 175-188
-  year: '2011'
-  year_source: header
+  year: '2014'
+  year_source: copyright
 - doc_name: FSJ 10.2 Jones Epigenetics, Social Genomics, and Bowen
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: Epigenetics, Social Genomics, and Bowen Theory
@@ -524,7 +570,7 @@ candidates:
   author: Jones
   pages: 105-128
   year: '2014'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 10.2 Jurkowski Value of Defining a Self
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: The Value of Defining a Self with One’s Spouse
@@ -537,7 +583,7 @@ candidates:
   author: Jurkowski
   pages: 163-174
   year: '2014'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 10.2 Muraskin Alloparenting The Works of Sarah
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: Alloparenting: The Works of Sarah Blaffer Hrdy
@@ -550,7 +596,7 @@ candidates:
   author: Muraskin
   pages: 145-162
   year: '2014'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 10.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: FROM THE EDITOR Author: Noone Pages: 99-104
@@ -562,8 +608,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 99-104
-  year: '1990'
-  year_source: header
+  year: '2014'
+  year_source: copyright
 - doc_name: FSJ 10.2 Thompson Hospital Leadership and the Chronically
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 10.2 Title: Hospital Leadership and the Chronically Suicidal
@@ -575,8 +621,8 @@ candidates:
   title: Hospital Leadership and the Chronically Suicidal Adult
   author: Thompson
   pages: 129-144
-  year: '2000'
-  year_source: header
+  year: '2014'
+  year_source: copyright
 - doc_name: FSJ 11.1 (4) McKnight 31-48
   verified: false
   header_excerpt: '31 PERSPECTIVES ON GRIEF: PSYCHOANALYTIC, EVOLUTIONARY, AND FAMILY SYSTEMS Anne S.
@@ -597,7 +643,7 @@ candidates:
   author: Klever
   pages: 105-132
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 11.2 Martinez Family Projection Process when
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 11.2 Title: The Family Projection Process when Author:
@@ -610,7 +656,7 @@ candidates:
   author: Martinez
   pages: 165-182
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 11.2 McKnight Sixth Extinction An Unnatural History
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 11.2 Title: The Sixth Extinction: An Unnatural History
@@ -623,7 +669,7 @@ candidates:
   author: McKnight
   pages: 183-189
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 11.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 11.2 Title: FROM THE EDITOR Author: Noone Pages: 99-104
@@ -636,7 +682,7 @@ candidates:
   author: Noone
   pages: 99-104
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 11.2 Rakow Learning from the Nurses Notes
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 11.2 Title: Learning from the Nurses’ Notes for Bowen’s
@@ -648,8 +694,7 @@ candidates:
   title: Learning from the Nurses’ Notes for Bowen’s
   author: Rakow
   pages: 133-164
-  year: '2016'
-  year_source: header
+  year_source: none
 - doc_name: FSJ 12.1 (6) BR Riordan 69-80
   verified: false
   header_excerpt: 69 BRIEF REPORT MARRIAGE PREPARATION PROGRAMS AND BOWEN FAMILY SYSTEMS THEORY Kathleen
@@ -670,7 +715,7 @@ candidates:
   author: Donley
   pages: 7-26
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 12.1 Frost Defining a Self in Multiple
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: Defining a Self in Multiple Relationships Author:
@@ -683,7 +728,7 @@ candidates:
   author: Frost
   pages: 51-68
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 12.1 Gilbert Brainwashedthe Seductive Appeal
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: Brainwashed:the Seductive Appeal Author: Gilbert
@@ -695,8 +740,8 @@ candidates:
   title: Brainwashed:the Seductive Appeal
   author: Gilbert
   pages: 81-86
-  year: '2013'
-  year_source: header
+  year: '2016'
+  year_source: copyright
 - doc_name: FSJ 12.1 Hargrove Differentiation of Self
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: Differentiation of Self: Author: Hargrove Pages:
@@ -708,8 +753,8 @@ candidates:
   title: 'Differentiation of Self:'
   author: Hargrove
   pages: 87-90
-  year: '2015'
-  year_source: header
+  year: '2016'
+  year_source: copyright
 - doc_name: FSJ 12.1 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: FROM THE EDITOR Author: Noone Pages: 3-6 3
@@ -722,7 +767,7 @@ candidates:
   author: Noone
   pages: 3-6
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 12.1 Noone Family, Self, and the Intermix
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: Family, Self, and the Intermix of Emotional
@@ -735,7 +780,7 @@ candidates:
   author: Noone
   pages: 27-50
   year: '2016'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 12.1 Riordan Marriage Preparation Programs and Bowen
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.1 Title: Marriage Preparation Programs and Bowen Family
@@ -747,8 +792,8 @@ candidates:
   title: Marriage Preparation Programs and Bowen Family Systems Theory
   author: Riordan
   pages: 69-80
-  year: '1975'
-  year_source: header
+  year: '2016'
+  year_source: copyright
 - doc_name: FSJ 12.2 Bowen Letter from Murray Bowen About
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: A Letter from Murray Bowen About Lewis Hill
@@ -760,8 +805,8 @@ candidates:
   title: A Letter from Murray Bowen About Lewis Hill
   author: Bowen
   pages: 147-156
-  year: '1972'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Brooks Within-Family Variability The Family Projection
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: Within-Family Variability: The Family Projection
@@ -773,8 +818,8 @@ candidates:
   title: 'Within-Family Variability: The Family Projection'
   author: Brooks
   pages: 107-128
-  year: '2001'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Cauley Death of a Sibling Bringing
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: Death of a Sibling: Bringing the Past to Life
@@ -786,8 +831,8 @@ candidates:
   title: 'Death of a Sibling: Bringing the Past to Life'
   author: Cauley
   pages: 129-146
-  year: '1978'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Donley Mindset The New Psychology of
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: Mindset: The New Psychology of Success Author:
@@ -799,8 +844,8 @@ candidates:
   title: 'Mindset: The New Psychology of Success'
   author: Donley
   pages: 185-190
-  year: '2006'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Jones Family Emotional System
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: The Family Emotional System: Author: Jones
@@ -812,8 +857,8 @@ candidates:
   title: 'The Family Emotional System:'
   author: Jones
   pages: 177-184
-  year: '2015'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Jurkowski Anxiety and the Nuclear Family
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: Anxiety and the Nuclear Family System Author:
@@ -826,7 +871,7 @@ candidates:
   author: Jurkowski
   pages: 157-176
   year: '2017'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 12.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: FROM THE EDITOR Author: Noone Pages: 99-104
@@ -838,8 +883,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 99-104
-  year: '1954'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2 Noone Jaak Panksepp (1943-2017)
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 12.2 Title: Jaak Panksepp (1943-2017) Author: Noone Pages:
@@ -851,7 +896,8 @@ candidates:
   title: Jaak Panksepp (1943-2017)
   author: Noone
   pages: 105-106
-  year_source: none
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 12.2(3)Brooks107-125
   verified: false
   header_excerpt: '107 WITHIN-FAMILY VARIABILITY: THE FAMILY PROJECTION PROCESS IN AN ADOPTED FAMILY Laura
@@ -871,8 +917,8 @@ candidates:
   title: 'Emotional Process in Society: A Review and Expansion of the Concept'
   author: Baker
   pages: 9-36
-  year: '1974'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 13.1 Bowen Systems View of the Aging
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: A Systems View of the Aging Process Author:
@@ -884,8 +930,8 @@ candidates:
   title: A Systems View of the Aging Process
   author: Bowen
   pages: 47-62
-  year: '1976'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 13.1 Brooks Triangles, Fusion, and the Challenge
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: Triangles, Fusion, and the Challenge to be
@@ -898,7 +944,7 @@ candidates:
   author: Brooks
   pages: 63-80
   year: '2017'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 13.1 Ferrera Women After All Sex, Evolution,
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: Women After All: Sex, Evolution, and the End
@@ -910,8 +956,8 @@ candidates:
   title: 'Women After All: Sex, Evolution, and the End of Male Supremacy'
   author: Ferrera
   pages: 87-94
-  year: '2016'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 13.1 Kerr How to Tame a Fox
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: How to Tame a Fox (and Build a Dog): Visionary
@@ -925,7 +971,7 @@ candidates:
   author: Kerr
   pages: 81-86
   year: '2017'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 13.1 McKnight Interview with Walter Smith Jr.,
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: An Interview with Walter Smith Jr., PhD: Using
@@ -938,7 +984,7 @@ candidates:
   author: McKnight
   pages: 37-46
   year: '2017'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 13.1 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.1 Title: FROM THE EDITOR Author: Noone Pages: 3-8 3
@@ -950,8 +996,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 3-8
-  year: '1954'
-  year_source: header
+  year: '2017'
+  year_source: copyright
 - doc_name: FSJ 13.1.1editor3-7
   verified: false
   header_excerpt: 3 FROM THE EDITOR Robert J. Noone, PhD The effort to understand the severe impairment
@@ -979,8 +1025,8 @@ candidates:
   title: Family Psychotherapy in Office Practice
   author: Bowen
   pages: 147-164
-  year: '1961'
-  year_source: header
+  year: '2018'
+  year_source: copyright
 - doc_name: FSJ 13.2 Harrison Difference Bowen Theory Makes in
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.2 Title: The Difference Bowen Theory Makes in Author:
@@ -992,8 +1038,8 @@ candidates:
   title: The Difference Bowen Theory Makes in
   author: Harrison
   pages: 165-184
-  year: '2017'
-  year_source: header
+  year: '2018'
+  year_source: copyright
 - doc_name: FSJ 13.2 Havstad Study of Weight Loss as
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.2 Title: Study of Weight Loss as a Model for Clinical
@@ -1006,7 +1052,7 @@ candidates:
   author: Havstad
   pages: 105-128
   year: '2018'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 13.2 McKnight Island of Knowledge
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.2 Title: The Island of Knowledge Author: McKnight Pages:
@@ -1018,8 +1064,8 @@ candidates:
   title: The Island of Knowledge
   author: McKnight
   pages: 185-190
-  year: '1978'
-  year_source: header
+  year: '2018'
+  year_source: copyright
 - doc_name: FSJ 13.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.2 Title: FROM THE EDITOR Author: Noone Pages: 99-104
@@ -1031,8 +1077,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 99-104
-  year: '1988'
-  year_source: header
+  year: '2018'
+  year_source: copyright
 - doc_name: FSJ 13.2 Papero Developing a Systems Model for
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 13.2 Title: Developing a Systems Model for Family Assessment
@@ -1044,8 +1090,8 @@ candidates:
   title: Developing a Systems Model for Family Assessment
   author: Papero
   pages: 129-146
-  year: '2011'
-  year_source: header
+  year: '2018'
+  year_source: copyright
 - doc_name: FSJ 13.2. papero129-144
   verified: false
   header_excerpt: 129 DEVELOPING A SYSTEMS MODEL FOR FAMILY ASSESSMENT Daniel V. Papero, PhD, MSSW In
@@ -1053,7 +1099,7 @@ candidates:
   source: filename
   title: FSJ 13.2. papero129-144
   author: Daniel Papero
-  year: '2011'
+  year: '2017'
   year_source: header
 - doc_name: FSJ 14.2 Galloway How Emotions Are Made
   verified: false
@@ -1099,8 +1145,8 @@ candidates:
   title: The Integration of Knowledge
   author: Bowen
   pages: 149-156
-  year: '1966'
-  year_source: header
+  year: '2021'
+  year_source: copyright
 - doc_name: FSJ 15.2 Brooks Emotional Process when a Spouse
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 15.2 Title: Emotional Process when a Spouse Changes Gender
@@ -1113,7 +1159,7 @@ candidates:
   author: Brooks
   pages: 157-176
   year: '2021'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 15.2 Butler Child Pornography Offenders Overview and
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 15.2 Title: Child Pornography Offenders: Overview and Author:
@@ -1126,7 +1172,7 @@ candidates:
   author: Butler
   pages: 131-148
   year: '2021'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 15.2 Kerr Hidden Valley Road Inside the
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 15.2 Title: Hidden Valley Road: Inside the Mind Author:
@@ -1138,8 +1184,8 @@ candidates:
   title: 'Hidden Valley Road: Inside the Mind'
   author: Kerr
   pages: 177-183
-  year: '2020'
-  year_source: header
+  year: '2021'
+  year_source: copyright
 - doc_name: FSJ 15.2 Klever Divergent Spouse Functioning
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 15.2 Title: Divergent Spouse Functioning Author: Klever
@@ -1152,7 +1198,7 @@ candidates:
   author: Klever
   pages: 103-130
   year: '2021'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 15.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 15.2 Title: FROM THE EDITOR Author: Noone Pages: 99-102
@@ -1164,8 +1210,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 99-102
-  year: '2020'
-  year_source: header
+  year: '2021'
+  year_source: copyright
 - doc_name: FSJ 16.1 (2) Ferrera editor 3-6
   verified: false
   header_excerpt: 3 FROM THE EDITOR Guest Editor Stephanie J. Ferrera, MSW Creating a Climate for Change
@@ -1283,7 +1329,7 @@ candidates:
   author: East
   pages: 31-60
   year: '2022'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 17.1 Ferrera Family and Self Bowen Theory
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.1 Title: Family and Self: Bowen Theory and the Shaping
@@ -1295,8 +1341,8 @@ candidates:
   title: 'Family and Self: Bowen Theory and the Shaping of Adaptive Capacity'
   author: Ferrera
   pages: 81-88
-  year: '1988'
-  year_source: header
+  year: '2022'
+  year_source: copyright
 - doc_name: FSJ 17.1 Lassiter Emotional Side of Socioeconomic Status
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.1 Title: The Emotional Side of Socioeconomic Status
@@ -1308,8 +1354,8 @@ candidates:
   title: The Emotional Side of Socioeconomic Status
   author: Lassiter
   pages: 9-30
-  year: '1991'
-  year_source: header
+  year: '2022'
+  year_source: copyright
 - doc_name: FSJ 17.1 McKnight Mamas Last Hug Animal Emotions
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.1 Title: Mama’s Last Hug: Animal Emotions and What They
@@ -1321,8 +1367,8 @@ candidates:
   title: 'Mama’s Last Hug: Animal Emotions and What They Tell'
   author: McKnight
   pages: 89-93
-  year: '2019'
-  year_source: header
+  year: '2022'
+  year_source: copyright
 - doc_name: FSJ 17.1 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.1 Title: FROM THE EDITOR Author: Noone Pages: 3-8 3
@@ -1334,8 +1380,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 3-8
-  year: '2004'
-  year_source: header
+  year: '2022'
+  year_source: copyright
 - doc_name: FSJ 17.1 Noone Observing Triangles
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.1 Title: Observing Triangles Author: Noone Pages: 61-80
@@ -1348,7 +1394,7 @@ candidates:
   author: Noone
   pages: 61-80
   year: '2022'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 17.2 Frost Conducting Clinical Research with Families
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.2 Title: Conducting Clinical Research with Families
@@ -1360,8 +1406,8 @@ candidates:
   title: Conducting Clinical Research with Families
   author: Frost
   pages: 167-184
-  year: '2016'
-  year_source: header
+  year: '2023'
+  year_source: copyright
 - doc_name: FSJ 17.2 Harrison Observations of Change While Working
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.2 Title: Observations of Change While Working on Author:
@@ -1374,7 +1420,7 @@ candidates:
   author: Harrison
   pages: 105-138
   year: '2023'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 17.2 Klever Similarity in Spouse Functioning
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.2 Title: Similarity in Spouse Functioning Author: Klever
@@ -1387,7 +1433,7 @@ candidates:
   author: Klever
   pages: 139-166
   year: '2023'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 17.2 McKnight Fault Lines Fractured Families
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.2 Title: Fault Lines: Fractured Families Author: McKnight
@@ -1399,8 +1445,8 @@ candidates:
   title: 'Fault Lines: Fractured Families'
   author: McKnight
   pages: 185-190
-  year: '2020'
-  year_source: header
+  year: '2023'
+  year_source: copyright
 - doc_name: FSJ 17.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 17.2 Title: FROM THE EDITOR Author: Noone Pages: 99-104
@@ -1412,8 +1458,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 99-104
-  year: '2004'
-  year_source: header
+  year: '2023'
+  year_source: copyright
 - doc_name: FSJ 18.2 Bowen Nuclear Family Emotional System and
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: Nuclear Family Emotional System and Author:
@@ -1425,8 +1471,8 @@ candidates:
   title: Nuclear Family Emotional System and
   author: Bowen
   pages: 99-120
-  year: '1970'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 18.2 Cauley It Didnt Start with You
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: It Didn’t Start with You: How Inherited Family
@@ -1438,8 +1484,8 @@ candidates:
   title: 'It Didn’t Start with You: How Inherited Family'
   author: Cauley
   pages: 145-148
-  year: '2012'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 18.2 Guzman Song of the Cell
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: The Song of the Cell Author: Guzman Pages:
@@ -1451,8 +1497,8 @@ candidates:
   title: The Song of the Cell
   author: Guzman
   pages: 139-144
-  year: '2022'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 18.2 McKnight Bowlbys Attachment Theory and Bowens
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: Bowlby’s Attachment Theory and Bowen’s Author:
@@ -1464,8 +1510,8 @@ candidates:
   title: Bowlby’s Attachment Theory and Bowen’s
   author: McKnight
   pages: 81-98
-  year: '2023'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 18.2 Millikin Bowen Coachs Attempt at a
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: A Bowen Coach’s Attempt at a Strong Start Author:
@@ -1477,8 +1523,8 @@ candidates:
   title: A Bowen Coach’s Attempt at a Strong Start
   author: Millikin
   pages: 121-138
-  year: '2023'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 18.2 Noone FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 18.2 Title: FROM THE EDITOR Author: Noone Pages: 75-80
@@ -1490,8 +1536,8 @@ candidates:
   title: FROM THE EDITOR
   author: Noone
   pages: 75-80
-  year: '1975'
-  year_source: header
+  year: '2024'
+  year_source: copyright
 - doc_name: FSJ 2.1 (1) Bowen  Psycho formulation Schiz 17-47
   verified: false
   header_excerpt: 17 A Psychological Formulation of Schizophrenia Murray Bowen, MD Introduction This unpublished
@@ -1751,8 +1797,7 @@ candidates:
   title: Bowen Theory and Health Care Costs in the United States
   author: Caskie
   pages: 7-18
-  year: '1993'
-  year_source: header
+  year_source: none
 - doc_name: FSJ 5.1 Ferrera What is Help A Theoretical
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 5.1 Title: What is Help? A Theoretical and Persona'' Perspective
@@ -1791,8 +1836,7 @@ candidates:
   title: Anxiety and Differentiation; Factors in
   author: Jones
   pages: 31-43
-  year: '1999'
-  year_source: header
+  year_source: none
 - doc_name: FSJ 5.1 Kerr From the Editor
   verified: false
   header_excerpt: FROM THE EDITOR The guest editors suggested the idea for this special issue of Family
@@ -1831,8 +1875,7 @@ candidates:
   title: The Health Maintenance Organization as an Emotional System
   author: Quinn
   pages: 19-30
-  year: '1995'
-  year_source: header
+  year_source: none
 - doc_name: FSJ 5.1 Quinn Health Maintenance Organization
   verified: false
   header_excerpt: THE HEALTH MAINTENANCE ORGANIZATION AS AN EMOTIONAL SYSTEM Michael H. Quinn, PhD This
@@ -1851,9 +1894,13 @@ candidates:
   year_source: header
 - doc_name: FSJ 5.2 (1) Smith 101-126 B
   verified: false
+  header_excerpt: CHILD ABUSE IN FAMILY EMOTIONAL PROCESS Walter Howard Smith, Jr., PhD This paper uses
+    Bowen family systems theory to explore child abuse as an aspect of family adaptation to chal
   source: filename
   title: FSJ 5.2 (1) Smith 101-126 B
-  year_source: none
+  author: Smith
+  year: '1994'
+  year_source: header
 - doc_name: FSJ 6.1 (1) Saffo 3-19
   verified: false
   header_excerpt: 3 COMPLEXITY, VARIABILITY, AND CHANGE IN SYMBIOTIC ASSOCIATIONS Mary Beth Saffo, PhD
@@ -1894,7 +1941,7 @@ candidates:
   source: filename
   title: FSJ 7.1 (2) Bowen 29-44
   author: Murray Bowen
-  year: '1954'
+  year: '1961'
   year_source: header
 - doc_name: FSJ 8.1 (1) Fine 5-19
   verified: false
@@ -1981,8 +2028,8 @@ candidates:
   title: 'Sarah E. Lorenz: Our Son, Ken'
   author: Butler
   pages: 81-88
-  year: '1963'
-  year_source: header
+  year: '2012'
+  year_source: copyright
 - doc_name: FSJ 9.1 East Triangles, Togetherness, and the Challenge
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: Triangles, Togetherness, and the Challenge to
@@ -1994,8 +2041,8 @@ candidates:
   title: Triangles, Togetherness, and the Challenge to Forgive
   author: East
   pages: 45-68
-  year: '1985'
-  year_source: header
+  year: '2012'
+  year_source: copyright
 - doc_name: FSJ 9.1 Kerr FROM THE EDITOR
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: FROM THE EDITOR Author: Kerr Pages: 3-8 3 FROM
@@ -2008,7 +2055,7 @@ candidates:
   author: Kerr
   pages: 3-8
   year: '2012'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 9.1 Kerr John Williams Stoner
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: John Williams: Stoner Author: Kerr Pages: 89-94
@@ -2020,8 +2067,8 @@ candidates:
   title: 'John Williams: Stoner'
   author: Kerr
   pages: 89-94
-  year: '2003'
-  year_source: header
+  year: '2012'
+  year_source: copyright
 - doc_name: FSJ 9.1 McKnight Challenge of Neutrality in Defining
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: The Challenge of Neutrality in Defining Author:
@@ -2033,8 +2080,8 @@ candidates:
   title: The Challenge of Neutrality in Defining
   author: McKnight
   pages: 69-80
-  year: '2011'
-  year_source: header
+  year: '2012'
+  year_source: copyright
 - doc_name: FSJ 9.1 Thompson Self-Harm and Bowen Theory
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: Self-Harm and Bowen Theory Author: Thompson
@@ -2046,8 +2093,8 @@ candidates:
   title: Self-Harm and Bowen Theory
   author: Thompson
   pages: 31-44
-  year: '1989'
-  year_source: header
+  year: '2012'
+  year_source: copyright
 - doc_name: FSJ 9.1 Wilgus Suicide and Systems
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.1 Title: Suicide and Systems Author: Wilgus Pages: 9-30
@@ -2060,7 +2107,7 @@ candidates:
   author: Wilgus
   pages: 9-30
   year: '2012'
-  year_source: header
+  year_source: copyright
 - doc_name: FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science
   verified: false
   header_excerpt: 'Family Systems Journal Vol. 9.2 Title: Subjectivity, Homo Sapiens, and Science Author:
@@ -2084,8 +2131,7 @@ candidates:
   title: FROM THE EDITOR
   author: Kerr
   pages: 99-100
-  year: '1957'
-  year_source: header
+  year_source: none
 - doc_name: Family Center Reports Index
   verified: false
   header_excerpt: THE FAMILY CENTER REPORT 1:1 Jan-Feb 1979 About the Family Center and Its Faculty- Murray
@@ -2400,19 +2446,28 @@ candidates:
   year_source: header
 - doc_name: Family Center Reports v15 n03
   verified: false
+  header_excerpt: “FAMILY CENTER REPORT. apeoesnov orn Geoncerown raamy Coe VOL. 15, NO. 3 CHALLENGING
+    ASSUMPTIONS Michael E. Kerr, MD Bowen family systems theory challenges several commonly held
   source: filename
   title: Family Center Reports v15 n03
-  year_source: none
+  year: '1994'
+  year_source: header
 - doc_name: Family Center Reports v16 n01
   verified: false
+  header_excerpt: ~FAMILY CENTER REP ORT A PUBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 16, NO. 1
+    THEORY AND THERAPY Michael E. Kerr, MD Within the mental health disciplines there has tradi-
   source: filename
   title: Family Center Reports v16 n01
-  year_source: none
+  year: '1995'
+  year_source: header
 - doc_name: Family Center Reports v16 n02
   verified: false
+  header_excerpt: '-FAMILY CENTER REPORT apwneonor sue Gioncerome tomy Com VOL. 16, NO, 2 DIFFERENTIATION
+    AND CHRONIC ANXIETY: BROAD QUANTITATIVE PREDICTORS OF FUNCTIONING xe James E. Jones, PhD c'
   source: filename
   title: Family Center Reports v16 n02
-  year_source: none
+  year: '1995'
+  year_source: header
 - doc_name: Family Systems Therapy Papero
   verified: false
   header_excerpt: '- - - - - Family Systems Theory and Therapy DANIEL V. PAPERO "Family Systems Theory"
@@ -2433,6 +2488,8 @@ candidates:
   year_source: header
 - doc_name: Family Systems and Therapy Kerr (Handbook for Family Therapy Gurman) 1981
   verified: false
+  header_excerpt: Family Systems Theory and Therapy Michael E. Kerr, M.D. | . The emphasis of this chapter
+    is theory, both from the perspective of its historical development and the cusrent state
   source: filename
   title: Family Systems and Therapy Kerr (Handbook for Family Therapy Gurman) 1981
   author: Michael Kerr
@@ -2440,6 +2497,8 @@ candidates:
   year_source: filename
 - doc_name: Family Therapy Style Art and Theory Guerin  no date
   verified: false
+  header_excerpt: A i } FAMILY THERAPY Style, Art and Theory PHILIP J, GUERIN, JR., M.D. In this paper,
+    I would like to share with you a few ideas on how to look at family therapy from the stru
   source: filename
   title: Family Therapy Style Art and Theory Guerin no date
   author: Philip Guerin
@@ -2480,6 +2539,8 @@ candidates:
   year_source: header
 - doc_name: Family as a System Kerr
   verified: false
+  header_excerpt: the family seen as a system One of the most exciting recent developments in the understanding
+    of human behavior has been the application of systems thinking to the study of the hu
   source: filename
   title: Family as a System Kerr
   author: Michael Kerr
@@ -2510,6 +2571,8 @@ candidates:
   year_source: header
 - doc_name: 'Fusion - Fogarty '
   verified: false
+  header_excerpt: fr— th Fusion Thomas F, Fogarty, M.D. © He who knows not and knows not that he knows
+    not — is a fool. Shun him. He who knows not and knows that he knows not — is simple. Teach
   source: filename
   title: Fusion - Fogarty
   author: Thomas Fogarty
@@ -2521,8 +2584,7 @@ candidates:
   source: filename
   title: Gilbert Iatrogenic Addictions formatted
   author: Gilbert
-  year: '1988'
-  year_source: header
+  year_source: none
 - doc_name: Gilbert_Iatrogenic_Addictions_formatted_STRICT
   verified: false
   header_excerpt: 'IATROGENIC ADDICTIONS: PUTTING THE PATIENT IN CHARGE. Author/Speaker: Roberta M. Gilbert,
@@ -2530,8 +2592,7 @@ candidates:
   source: filename
   title: Gilbert Iatrogenic Addictions formatted STRICT
   author: Gilbert
-  year: '1988'
-  year_source: header
+  year_source: none
 - doc_name: Gilbert_Iatrogenic_Addictions_formatted_v2
   verified: false
   header_excerpt: 'IATROGENIC ADDICTIONS: PUTTING THE PATIENT IN CHARGE. Author/Speaker: Roberta M. Gilbert,
@@ -2539,8 +2600,7 @@ candidates:
   source: filename
   title: Gilbert Iatrogenic Addictions formatted v2
   author: Gilbert
-  year: '1988'
-  year_source: header
+  year_source: none
 - doc_name: I tried to not procrastinate for a week. Here’s what helped the most _ Well actually _ The
     Guardian
   verified: false
@@ -2608,13 +2668,18 @@ candidates:
   year_source: none
 - doc_name: Making Family Visits Anon no date
   verified: false
+  header_excerpt: 'Making Family Visits One of the first steps: in working on your family of origin ie
+    to make family visits. The purpose of these visits is to increase your under= standing of the f'
   source: filename
   title: Making Family Visits Anon no date
   year_source: none
 - doc_name: Modificaiton of Loss in Divorce Cristofori 1977
   verified: false
+  header_excerpt: 'e i ‘Mate SES ee eS Me Sm ie z Sone Ate Ferwee Se pws & ‘ * MODIFICATION OF LOSS IN
+    DIVORCE: A REPORT FROM CLINICAL PRACTICE* by Roberta H. Cristofori, ACSW This paper addre'
   source: filename
   title: Modificaiton of Loss in Divorce Cristofori 1977
+  author: Cristofori
   year: '1977'
   year_source: filename
 - doc_name: Monika Baege Interview - Michael Kerr - 2010-09-23
@@ -2628,6 +2693,8 @@ candidates:
   year_source: filename
 - doc_name: Multigenerational Systems Basic Assumption Hooopes 1987-10-01
   verified: false
+  header_excerpt: 'MULTIGENERATIONAL SYSTEMS: BASIC ASSUMPTIONS MARGARET H. HOOPES The great versatility
+    and practicality of multigenerational system concepts are demonstrated by their increased us'
   source: filename
   title: Multigenerational Systems Basic Assumption Hooopes 1987-10-01
   year: '1987'
@@ -2641,6 +2708,8 @@ candidates:
   year_source: none
 - doc_name: Myths about Change Fogarty 1990
   verified: false
+  header_excerpt: Qon Rick ARDS an jv) “MYTHS ABOUT CHANGE by Thomas F, Fogarty, M.D. Anything carried
+    to an extreme kills itself by being polar, closed and promising magic. In man's effort to und
   source: filename
   title: Myths about Change Fogarty 1990
   author: Thomas Fogarty
@@ -2728,6 +2797,8 @@ candidates:
   year_source: none
 - doc_name: Phases of systems treatment with the individual and the Family  Fogarty 1982-03-12
   verified: false
+  header_excerpt: on Ma ‘. 1 4 4 r Nf bd, . (CAD IF ME f Phases of Systems Treatment With the Individual
+    and the Family Thomas F, Fogarty, M.D. "Therapy can be divided arbitrarily into three
   source: filename
   title: Phases of systems treatment with the individual and the Family Fogarty 1982-03-12
   author: Thomas Fogarty
@@ -2743,6 +2814,8 @@ candidates:
   year_source: none
 - doc_name: Practicing Family Therapy in Diverse Settings Friedman 1984
   verified: false
+  header_excerpt: A PAMILY APPROACH TO PRE-MARITAL COUNSELING Edwin H. Friedman PRACTICING FAMILY THERAPY
+    | IN DIVERSE SETTINGS ene eee Jossey- -Bass Publishers Gua n Francisco ¢ Washington ¢ Lo
   source: filename
   title: Practicing Family Therapy in Diverse Settings Friedman 1984
   author: Edwin Friedman
@@ -2750,6 +2823,8 @@ candidates:
   year_source: filename
 - doc_name: Psychotherapy Past Present Future Original Reprint Bowen 1987
   verified: false
+  header_excerpt: sé Psychotherapy—Past, Present, and Future Teena Murray Bowen, M.D. Reprinted from THE
+    EVOLUTION OF PSYCHOTHERAPY, edited by Jeffrey K. Zetg, 1987, Brunner/Mazel, Inc., N. Y.
   source: filename
   title: Psychotherapy Past Present Future Original Reprint Bowen 1987
   author: Murray Bowen
@@ -2764,9 +2839,13 @@ candidates:
   year_source: none
 - doc_name: Reflections on 1 year in Family Therapy Morris No Date
   verified: false
+  header_excerpt: '- — Ry al Kie HAR DS 3 Oa Reflections on One Year in Family Therapy... From a Client’s
+    Perspective Hedy K. Morris, A.A.S. T he summer gradually gave way to the coming season of'
   source: filename
   title: Reflections on 1 year in Family Therapy Morris No Date
-  year_source: none
+  author: Morris
+  year: '1980'
+  year_source: header
 - doc_name: Remarried Couples - Presention notes Richardson 1988
   verified: false
   header_excerpt: 'Ron R i c h a r d s o n North Shore Counselling• C e n t r e West Vancouver, B.C. 9
@@ -2821,14 +2900,20 @@ candidates:
   year_source: header
 - doc_name: Separation Divorce Single Parent - Beal
   verified: false
+  header_excerpt: '240 F. He. REFERENCES Andersen Roo Notes of A Surviver” an The Putent, Death and The
+    Family. ed. by Ticup So Gace C2 New York: Sembner’s, 1974. Anonyinous. “A Family Therapet’s'
   source: filename
   title: Separation Divorce Single Parent - Beal
   author: Beal
-  year_source: none
+  year: '1974'
+  year_source: header
 - doc_name: Tansgenerational Family Therapy Lieberman 1979
   verified: false
+  header_excerpt: TRANSGEN ERATIONAL ANALYSIS Boy, the quarrel was before your time, the aggressor no
+    one you know You’ve got their names to live up to ; and questions won’t help, You’ve a very fu
   source: filename
   title: Tansgenerational Family Therapy Lieberman 1979
+  author: Lieberman
   year: '1979'
   year_source: filename
 - doc_name: Tempermental Categories
@@ -2867,12 +2952,16 @@ candidates:
   year_source: filename
 - doc_name: The Involvment of children in therapy Freeman
   verified: false
+  header_excerpt: 'e J The Involvement of Children in Family Therapy: When and How David S. Freeman, D.S.W.
+    Families present themselves to agencies and social workers with a range of problems. Ho'
   source: filename
   title: The Involvment of children in therapy Freeman
   author: Freeman
   year_source: none
 - doc_name: The Montgomery Case Pendagrase
   verified: false
+  header_excerpt: ') THE MONTGOMERY FAMILY: A CASE STUDY By EILEEN GUERIN PENDAGAST, M.A., M.Ed. Mrs.
+    Pendagast is on the staff at C.F.L. and the Editor of this journal. She is in private practice'
   source: filename
   title: The Montgomery Case Pendagrase
   year_source: none
@@ -2904,9 +2993,13 @@ candidates:
   year_source: header
 - doc_name: The role of the Therapist in Family Systems Therapy Cain
   verified: false
+  header_excerpt: Chapter 6 THE ROLE OF THE THERAPIST IN FAMILY SYSTEMS THERAPY Ann Cain, R.N., Ph.D.
+    A number of articles have already appeared concerning the basic concepts of family systems th
   source: filename
   title: The role of the Therapist in Family Systems Therapy Cain
-  year_source: none
+  author: Cain
+  year: '1966'
+  year_source: header
 - doc_name: Theology Triangels and Assessment Nel
   verified: false
   source: filename
@@ -2946,22 +3039,30 @@ candidates:
   year_source: none
 - doc_name: Treating Conduct Disordered Adolescents Roberts 1981 January
   verified: false
+  header_excerpt: 'gure gv ona “ yr '' . TREATING CONDUCT: DISORDERED ADOLESCENTS AND YOUNG ADULTS BY
+    WORKING WITH THE PARENTS Randy Roberts Sinai Hospital of Baltimore A method of therapy for fami'
   source: filename
   title: Treating Conduct Disordered Adolescents Roberts 1981 January
+  author: Roberts
   year: '1981'
   year_source: filename
 - doc_name: 'Two Distinct Approaches To Family Therapy Bowan and Haley Roberts '
   verified: false
+  header_excerpt: 'a . cf i a Two Distinct Approaches to Family Therapy: The Ideas of Murray Bowen and
+    Jay Haley Randy Roberts, Ph.D. he ideas of Murray Bowen and Jay Haley ‘have been importan'
   source: filename
   title: Two Distinct Approaches To Family Therapy Bowan and Haley Roberts
   author: Murray Bowen
   year_source: none
 - doc_name: Use of the Extended Family Beal
   verified: false
+  header_excerpt: USE OF THE EXTENDED FAMILY IN THE TREATMENT OF MULTIPLE PERSONALITY* by , Edward W.
+    Beal, M.D. Fewer than 200 cases of multiple personality have been reported. Some of the more
   source: filename
   title: Use of the Extended Family Beal
   author: Beal
-  year_source: none
+  year: '1978'
+  year_source: header
 - doc_name: Wisdom of the Ages Houston TX 2009 1
   verified: false
   header_excerpt: 'ー - - - - - - - - - THE WISDOM OF THE AGES IV: A BOWEN SYSTEMS THEORY PERSPECTIVE ON
@@ -3065,12 +3166,4 @@ candidates:
   source: filename
   title: Wisdom of the Ages Pittsburgh 2002 2b
   year: '2002'
-  year_source: filename
-- doc_name: Emotional Regression and Cancer - Michael Kerr - 2021-01-15
-  verified: false
-  header_excerpt: ''
-  source: filename
-  title: Emotional Regression and Cancer
-  author: Michael Kerr
-  year: '2021'
   year_source: filename

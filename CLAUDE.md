@@ -95,7 +95,7 @@ web: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
 python3 rag-document-search/scripts/build_index.py source_files/ rag-document-search/references/
 ```
 
-Run this after adding or changing documents in `source_files/` (needs `pip install -r requirements-build.txt`). The builder is paragraph-aligned and metadata-enriched; see *Chunking strategy*. It reports instead of skipping: files with no extractable text (for example **scanned PDFs with no text layer — about 40 of them are in `source_files/` and are not searchable until they are OCR'd**), duplicate document names, sectioned transcripts with empty sections, and documents with no metadata are all listed, and a malformed `chapter_map.yml`/`headers_candidates.yml` or a missing PDF library is an error. The TF-IDF settings are defined in `TFIDF_PARAMS` in `build_index.py`; the CLI search imports them, and the two apps repeat the values when they re-fit the vectorizer on load — `test_index_consistency.py` fails if the copies drift. Both apps also refuse to load an index whose matrix, chunk metadata and `vectorizer.json` disagree (no silent fallback to an old dense `tfidf_matrix.npy`). The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json` (all three are written under temporary names and renamed together).
+Run this after adding or changing documents in `source_files/` (needs `pip install -r requirements-build.txt`). The builder is paragraph-aligned and metadata-enriched; see *Chunking strategy*. It reports instead of skipping: files with no extractable text (for example scanned PDFs with no text layer — see *OCR of scanned PDFs* below), duplicate document names, sectioned transcripts with empty sections, and documents with no metadata are all listed, and a malformed `chapter_map.yml`/`headers_candidates.yml` or a missing PDF library is an error. The TF-IDF settings are defined in `TFIDF_PARAMS` in `build_index.py`; the CLI search imports them, and the two apps repeat the values when they re-fit the vectorizer on load — `test_index_consistency.py` fails if the copies drift. Both apps also refuse to load an index whose matrix, chunk metadata and `vectorizer.json` disagree (no silent fallback to an old dense `tfidf_matrix.npy`). The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json` (all three are written under temporary names and renamed together).
 
 **After rebuilding, always rebuild the embedding index too** (`python3 rag-document-search/scripts/build_embeddings.py`, or the GUI) — the chunk count changes and a stale `embed_matrix.npy` makes Embedding/Hybrid search raise on every query.
 
@@ -123,6 +123,19 @@ This encodes all chunks with `all-MiniLM-L6-v2` and saves `embed_matrix.npy` alo
 
 The embedding index is required for Embedding and Hybrid search modes. It is loaded automatically on startup if the file exists. `embed_matrix.npy` (~16 MB) is committed to the repo so Railway gets it on deploy.
 
+## OCR of scanned PDFs
+
+Scans with no text layer cannot be searched or cited. `rag-document-search/scripts/ocr_scans.py` reads them with tesseract (install: `brew install tesseract`; also `requirements-build.txt`) and writes one `.txt` per PDF plus `ocr_manifest.yml`:
+
+```bash
+python3 rag-document-search/scripts/ocr_scans.py source_files source_files_ocr --manifest ocr_manifest.yml
+cp source_files_ocr/*.txt source_files/        # the PDFs stay; a .txt wins over a PDF with the same name
+```
+
+Why not plain `ocrmypdf`: the scans are often a *spread* — two facing book pages on one sheet, rotated 90°, each page skewed differently — and whole-sheet OCR interleaves and garbles them. The tool picks each sheet's orientation (tesseract also reads a sheet turned one way, so the rule is: when two adjacent rotations both read, the upright one is the later of the pair — `choose_orientation`, tested on real score tables), splits a spread at the gutter, deskews each page separately, rebuilds paragraphs from tesseract's layout data and removes line-end hyphens. `ocr_manifest.yml` records each document's mean word confidence, the pages below 70, the engine and the date. `build_index.py` marks those documents' chunks `ocr: true` (with the confidence) and the web app shows an **OCR** badge on search result cards, a warning in the View dialog and "(scan, OCR)" in Chat sources; the web Report page and `bowen_ask.py` end with "N of M cited passages come from scanned documents read by OCR…". **The desktop GUI does not show the flag yet** (its Report tab is the old pipeline). OCR chunks have no PDF page number (`page` is null; the locator is the paragraph number in the OCR text), so a quotation cannot be mapped to a page automatically. `source_files/` and `source_files_ocr/` are not in git: keep the OCR `.txt` files with the corpus (the drive copy); on a checkout without them `build_index.py` warns that the manifest's documents have no `.txt` and leaves them out. Two scans (Freeman "Developmental Challenges", Nel "Theology Triangels") are blank page images and are not indexed. OCR is a machine reading: **spot-check a document against its page images before relying on a quotation from it**, and re-run `extract_headers.py` (below) after adding documents.
+
+`extract_headers.py` regenerates `headers_candidates.yml` from scratch, so never hand-edit that file: fix the cause instead (the year rule in the script, `author_map.yml`), and `test_extract_headers.py` / `test_sources_data.py` fail if a known correction is lost.
+
 ## Processing transcripts
 
 `process_transcripts.py` reads `*yaml.md` files from `~/transcripts/projects/` (recursively), strips YAML frontmatter, and writes clean `.txt` files to `source_files/`. Files without `## Section N –` headings are silently skipped.
@@ -145,7 +158,7 @@ python3 test_skill.py   # runs 3 sample queries; writes results to test_results.
 
 `rag-document-search/scripts/semantic_search.py` is a plain TF-IDF command-line search (`python3 scripts/semantic_search.py references/ "query" 5`). It stops with a "rebuild the index" error if the index files disagree. It has no authority boost and no embedding/hybrid mode, so its ranking differs from the apps.
 
-The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency` (the original citations tests also run with `python3 test_citations.py`).
+The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency test_ocr_scans test_extract_headers` (the original citations tests also run with `python3 test_citations.py`).
 
 ## Building the macOS app
 

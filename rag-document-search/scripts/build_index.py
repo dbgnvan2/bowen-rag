@@ -6,7 +6,9 @@ carrying author / date / chapter / paragraph metadata, resolved from:
   - chapter_map.yml        (chapter docs -> book citation + chapter number/title)
   - headers_candidates.yml (articles/transcripts -> header/author/year/title)
 
-Chunking is paragraph-aligned: chunks are built from WHOLE paragraphs (a chunk never
+Documents listed in ocr_manifest.yml (written by ocr_scans.py) were read from scans by OCR;
+their chunks carry `ocr: true` and the document's mean word confidence, so reports can say
+so. Chunking is paragraph-aligned: chunks are built from WHOLE paragraphs (a chunk never
 splits a paragraph), so a stable "Ch. N, ¶ M" locator is possible, and a chunk NEVER
 spans two `## Section N –` transcript sections, so its section_title is always the
 section its text came from.
@@ -323,6 +325,8 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
             log(f"  WARNING: {name} not found in {config_dir}; chunks will carry no "
                 f"author/date/chapter metadata from it")
     chapters, books, headers = load_metadata(config_dir)
+    ocr_docs = {e["doc_name"]: e for e in load_yaml(config_dir / "ocr_manifest.yml").get("ocr", [])
+                if e.get("doc_name")}
 
     files = _source_files(doc_dir, log)
     if not files:
@@ -354,6 +358,9 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
             unknown.append(f.stem)
         for c in build_chunks(f.stem, paras):
             c.update({
+                "ocr": f.stem in ocr_docs,
+                "ocr_confidence": (ocr_docs[f.stem].get("mean_word_confidence")
+                                   if f.stem in ocr_docs else None),
                 "doc_name": f.stem,
                 "author": meta["author"],
                 "date": meta["date"],
@@ -365,6 +372,29 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
             })
             all_chunks.append(c)
 
+    if ocr_docs:
+        present = {f.stem for f in files}
+        missing = sorted(set(ocr_docs) - present)
+        indexed_ocr = sorted({c["doc_name"] for c in all_chunks if c.get("ocr")})
+        log(f"  Note: {len(indexed_ocr)} documents were read from scans by OCR "
+            f"(ocr_manifest.yml); their chunks are marked ocr: true")
+        weak = [n for n in indexed_ocr
+                if (ocr_docs[n].get("mean_word_confidence") or 100) < 85
+                or ocr_docs[n].get("low_confidence_pages")]
+        if weak:
+            log(f"  Note: {len(weak)} of them have mean confidence under 85 or pages under "
+                f"{70}: {weak[:4]}{' ...' if len(weak) > 4 else ''}")
+        # a manifest entry whose file is still the bare PDF: the OCR .txt is not in this
+        # checkout (source_files/ is not in git), so the document drops out of the index
+        bare = sorted(f.stem for f in files if f.suffix.lower() == ".pdf" and f.stem in ocr_docs
+                      and (ocr_docs[f.stem].get("words") or 0) > 0)
+        if bare:
+            log(f"  WARNING: {len(bare)} documents in ocr_manifest.yml have no OCR .txt beside "
+                f"the PDF, so they are not searchable here (copy source_files_ocr/*.txt into "
+                f"{doc_dir}): {bare[:3]}")
+        if missing:
+            log(f"  WARNING: ocr_manifest.yml lists {len(missing)} documents with no source "
+                f"file in {doc_dir} (first few: {missing[:3]})")
     if split_docs:
         log(f"  Note: {sum(split_docs.values())} overlong paragraphs in {len(split_docs)} "
             f"documents were split at sentence boundaries (no blank lines in the source)")
@@ -399,6 +429,8 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
         "paragraph_start": c["paragraph_start"],
         "paragraph_end": c["paragraph_end"],
         "page": c["page"],
+        "ocr": c["ocr"],
+        "ocr_confidence": c["ocr_confidence"],
         "section_title": c["section_title"],
         "text": c["text"],
         "char_count": c["char_count"],
@@ -438,6 +470,7 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
         "with_date": sum(1 for c in metadata if c["date"]),
         "with_chapter": sum(1 for c in metadata if c["chapter"]),
         "with_paragraph": sum(1 for c in metadata if c["paragraph_start"]),
+        "ocr_chunks": sum(1 for c in metadata if c["ocr"]),
         "vectorizer_features": len(vec.get_feature_names_out()),
     }
     log(f"docs: {stats['documents']} (chapter {kinds.get('chapter', 0)}, "

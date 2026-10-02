@@ -31,6 +31,8 @@ SRC = REPO / "source_files"
 OUT = REPO / "headers_candidates.yml"
 
 YEAR_RE = re.compile(r"\b(19[5-9]\d|20[0-2]\d)\b")
+# "(1943-2017)" are life dates, "1976-1978" a span: neither is a publication year.
+RANGE_RE = re.compile(r"(?<!\d)\d{4}\s*[-\u2013]\s*\d{4}(?!\d)")
 DATE_RE = re.compile(r"\b(19|20)\d{2}[-/]\d{2}[-/]\d{2}\b")
 
 
@@ -114,9 +116,22 @@ def author_from_filename(doc_name: str, pairs: list[tuple[str, str]]) -> str | N
 def year_from(text: str, doc_name: str) -> tuple[str | None, str]:
     # Prefer an explicit date (YYYY-MM-DD) or year in the FILENAME, then the header text.
     for src, s in (("filename", doc_name), ("header", text)):
-        m = YEAR_RE.search(s)
+        m = YEAR_RE.search(RANGE_RE.sub(" ", s))
         if m:
             return m.group(1), src
+    return None, "none"
+
+
+COPYRIGHT_RE = re.compile(r"\u00a9\s*Georgetown Family Center,?\s*((?:19|20)\d{2})")
+
+
+def fsj_year(f: Path) -> tuple[str | None, str]:
+    """An FSJ article's year is its copyright line. The first year anywhere in the text is
+    often a reference-list entry (the Panksepp obituary got 2013 from a Bowen citation)."""
+    if f.suffix.lower() == ".txt":
+        m = COPYRIGHT_RE.search(f.read_text(encoding="utf-8", errors="ignore"))
+        if m:
+            return m.group(1), "copyright"
     return None, "none"
 
 
@@ -134,10 +149,14 @@ def is_chapter(doc_name: str, pats: list[str]) -> bool:
     return any(p in dn for p in pats)
 
 
-def main():
+def main(src: Path = SRC, out: Path = OUT):
     pats = chapter_patterns()
     pairs = author_pairs()
-    files = sorted(SRC.iterdir())
+    files = sorted(Path(src).iterdir())
+    # One record per document: when both foo.txt and foo.pdf exist (an OCR'd scan keeps its
+    # PDF) the .txt is the one the index is built from, so it is the one described.
+    txt_stems = {f.stem for f in files if f.suffix.lower() == ".txt"}
+    files = [f for f in files if not (f.suffix.lower() == ".pdf" and f.stem in txt_stems)]
     candidates: list[dict] = []
     skipped_chapter = 0
     n = 0
@@ -180,7 +199,7 @@ def main():
             rec["author"] = author_from_filename(f.stem, pairs)
             rec["pages"] = None
 
-        year, ysrc = year_from(head, f.name)
+        year, ysrc = fsj_year(f) if fsj else year_from(head, f.name)
         rec["year"] = year
         rec["year_source"] = ysrc
 
@@ -189,14 +208,18 @@ def main():
 
     yaml.safe_dump(
         {"candidates": candidates},
-        open(OUT, "w", encoding="utf-8"),
+        open(out, "w", encoding="utf-8"),
         sort_keys=False, allow_unicode=True, width=100,
     )
     with_author = sum(1 for c in candidates if c.get("author"))
     with_year = sum(1 for c in candidates if c.get("year"))
+    no_year = [c["doc_name"] for c in candidates if c.get("container") and not c.get("year")]
+    if no_year:
+        print(f"{len(no_year)} journal articles have no year (no copyright line in a .txt): "
+              f"{no_year[:6]}")
     print(f"files scanned: {n}  (skipped {skipped_chapter} chapter files)")
     print(f"candidates: {len(candidates)}  | with author: {with_author}  | with year: {with_year}")
-    print(f"wrote -> {OUT}")
+    print(f"wrote -> {out}")
 
 
 if __name__ == "__main__":

@@ -590,7 +590,8 @@ def assemble_report(result: str, num_to_record: dict, num_to_chunk: dict, style:
                 num_to_record[n], passage_locator(num_to_chunk[n]), number=n)
             for n in sorted(cited))
         final_report = (styled_body + f"\n\n## References\n\n{refs_body}"
-                        + unverified_footer(num_to_record, cited) + "\n")
+                        + unverified_footer(num_to_record, cited)
+                        + ocr_footer(num_to_chunk, cited) + "\n")
         if not raw_cited and len(result.strip()) > 200:
             return final_report, (
                 "No [[N]] citation markers were found — the model may not have used the "
@@ -605,6 +606,15 @@ def assemble_report(result: str, num_to_record: dict, num_to_chunk: dict, style:
         plain = "\n".join(f"{n}. {c['doc_name']}" for n, c in sorted(num_to_chunk.items()))
         return (result + f"\n\n## References\n\n{plain}\n",
                 f"Citation styling failed ({e}); showing plain numbered references.", True)
+
+
+def ocr_footer(chunks: dict, cited) -> str:
+    """Footer line when any cited passage comes from a scan read by OCR (a machine reading
+    that can contain recognition errors, which matters when a passage is quoted)."""
+    k = sum(1 for i in cited if chunks[i].get("ocr"))
+    return ("\n\n*%d of %d cited passages come from scanned documents read by OCR and may "
+            "contain recognition errors; check any quotation against the original.*"
+            % (k, len(cited))) if k else ""
 
 
 def passage_locator(chunk: dict) -> str:
