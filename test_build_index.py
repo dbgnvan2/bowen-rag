@@ -346,6 +346,22 @@ class TestBuild(unittest.TestCase):
         self.run_build()
         self.assertTrue(any("1 of them have mean confidence under 85" in m for m in self.log))
 
+    def test_idx_curated_headers_override_the_auto_extracted_record(self):
+        # headers_candidates.yml is regenerated wholesale; curated_headers.yml is the
+        # hand-verified record and must win for the same doc_name.
+        (self.cfg / "headers_candidates.yml").write_text(yaml.safe_dump({"candidates": [
+            {"doc_name": "doc0", "author": "Wrong Person", "year": "1960", "title": "Auto"},
+            {"doc_name": "doc1", "author": "Auto Only", "year": "1999", "title": "Auto1"}]}))
+        (self.cfg / "curated_headers.yml").write_text(yaml.safe_dump({"candidates": [
+            {"doc_name": "doc0", "author": "Murray Bowen", "year": "1988", "title": "Curated",
+             "verified": True}]}))
+        self.run_build()
+        meta = json.loads((self.out / "chunk_metadata.json").read_text())
+        d0 = next(c for c in meta if c["doc_name"] == "doc0")
+        d1 = next(c for c in meta if c["doc_name"] == "doc1")
+        self.assertEqual((d0["author"], d0["date"], d0["title"]), (["Murray Bowen"], "1988", "Curated"))
+        self.assertEqual((d1["author"], d1["date"]), (["Auto Only"], "1999"))
+
     def test_idx_no_manifest_means_no_chunk_is_marked_ocr(self):
         self.run_build()
         meta = json.loads((self.out / "chunk_metadata.json").read_text())

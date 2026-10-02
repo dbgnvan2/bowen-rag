@@ -216,6 +216,33 @@ candidates:
   author: Heller
   year: '1987'
   year_source: filename
+- doc_name: Bowen - The Erosion Letters (1980-1989)
+  verified: false
+  header_excerpt: 223 THE “EROSION” LETTERS 224 The “Erosion” Letters In some ways these five letters
+    may be the most important, especially for the people reading them. The letters of his last ten
+  source: filename
+  title: Bowen - The Erosion Letters (1980-1989)
+  author: Murray Bowen
+  year: '1980'
+  year_source: header
+- doc_name: Bowen - The Erosion of Theory (1988)
+  verified: false
+  header_excerpt: The Erosion of Theory Murray Rowen, M.D. A theory that aspires toward science, is limited
+    to impersonal knowledge about the universe, nature, science, and PROVEN facts, rather than
+  source: filename
+  title: Bowen - The Erosion of Theory (1988)
+  author: Murray Bowen
+  year: '1988'
+  year_source: filename
+- doc_name: Bowen - The Erosion of Theory (lecture transcript)
+  verified: false
+  header_excerpt: 'title: "The Erosion of Theory" presenter: "Murray Bowen, M.D." lecture_date: "" source_recording:
+    "" transcriber: "Automated; human-reviewed" authen'
+  source: filename
+  title: Bowen - The Erosion of Theory (lecture transcript)
+  author: Murray Bowen
+  year: '1988'
+  year_source: header
 - doc_name: Bowen Basic Series Tape 1 TRIANGLES AND THE SCALE OF DIFFERENTIATION
   verified: false
   header_excerpt: '[00:00:30.00] Google Chrome: This will be a series of lectures designed to put the
@@ -2577,6 +2604,14 @@ candidates:
   title: Fusion - Fogarty
   author: Thomas Fogarty
   year_source: none
+- doc_name: Gilbert - Erosion of Bowen Theory
+  verified: false
+  header_excerpt: Erosion of Bowen Theorv Roberta M. Gilbert M.D. Written for (Family Systems Forum" ln
+    the years just preceding his death, Dr. Bowen spoke on many occasions about what he called the
+  source: filename
+  title: Gilbert - Erosion of Bowen Theory
+  author: Murray Bowen
+  year_source: none
 - doc_name: Gilbert_Iatrogenic_Addictions_formatted
   verified: false
   header_excerpt: 'IATROGENIC ADDICTIONS: PUTTING THE PATIENT IN CHARGE. Author/Speaker: Roberta M. Gilbert,
@@ -2601,6 +2636,15 @@ candidates:
   title: Gilbert Iatrogenic Addictions formatted v2
   author: Gilbert
   year_source: none
+- doc_name: Harrison - Erosion and Extension of Bowen Theory (2023)
+  verified: false
+  header_excerpt: Summer 2023 Volume 25, Number 2 Bowen, however, came to consider the multigenerational
+    family as the formative and influential relationship
+  source: filename
+  title: Harrison - Erosion and Extension of Bowen Theory (2023)
+  author: Murray Bowen
+  year: '2023'
+  year_source: filename
 - doc_name: I tried to not procrastinate for a week. Here’s what helped the most _ Well actually _ The
     Guardian
   verified: false

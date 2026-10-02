@@ -61,6 +61,14 @@ tiers:
     multiplier: 3.0
     note: "Bowen"
 
+  - pattern: "Erosion of Theory"
+    multiplier: 3.0
+    note: "Bowen's 'The Erosion of Theory' (1988 paper + lecture transcript)"
+
+  - pattern: "Erosion Letters"
+    multiplier: 3.0
+    note: "Bowen's 'The Erosion Letters' (1980-1989)"
+
   # ── Tier 2: Family Systems Journal & Family Center Reports (1.3×) ─────────
   - pattern: "FSJ "
     multiplier: 1.3
@@ -87,6 +95,12 @@ tiers:
     multiplier: 1.15
 
   - pattern: "Toman"
+    multiplier: 1.15
+
+  - pattern: "Gilbert"
+    multiplier: 1.15
+
+  - pattern: "Harrison"
     multiplier: 1.15
 
   # Everything else scores at 1.0x (no entry needed)

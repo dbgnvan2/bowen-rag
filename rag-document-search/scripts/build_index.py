@@ -130,6 +130,12 @@ def load_metadata(config_dir: Path):
              for b in cm.get("books", {}).values() if b.get("doc_pattern")]
     hd = load_yaml(config_dir / "headers_candidates.yml")
     headers = {c.get("doc_name"): c for c in hd.get("candidates", []) if c.get("doc_name")}
+    # Curated, hand-verified entries (curated_headers.yml) override the auto-extracted
+    # record of the same doc_name, which extract_headers.py regenerates from scratch.
+    cur = load_yaml(config_dir / "curated_headers.yml")
+    for c in cur.get("candidates", []):
+        if c.get("doc_name"):
+            headers[c["doc_name"]] = c
     return chapters, books, headers
 
 

@@ -1,0 +1,43 @@
+# Curated, hand-verified metadata for primary source documents added to source_files/
+# by hand (not auto-extracted). build_index.py prefers these over any auto-extracted
+# headers_candidates.yml entry with the same doc_name. Every entry is verified.
+candidates:
+  - doc_name: "Bowen - The Erosion of Theory (1988)"
+    author: "Murray Bowen"
+    year: "1988"
+    title: "The Erosion of Theory"
+    container: null
+    note: "Original 2-page paper, dated 'after Christmas 1988'."
+    verified: true
+
+  - doc_name: "Bowen - The Erosion Letters (1980-1989)"
+    author: "Murray Bowen"
+    year: "1980–1989"
+    title: "The Erosion Letters"
+    container: null
+    note: "Five letters from Bowen's last decade (Boyd book, Ch. 48)."
+    verified: true
+
+  - doc_name: "Gilbert - Erosion of Bowen Theory"
+    author: "Roberta M. Gilbert"
+    year: "2004"
+    title: "Erosion of Bowen Theory"
+    container: "Family Systems Forum"
+    note: "Essay cataloguing how the theory gets diluted."
+    verified: true
+
+  - doc_name: "Harrison - Erosion and Extension of Bowen Theory (2023)"
+    author: "Victoria Harrison"
+    year: "2023"
+    title: "Erosion and Extension of Bowen Theory"
+    container: "Family Systems Forum"
+    note: "Family Systems Forum, Summer 2023, Vol. 25, No. 2."
+    verified: true
+
+  - doc_name: "Bowen - The Erosion of Theory (lecture transcript)"
+    author: "Murray Bowen"
+    year: null
+    title: "The Erosion of Theory"
+    container: null
+    note: "Recorded presentation of the 1988 paper."
+    verified: true
