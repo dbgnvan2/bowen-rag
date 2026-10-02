@@ -18,6 +18,7 @@ try:
     from build_index import TFIDF_PARAMS          # run as a script from scripts/
 except ImportError:                                # imported as scripts.semantic_search
     from scripts.build_index import TFIDF_PARAMS
+import index_fingerprint    # the repo root is on sys.path once build_index is imported
 
 
 class SemanticSearcher:
@@ -58,10 +59,16 @@ class SemanticSearcher:
         # against the saved index: a mismatch means the files are out of sync, and
         # searching anyway would return wrong chunks.
         self.vectorizer = TfidfVectorizer(**TFIDF_PARAMS)
+        if vectorizer_data.get("feature_names"):
+            # columns fixed to the saved ones: another scikit-learn version could choose
+            # different features from the same text
+            self.vectorizer.set_params(vocabulary=vectorizer_data["feature_names"])
         self.vectorizer.fit([m["text"] for m in self.metadata])
         features = self.vectorizer.get_feature_names_out().tolist()
+        saved_hash = vectorizer_data.get("chunks_sha256")
         if (self.tfidf_matrix.shape != (len(self.metadata), len(features))
-                or features != vectorizer_data["feature_names"]):
+                or (saved_hash is not None
+                    and saved_hash != index_fingerprint.fingerprint(self.metadata))):
             raise RuntimeError(
                 f"Index files in {self.index_dir} are out of sync "
                 f"(matrix {self.tfidf_matrix.shape}, {len(self.metadata)} chunks, "

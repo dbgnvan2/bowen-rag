@@ -102,11 +102,30 @@ class TestLoadersFailLoudly(unittest.TestCase):
 
     def test_idx_loaders_reject_a_vectorizer_json_from_a_different_build(self):
         vec = json.loads((self.out / "vectorizer.json").read_text())
-        vec["feature_names"] = list(reversed(vec["feature_names"]))
+        vec["chunks_sha256"] = "0" * 64      # built from other chunk text
         (self.out / "vectorizer.json").write_text(json.dumps(vec))
         for name, cls in self.managers():
             with self.assertRaises(RuntimeError, msg=name):
                 cls().load(self.out)
+
+    def test_idx_loaders_use_the_saved_features_not_a_fresh_selection(self):
+        # A different scikit-learn can pick other features from the same text (this broke
+        # the Railway deploy). The saved list must win: simulate a fresh fit disagreeing.
+        vec = json.loads((self.out / "vectorizer.json").read_text())
+        vec["feature_names"][-1] = "zzz_not_chosen_by_a_fresh_fit"
+        (self.out / "vectorizer.json").write_text(json.dumps(vec))
+        for name, cls in self.managers():
+            m = cls()
+            m.load(self.out)
+            self.assertEqual(m.vectorizer.get_feature_names_out().tolist(),
+                             vec["feature_names"], name)
+
+    def test_idx_vectorizer_json_without_a_hash_still_loads(self):
+        vec = json.loads((self.out / "vectorizer.json").read_text())
+        del vec["chunks_sha256"]
+        (self.out / "vectorizer.json").write_text(json.dumps(vec))
+        for name, cls in self.managers():
+            cls().load(self.out)
 
     def write_embeddings(self, text_for_fingerprint=None):
         import numpy as np

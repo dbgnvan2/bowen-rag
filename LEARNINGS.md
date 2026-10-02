@@ -31,6 +31,9 @@ Purpose: turn individual bug fixes into a reusable theory of how this project fa
 ## Fix log
 Format: Issue -> Root cause (Pn) -> What would have caught it -> Fix -> Rule. Newest first.
 
+- 2026-10-02 Railway deploy refused to start: "vectorizer.json does not match the chunk texts"
+  - The app re-ran TfidfVectorizer(max_features=8000) on load and compared its feature list with the saved one. 295 terms tie at the 8,000th place and 5 are kept, so the choice depends on the sort's tie order, which can differ between machines (P19: derived data re-computed in a different environment than it was built in). The same files load under scikit-learn 1.3 to 1.9 on this Mac. -> a loader that rebuilds a selection instead of reading it -> a test where the saved list differs from a fresh fit -> the vectorizer is fixed to the saved features; a text hash in vectorizer.json replaces the feature comparison. Rule: load a saved selection, never re-derive it. Not reproduced on Railway's hardware (cause inferred, not observed).
+
 - 2026-10-02 OCR + sparse matrix (found by regenerating data and by learning-qa pre-flight, fixed before commit)
   - Both apps densified the TF-IDF matrix (~790 MB) -> a convenience `.toarray()` on load -> a test that the loaded matrix stays sparse and scores equal the dense ones -> sparse CSR kept.
   - Regenerating headers_candidates.yml lost corrections made to the file (Papero author, FSJ years such as 2013 taken from a reference-list entry) (P8) -> the corrections lived in the data file, not the generator -> test_extract_headers + test_sources_data fail on regeneration -> year rule (ranges ignored; FSJ year = copyright line) and author_map.yml hold the fixes. Never hand-edit a regenerated file.

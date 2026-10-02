@@ -38,3 +38,34 @@ def verify(refs_dir, chunks) -> None:
         raise RuntimeError(
             f"embed_matrix.npy in {refs_dir} was built from different chunk text than "
             "chunk_metadata.json. Rebuild the embeddings (build_embeddings.py).")
+
+
+VECTORIZER = "vectorizer.json"
+
+
+def saved_vocabulary(refs_dir):
+    """The TF-IDF feature list the saved matrix's columns were built with, or None.
+
+    The apps fix the vectorizer to this list instead of re-learning it: a different
+    scikit-learn version can pick a different 8,000 features from the same text, which
+    would pair the matrix's columns with the wrong words (or stop the app from loading).
+    """
+    p = Path(refs_dir, VECTORIZER)
+    if not p.exists():
+        return None
+    return json.loads(p.read_text(encoding="utf-8")).get("feature_names") or None
+
+
+def verify_vectorizer(refs_dir, chunks) -> None:
+    """Raise RuntimeError if vectorizer.json records a hash of different chunk text.
+
+    Older files without the hash are accepted (only the matrix shape is checked then).
+    """
+    p = Path(refs_dir, VECTORIZER)
+    if not p.exists():
+        return
+    saved = json.loads(p.read_text(encoding="utf-8")).get("chunks_sha256")
+    if saved is not None and saved != fingerprint(chunks):
+        raise RuntimeError(
+            f"vectorizer.json in {refs_dir} does not match the chunk texts. "
+            "Rebuild the index.")

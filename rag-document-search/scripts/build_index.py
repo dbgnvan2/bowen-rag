@@ -38,6 +38,9 @@ except ImportError:
     PDF_SUPPORT = False
 
 REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO))
+import index_fingerprint  # noqa: E402  (hash of the chunk text, saved in vectorizer.json)
+
 SRC = REPO / "source_files"
 REFS = REPO / "rag-document-search" / "references"
 CHUNK_CHARS = 1500
@@ -451,6 +454,7 @@ def build(doc_dir, out_dir, config_dir=REPO, log=print) -> dict:
         json.dump(metadata, fh, ensure_ascii=False)
     with open(tmp["vectorizer.json"], "w", encoding="utf-8") as fh:
         json.dump({"feature_names": vec.get_feature_names_out().tolist(),
+                   "chunks_sha256": index_fingerprint.fingerprint(metadata),
                    "max_features": TFIDF_PARAMS["max_features"],
                    "ngram_range": list(TFIDF_PARAMS["ngram_range"]),
                    "min_df": TFIDF_PARAMS["min_df"],

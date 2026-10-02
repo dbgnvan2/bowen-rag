@@ -303,6 +303,9 @@ class IndexManager:
             lowercase=True, ngram_range=(1, 2),
             min_df=2, sublinear_tf=True
         )
+        vocab = index_fingerprint.saved_vocabulary(refs_dir)
+        if vocab:       # fix the columns to the saved ones; idf is re-learned from the texts
+            self.vectorizer.set_params(vocabulary=vocab)
         self.vectorizer.fit(texts)
         self._check_index_in_sync(refs_dir)
         self.loaded = True
@@ -332,13 +335,7 @@ class IndexManager:
             raise RuntimeError(
                 f"Index files in {refs_dir} are out of sync (matrix {self.matrix.shape}, "
                 f"{len(self.chunks)} chunks, {len(features)} features). Rebuild the index.")
-        saved = refs_dir / "vectorizer.json"
-        if saved.exists():
-            with open(saved) as f:
-                if features != json.load(f).get("feature_names", features):
-                    raise RuntimeError(
-                        f"vectorizer.json in {refs_dir} does not match the chunk texts. "
-                        "Rebuild the index.")
+        index_fingerprint.verify_vectorizer(refs_dir, self.chunks)   # same text
 
     def get_context_window(self, chunk_id: int, window: int = 2) -> list:
         doc_name = self.chunks[chunk_id]["doc_name"]
