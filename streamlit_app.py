@@ -2038,12 +2038,36 @@ def page_index(idx: IndexManager):
 _RUNNING_INDICATOR_CSS = """
 <style>
 [data-testid="stStatusWidget"] > * { display: none !important; }
-[data-testid="stStatusWidget"]::before {
-    content: "\\1F914  Thinking\\2026";
-    font-size: 0.95rem;
-    animation: bowen-think 1.6s ease-in-out infinite;
+[data-testid="stStatusWidget"] { display: flex; align-items: center; gap: 0.35rem; }
+[data-testid="stStatusWidget"]::before {      /* the face: bobs, tilts, changes expression */
+    content: "\\1F914";
+    font-size: 1.25rem;
+    display: inline-block;
+    transform-origin: 50% 80%;
+    animation: bowen-bob 1.2s ease-in-out infinite, bowen-face 3.6s steps(1) infinite;
 }
-@keyframes bowen-think { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+[data-testid="stStatusWidget"]::after {       /* "Thinking" with dots that fill in */
+    content: "Thinking";
+    font-size: 0.9rem;
+    opacity: 0.75;
+    animation: bowen-dots 1.6s steps(1) infinite;
+}
+@keyframes bowen-bob {
+    0%, 100% { transform: translateY(0) rotate(-8deg); }
+    50%      { transform: translateY(-4px) rotate(8deg); }
+}
+@keyframes bowen-face {
+    0%   { content: "\\1F914"; }    /* thinking */
+    30%  { content: "\\1F642"; }    /* slight smile */
+    55%  { content: "\\1F9D0"; }    /* curious */
+    80%  { content: "\\1F60A"; }    /* happy */
+}
+@keyframes bowen-dots {
+    0%   { content: "Thinking"; }
+    25%  { content: "Thinking."; }
+    50%  { content: "Thinking.."; }
+    75%  { content: "Thinking..."; }
+}
 </style>
 """
 
