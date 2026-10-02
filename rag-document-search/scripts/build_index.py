@@ -82,7 +82,29 @@ def load_yaml(p: Path) -> dict:
         raise IndexBuildError(f"{p.name} is not valid YAML: {e}") from e
 
 
+_LIGATURES = {"\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi",
+              "\ufb04": "ffl", "\ufb05": "st", "\ufb06": "st"}
+
+
+def clean_text(text: str) -> str:
+    """Undo PDF-extraction artefacts that break search and printing.
+
+    A ligature character ("deﬁne") does not match the query "define" and prints as a wrong
+    glyph in the PDF report; a soft hyphen marks a line-break point inside a word
+    ("simula\xad tions"), which the tokenizer would split into two non-words.
+    """
+    text = re.sub(r"(?<=[^\W\d_])\xad[ \t]*(?=[^\W\d_])", "", text)   # join a split word
+    text = text.replace("\xad", "").replace("\u200b", "")
+    for lig, plain in _LIGATURES.items():
+        text = text.replace(lig, plain)
+    return text
+
+
 def read_text(path: Path) -> str:
+    return clean_text(_decode(path))
+
+
+def _decode(path: Path) -> str:
     """Decode a text source. UTF-16 is used only when the file has a BOM, because almost
     any even-length byte string decodes as UTF-16 and would be indexed as mojibake."""
     raw = path.read_bytes()
@@ -237,7 +259,7 @@ def pdf_paragraphs(path: Path) -> list:
         for b in sorted(doc[pi].get_text("blocks"), key=lambda b: (b[1], b[0])):
             if b[6] != 0:          # skip image blocks
                 continue
-            t = re.sub(r"\s+", " ", b[4]).strip()
+            t = re.sub(r"\s+", " ", clean_text(b[4])).strip()
             for piece in (split_long(t) if t else []):
                 paras.append({"text": piece, "page": pi + 1, "section": None})
     return paras

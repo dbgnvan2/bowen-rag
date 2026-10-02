@@ -517,8 +517,8 @@ candidates:
     development has been influ- enced by three important systems theories: cybernetics, gener'
   source: filename
   title: FSJ 1.1 (1) Caskie 7-18
-  year: '1950'
-  year_source: header
+  year: '1994'
+  year_source: issue date
 - doc_name: FSJ 1.1 (4) Ferrera 44-55 Neutrality in Violent World
   verified: false
   header_excerpt: Neutrality in a Violent World Stephanie J. Ferrera, MSW Many theorists have postulated
@@ -1607,7 +1607,7 @@ candidates:
   source: filename
   title: FSJ 2.2 p101 FSJ V2 P101 Relationship as Primary Regulators Rausso
   year: '1995'
-  year_source: header
+  year_source: issue date
 - doc_name: FSJ 3.1 (1) 5-32 Baker Gippenreiter
   verified: false
   header_excerpt: The Effects of Stalin’s Purge on Three Generations of Russian Families Katharine G.
@@ -2163,7 +2163,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 1 No 3
   year: '1979'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 1 No 4
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL.1 NO.4 4380 MACARTHUR
@@ -2178,8 +2178,8 @@ candidates:
     VOL. 10, NO. 1 TWENTY-FIFTH GEORGETOWN UNIVERSITY SYMPOSIUM ON FAMILY THEORY AND FAMI
   source: filename
   title: Family Center Reports Vol 10 No 1
-  year: '1988'
-  year_source: header
+  year: '1989'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 10 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2187,7 +2187,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 10 No 2
   year: '1989'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 10 No 3
   verified: false
   header_excerpt: ThMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2195,15 +2195,15 @@ candidates:
   source: filename
   title: Family Center Reports Vol 10 No 3
   year: '1989'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 11 No 1
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
     VOL. 11, NO. 1 TWENTY-SIXTH ANNUAL SYMPOSIUM NOVEMBER 1989 Reviewed by Daniel V. Pape
   source: filename
   title: Family Center Reports Vol 11 No 1
-  year: '1989'
-  year_source: header
+  year: '1990'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 11 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2211,15 +2211,15 @@ candidates:
   source: filename
   title: Family Center Reports Vol 11 No 2
   year: '1990'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 12 No 1
   verified: false
   header_excerpt: FAMILY CENTER REPORT VOL. 12, N0.1 TWENTY-SEVENTH GEORGE'l'OOWN SYMPOSIUM ON FAMILY
     THEORY AND FAMILY PSYCHOTHERAPY Michael E. Kerr, M.D. The 1990 Annual Family Symposium, w
   source: filename
   title: Family Center Reports Vol 12 No 1
-  year: '1990'
-  year_source: header
+  year: '1991'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 12 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT VOL. 12, NO. 2 BEHAVIORAL DIFFERENTIATION AS A FUNCTION OF CROWDING
@@ -2227,15 +2227,15 @@ candidates:
   source: filename
   title: Family Center Reports Vol 12 No 2
   year: '1991'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 13 No 1
   verified: false
   header_excerpt: FAMILY CENTER REPORT THE GEORGETOWN FAMILY CENTER VOL. 13, NO. 1 TWENTY-EIGHTH SYMPOSIUM
     -ON- FAMILY THEORY AND FAMILY PSYCHOTHERAPY Michael E. Kerr, M.D. The Twenty-Eighth
   source: filename
   title: Family Center Reports Vol 13 No 1
-  year: '1991'
-  year_source: header
+  year: '1992'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 13 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT A PUBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 13, N0.2 RESPONSIBILITY
@@ -2243,7 +2243,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 13 No 2
   year: '1992'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 14 No 1
   verified: false
   header_excerpt: FAMILY CENTER REPORT A PullLICATION OF THE GEORGETOWN FAMILY CENTER VOL A,NO. l WINTER,
@@ -2251,15 +2251,15 @@ candidates:
   source: filename
   title: Family Center Reports Vol 14 No 1
   year: '1993'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 14 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT A PuBLICATION OF TIIE GEORGETOWN FAMILY CENTER VOL. 14, NO. 2 THE
     PRESS OF POPULATION Kathleen B. Kerr, MSN, MA "It is axiomatic that we are in no way pro
   source: filename
   title: Family Center Reports Vol 14 No 2
-  year: '1982'
-  year_source: header
+  year: '1993'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 14 No 3
   verified: false
   header_excerpt: FAMILY CENTER RE PO RT A PuBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 14, NO. 3
@@ -2267,7 +2267,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 14 No 3
   year: '1993'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 14 No 4
   verified: false
   header_excerpt: FAMILY CENTER REPORT A PuBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 14, NO. 4 COMPLEX
@@ -2275,15 +2275,15 @@ candidates:
   source: filename
   title: Family Center Reports Vol 14 No 4
   year: '1993'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 15 No 1
   verified: false
   header_excerpt: I FAMILY CENTER REPORT A PuBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 15, NO. 1
     REFLECTIONS ON THE THIRTIETH ANNUAL SYMPOSIUM Michael E. Kerr, M.D. The Thirtieth Annual
   source: filename
   title: Family Center Reports Vol 15 No 1
-  year: '1965'
-  year_source: header
+  year: '1994'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 15 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT A PuBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 15, NO. 2 INAUGURAL
@@ -2291,7 +2291,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 15 No 2
   year: '1994'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 2 No 1
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL. 2 NO. 1 4380
@@ -2331,7 +2331,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 3 No 1
   year: '1981'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 3 No 2
   verified: false
   header_excerpt: I Department ot Psychiatry Georgetown University School of Medicine VOL. 3, NO. 2 4380
@@ -2339,7 +2339,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 3 No 2
   year: '1982'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 4 No 1
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL. 4, NO. 1 4380
@@ -2347,7 +2347,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 4 No 1
   year: '1982'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 4 No 2
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine Vol. 4, No. 2 SUBJECTIVITY,
@@ -2355,7 +2355,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 4 No 2
   year: '1982'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 5 No 1
   verified: false
   header_excerpt: Department ot Psychiatry Georgetown University School of Medicine VOL.5, NO. l WHAT
@@ -2363,39 +2363,39 @@ candidates:
   source: filename
   title: Family Center Reports Vol 5 No 1
   year: '1983'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 6 No 1
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL. 6, NO. 1 TWENTIETH
     GEORGETOWN FAMILY SYMPOSIUM Murray Bowen, M.D. The Twentieth Symposium was in a clas
   source: filename
   title: Family Center Reports Vol 6 No 1
-  year: '1960'
-  year_source: header
+  year: '1984'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 6 No 2
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL. 6, NO. 2 THE
     BORDERLINE FAMILY Michael E. Kerr, M.D. This paper was presented at a symposium on borderli
   source: filename
   title: Family Center Reports Vol 6 No 2
-  year: '1983'
-  year_source: header
+  year: '1984'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 6 No 3
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Med,c,ne VOL. 6, NO. 3 BIOFEEDBACK
     FOR DIABETES * Lilian Rosenbaum, LCSW, Ph.D. My initial interest and work on the qu
   source: filename
   title: Family Center Reports Vol 6 No 3
-  year: '1970'
-  year_source: header
+  year: '1981'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 7 No 1
   verified: false
   header_excerpt: Department of Psychiatry Georgetown University School of Medicine VOL. 7, NO. 1 TWENTY-SECOND
     ANNUAL GEORGETOWN UNIVERSITY SYMPOSIUM ON FAMILY THEORY AND FAMILY PSYCHOTHERAPY
   source: filename
   title: Family Center Reports Vol 7 No 1
-  year: '1985'
-  year_source: header
+  year: '1986'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 8 No 3
   verified: false
   header_excerpt: IiMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2403,7 +2403,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 8 No 3
   year: '1987'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 8 No 4
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2411,23 +2411,23 @@ candidates:
   source: filename
   title: Family Center Reports Vol 8 No 4
   year: '1987'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 9 No 1
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
     VOL. 9, NO. 1 THE CHOICE OF VERNER SUOMI, PH.D. AS THE 1987 SYMPOSIUM DISTINGUISHED GU
   source: filename
   title: Family Center Reports Vol 9 No 1
-  year: '1987'
-  year_source: header
+  year: '1988'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 9 No 2
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
     VOL. 9, NO. 2 PRIMARY CARE MEDICINE AND THE FAMILY Michael E. Kerr It is a privilege t
   source: filename
   title: Family Center Reports Vol 9 No 2
-  year: '1960'
-  year_source: header
+  year: '1988'
+  year_source: issue date
 - doc_name: Family Center Reports Vol 9 No 3
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2435,7 +2435,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 9 No 3
   year: '1988'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports Vol 9 No 4
   verified: false
   header_excerpt: FAMILY CENTER REPORT Department of Psychiatry Georgetown University School of Medicine
@@ -2443,7 +2443,7 @@ candidates:
   source: filename
   title: Family Center Reports Vol 9 No 4
   year: '1988'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports v15 n03
   verified: false
   header_excerpt: “FAMILY CENTER REPORT. apeoesnov orn Geoncerown raamy Coe VOL. 15, NO. 3 CHALLENGING
@@ -2451,7 +2451,7 @@ candidates:
   source: filename
   title: Family Center Reports v15 n03
   year: '1994'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports v16 n01
   verified: false
   header_excerpt: ~FAMILY CENTER REP ORT A PUBLICATION OF THE GEORGETOWN FAMILY CENTER VOL. 16, NO. 1
@@ -2459,7 +2459,7 @@ candidates:
   source: filename
   title: Family Center Reports v16 n01
   year: '1995'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Center Reports v16 n02
   verified: false
   header_excerpt: '-FAMILY CENTER REPORT apwneonor sue Gioncerome tomy Com VOL. 16, NO, 2 DIFFERENTIATION
@@ -2467,7 +2467,7 @@ candidates:
   source: filename
   title: Family Center Reports v16 n02
   year: '1995'
-  year_source: header
+  year_source: issue date
 - doc_name: Family Systems Therapy Papero
   verified: false
   header_excerpt: '- - - - - Family Systems Theory and Therapy DANIEL V. PAPERO "Family Systems Theory"

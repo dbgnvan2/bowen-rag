@@ -31,6 +31,25 @@ class TestFsjYear(unittest.TestCase):
         self.assertEqual(E.fsj_year(f), (None, "none"))
 
 
+class TestIssueDate(unittest.TestCase):
+    def test_a_season_year_dateline_beats_a_year_mentioned_earlier_in_the_text(self):
+        head = "VOL. 9, NO. 2 ... since the middle 1960's, extensive work ... SPRING 1988 family therapy"
+        self.assertEqual(E.year_from(head, "Family Center Reports Vol 9 No 2.pdf"),
+                         ("1988", "issue date"))
+
+    def test_the_dateline_is_found_beyond_the_generic_header_window(self):
+        head = "late 1960's ..."
+        later = head + " " * 3000 + "WINTER 1984"
+        self.assertEqual(E.year_from(head, "Family Center Reports Vol 6 No 1.pdf", later),
+                         ("1984", "issue date"))
+
+    def test_without_a_dateline_the_first_header_year_is_still_used(self):
+        self.assertEqual(E.year_from("written in 1975", "Some Paper.pdf"), ("1975", "header"))
+
+    def test_a_filename_year_beats_the_dateline(self):
+        self.assertEqual(E.year_from("SPRING 1988", "Paper 1979.pdf"), ("1979", "filename"))
+
+
 class TestYearRule(unittest.TestCase):
     def test_life_dates_are_not_a_publication_year(self):
         self.assertEqual(E.year_from("", "FSJ 12.2 Noone Jaak Panksepp (1943-2017)"), (None, "none"))

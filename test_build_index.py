@@ -38,6 +38,22 @@ def chunks_of(text, doc="doc"):
     return B.build_chunks(doc, paras), stats
 
 
+class TestCleanText(unittest.TestCase):
+    def test_idx_ligatures_become_plain_letters(self):
+        self.assertEqual(B.clean_text("de\ufb01ne the \ufb02ow o\ufb03ce"), "define the flow office")
+
+    def test_idx_a_word_split_by_a_soft_hyphen_is_rejoined(self):
+        self.assertEqual(B.clean_text("simula\xad tions and sys\xadtems"), "simulations and systems")
+
+    def test_idx_a_soft_hyphen_not_inside_a_word_is_just_removed(self):
+        self.assertEqual(B.clean_text("erosion.\xad At 1950\xad 1960"), "erosion. At 1950 1960")
+
+    def test_idx_clean_text_is_applied_to_a_txt_source(self):
+        d = Path(tempfile.mkdtemp()) / "a.txt"
+        d.write_text("The de\ufb01nition of Numer\xad ous things.", encoding="utf-8")
+        self.assertEqual(B.read_text(d), "The definition of Numerous things.")
+
+
 class TestSections(unittest.TestCase):
     def test_idx_first_section_at_byte_zero_keeps_its_title(self):
         chunks, _ = chunks_of(SECTIONED)

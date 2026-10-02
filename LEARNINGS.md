@@ -31,6 +31,11 @@ Purpose: turn individual bug fixes into a reusable theory of how this project fa
 ## Fix log
 Format: Issue -> Root cause (Pn) -> What would have caught it -> Fix -> Rule. Newest first.
 
+- 2026-10-02 found by checking a live Railway report ("Erosion of Theory") against the corpus
+  - 1,875 chunks held ﬁ/ﬂ ligatures and 1,373 held soft hyphens inside words: "define" did not match "deﬁne" in keyword/BM25 search, and the PDF export printed "deIne" (P7: text that looks right but does not match) -> a corpus scan for non-ASCII artefacts -> `clean_text` at read time, tested.
+  - Family Center Report issues got years such as 1960 and 1965 (first year anywhere in the first 2,500 characters) (P7) -> comparing reference years with the issue's own dateline -> the "SPRING 1989" dateline wins. Vol 6 No 3 still reads 1981 (a likely misread of 1984); no year is invented.
+  - Not fixed: the model wrote "might help readers" where the source says "will help readers" (2.3 (i)): quotations are not machine-checked against the retrieved chunks.
+
 - 2026-10-02 Railway deploy refused to start: "vectorizer.json does not match the chunk texts"
   - The app re-ran TfidfVectorizer(max_features=8000) on load and compared its feature list with the saved one. 295 terms tie at the 8,000th place and 5 are kept, so the choice depends on the sort's tie order, which can differ between machines (P19: derived data re-computed in a different environment than it was built in). The same files load under scikit-learn 1.3 to 1.9 on this Mac. -> a loader that rebuilds a selection instead of reading it -> a test where the saved list differs from a fresh fit -> the vectorizer is fixed to the saved features; a text hash in vectorizer.json replaces the feature comparison. Rule: load a saved selection, never re-derive it. Not reproduced on Railway's hardware (cause inferred, not observed).
 

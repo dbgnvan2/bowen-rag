@@ -113,9 +113,22 @@ def author_from_filename(doc_name: str, pairs: list[tuple[str, str]]) -> str | N
     return None
 
 
-def year_from(text: str, doc_name: str) -> tuple[str | None, str]:
+# An issue date line such as "SPRING 1989" or "FALL1983" near the top of a periodical is the
+# issue's year; the first year anywhere in the header is often a year the article mentions
+# (a Family Center Report of 1984 got 1960 from "the middle 1960's").
+ISSUE_DATE_RE = re.compile(r"\b(?:WINTER|SPRING|SUMMER|FALL|AUTUMN),?\s*((?:19|20)\d{2})\b")
+ISSUE_DATE_WINDOW = 4000
+
+
+def year_from(text: str, doc_name: str, issue_text: str | None = None) -> tuple[str | None, str]:
     # Prefer an explicit date (YYYY-MM-DD) or year in the FILENAME, then the header text.
-    for src, s in (("filename", doc_name), ("header", text)):
+    m = YEAR_RE.search(RANGE_RE.sub(" ", doc_name))
+    if m:
+        return m.group(1), "filename"
+    m = ISSUE_DATE_RE.search((text if issue_text is None else issue_text)[:ISSUE_DATE_WINDOW])
+    if m:
+        return m.group(1), "issue date"
+    for src, s in (("header", text),):
         m = YEAR_RE.search(RANGE_RE.sub(" ", s))
         if m:
             return m.group(1), src
@@ -199,7 +212,7 @@ def main(src: Path = SRC, out: Path = OUT):
             rec["author"] = author_from_filename(f.stem, pairs)
             rec["pages"] = None
 
-        year, ysrc = fsj_year(f) if fsj else year_from(head, f.name)
+        year, ysrc = fsj_year(f) if fsj else year_from(head, f.name, read_head(f, ISSUE_DATE_WINDOW))
         rec["year"] = year
         rec["year_source"] = ysrc
 
