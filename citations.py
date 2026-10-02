@@ -34,7 +34,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # ── Style registry ───────────────────────────────────────────────────────────
 STYLES = ["APA", "MLA", "Chicago", "Harvard", "Vancouver"]
 NUMBERED_STYLES = {"Vancouver"}
-DEFAULT_STYLE = "APA"
+DEFAULT_STYLE = "Vancouver"   # numbered [1] … [n]; override with CITATION_STYLE
 
 
 def normalize_style(style: str) -> str:
@@ -368,7 +368,10 @@ def format_reference(record: dict, style: str) -> str:
 
     if style == "Vancouver":
         if is_article:
-            vip = _clean_join([f"{year};" if year else "", vol,
+            # Year takes the "1987;" separator only when volume/issue/pages follow it —
+            # otherwise a record with a year but no other locators renders "n.d.;."
+            vip = _clean_join([f"{year};" if year and (vol or issue or pages) else year,
+                               vol,
                                f"({issue})" if issue else "",
                                f":{pages}" if pages else ""], "")
             return _clean_join([f"{A}." if A else "", f"{title}.",
@@ -495,3 +498,153 @@ def cited_numbers(text: str, valid: set | None = None) -> set:
             if valid is None or n in valid:
                 nums.add(n)
     return nums
+
+
+# ── Enriched chunk → citation (workstream D) ────────────────────────────────
+def record_from_chunk(chunk: dict, sources: list = None) -> dict:
+    """Build a citation record for a retrieved chunk.
+
+    Spec:  docs/spec_citation_styles.md (no fabrication; M1.B)
+    Tests: test_citations.py::test_chunk_record_*
+
+    Two sources of bibliographic data exist and both are unverified by default:
+      * the chunk's own metadata (chapter_map.yml / headers_candidates.yml, extracted
+        from the book or the document header), and
+      * the matching sources.yml record (hand-editable in Settings).
+    Precedence, per field:
+      1. a sources.yml record marked `verified: true` wins outright (that is how a human
+         overrides a wrong extraction);
+      2. otherwise the chunk metadata is used;
+      3. where the chunk metadata has no value, an unverified sources.yml value fills the
+         gap for authors / title / container only. It never supplies a YEAR: seeded years
+         are digits guessed from the filename (a volume or a life-date can look like one),
+         and a wrong date printed as fact is worse than "n.d.".
+    The chunk's author is a list of full-name strings ("Murray Bowen"); each is parsed
+    into {family, given} so the existing formatters work unchanged.
+    """
+    authors = []
+    for name in (chunk.get("author") or []):
+        authors.extend(parse_author_string(name))
+    title = (chunk.get("chapter_title") or chunk.get("title")
+             or clean_title_from_filename(chunk.get("doc_name", "")))
+    record = {
+        "authors": authors,
+        "year": str(chunk["date"]) if chunk.get("date") else None,
+        "title": title,
+        "container_title": chunk.get("container"),
+        "chapter": chunk.get("chapter"),
+        "chapter_label": chunk.get("chapter_label"),
+        "type": "chapter" if chunk.get("chapter") is not None else
+                ("article-journal" if chunk.get("container") else "generic"),
+        "verified": False,
+    }
+    src = match_source(chunk.get("doc_name", ""), sources) if sources else None
+    if not src:
+        return record
+    if src.get("verified"):
+        merged = {k: v for k, v in src.items() if k != "pattern"}
+        merged.setdefault("container_title", record["container_title"])
+        merged["chapter"] = record["chapter"]
+        merged["chapter_label"] = record["chapter_label"]
+        merged["verified"] = True
+        return merged
+    for field in ("authors", "title", "container_title"):
+        have = record.get(field)
+        value = src.get(field)
+        if (not have or (field == "title" and have == clean_title_from_filename(
+                chunk.get("doc_name", "")))) and value and str(value).strip().lower() != "n.d.":
+            record[field] = value
+    return record
+
+
+def unverified_footer(records: dict, cited) -> str:
+    """Footer line for a report's reference list: how many cited passages rest on
+    unverified bibliographic data (every record is, until a human marks it verified).
+    Empty string when all are verified."""
+    n = len(cited)
+    k = sum(1 for i in cited if not records[i].get("verified"))
+    return ("\n\n*Bibliographic details (author, year, title) for %d of %d cited passages "
+            "are extracted automatically and unverified; check against the source before "
+            "citing formally.*" % (k, n)) if k else ""
+
+
+def assemble_report(result: str, num_to_record: dict, num_to_chunk: dict, style: str) -> tuple:
+    """Turn the model's text into the final report: rewrite the [[N]] markers into `style`,
+    append a References section, and say what happened.
+
+    Returns (final_report, note, warn). Never raises: if citation styling fails (for
+    example a malformed hand-edited sources.yml record) the model's text is kept with plain
+    numbered references and `warn` is True. Shared by the web Report page and bowen_ask.py
+    so the two cannot drift; tested in test_citations.py::TestAssembleReport.
+
+    The References section lists the passages actually cited, one entry per chunk in
+    number order with its locator, then a footer counting unverified records. If the model
+    emitted no [[N]] markers at all every retrieved passage is listed and `warn` is True.
+    """
+    try:
+        styled_body = apply_intext_citations(result, num_to_record, style)
+        raw_cited = cited_numbers(result, set(num_to_record))
+        cited = raw_cited or set(num_to_record)
+        refs_body = "\n".join(
+            format_passage_reference(
+                num_to_record[n], passage_locator(num_to_chunk[n]), number=n)
+            for n in sorted(cited))
+        final_report = (styled_body + f"\n\n## References\n\n{refs_body}"
+                        + unverified_footer(num_to_record, cited) + "\n")
+        if not raw_cited and len(result.strip()) > 200:
+            return final_report, (
+                "No [[N]] citation markers were found — the model may not have used the "
+                "required format, so in-text citations are unstyled and the reference list "
+                "shows all retrieved sources. Try regenerating."), True
+        verified_n = sum(1 for n in cited if num_to_record[n].get("verified"))
+        return final_report, (
+            f"In-text citations in {style} style; each reference lists its chapter/paragraph "
+            f"locator · {verified_n}/{len(cited)} cited passages have verified bibliographic "
+            "data (edit sources.yml and set verified: true)."), False
+    except Exception as e:
+        plain = "\n".join(f"{n}. {c['doc_name']}" for n, c in sorted(num_to_chunk.items()))
+        return (result + f"\n\n## References\n\n{plain}\n",
+                f"Citation styling failed ({e}); showing plain numbered references.", True)
+
+
+def passage_locator(chunk: dict) -> str:
+    """Human locator for a chunk: 'Ch. 4 ¶ 12–14' / 'Epilogue ¶ 3' / '¶ 12' / 'p. 63'.
+
+    Priority: chapter (or front-matter label) + paragraph range; page only when the
+    chunk has no paragraph number (older PDF chunks). Empty string when nothing is
+    known — the reference then renders without a locator rather than a made-up one.
+    """
+    parts = []
+    if chunk.get("chapter") is not None:
+        parts.append(f"Ch. {chunk['chapter']}")
+    elif chunk.get("chapter_label"):
+        parts.append(chunk["chapter_label"])
+    ps, pe = chunk.get("paragraph_start"), chunk.get("paragraph_end")
+    if ps is not None:
+        parts.append(f"¶ {ps}" if (pe is None or ps == pe) else f"¶ {ps}–{pe}")
+    elif chunk.get("page") is not None:
+        parts.append(f"p. {chunk['page']}")
+    return ", ".join(parts)
+
+
+def format_passage_reference(record: dict, locator: str, number: int | None = None) -> str:
+    """Traceability-first reference entry with the locator prominent.
+
+    'Author (Year). *Title* [Ch. 4 ¶ 70]. In *Container*.' — the locator is never
+    dropped (fixes the numbered-style page-stripping defect: the locator lives in the
+    reference entry, not an inline marker).
+    """
+    authors = _authors_list(record)
+    fams = [a["family"] for a in authors if a.get("family")]
+    head = ", ".join(fams) if fams else ""
+    head = f"{head} ({_year_str(record)})" if head else f"({_year_str(record)})"
+    title = (record.get("title") or "Untitled").strip()
+    core = _italic(title) + (f" [{locator}]" if locator else "")
+    out = [head, core]
+    container = (record.get("container_title") or "").strip()
+    if container and container.lower() != (record.get("title") or "").lower():
+        out.append(f"In {_italic(container)}")
+    entry = " ".join(out).rstrip(".")
+    if number is not None:
+        entry = f"{number}. {entry}"
+    return entry + "."

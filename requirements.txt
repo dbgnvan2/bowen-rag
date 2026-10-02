@@ -4,7 +4,6 @@ scikit-learn
 anthropic
 openai
 requests
-PyPDF2
 sentence-transformers
 pyyaml
 rank-bm25

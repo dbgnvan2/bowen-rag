@@ -6,6 +6,7 @@ source_files/
 
 # Generated outputs
 outputs/
+references.pre_enriched/
 
 # Seeder byproduct — regenerate with `python3 seed_sources.py`; sources.yml is the live file
 sources.seeded.yml

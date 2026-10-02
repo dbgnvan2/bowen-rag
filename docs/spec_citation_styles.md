@@ -10,7 +10,9 @@ Let the user pick a citation style in Settings. The Report then (a) lists its Re
 that style and (b) renders the in-text citation at each cited point/quote in that style.
 
 Five styles: **APA (7th), MLA (9th), Chicago (17th, author-date), Harvard (Cite Them Right),
-Vancouver (numbered).** APA is the default.
+Vancouver (numbered).** Vancouver is the default — reports are cited as `[1]`…`[n]` against a
+numbered reference list, because page-locator-free numeric markers are the least annoying to read
+in a long report.
 
 ## Core design principle — no fabricated bibliographic data
 
@@ -99,10 +101,16 @@ Style reference/in-text targets (verified in tests as golden strings):
 
 ## M3 — Report integration
 
-- **M3.A** Settings "Citation style" selectbox (APA default); persisted to `st.session_state`
+- **M3.A** Settings "Citation style" selectbox (Vancouver default); persisted to `st.session_state`
   and savable to `.env` as `CITATION_STYLE`.
 - **M3.B** Report prompt: keep numbered `[N]` markers; add one line telling the model to append
   a page token `[N, p. X]` **only** when quoting a specific passage (page taken from the supplied chunk).
+  - Numbered styles render `[N]` and **drop** the page token at rewrite time (pinned by
+    `test_m2b_vancouver*`). This is deliberate, not an oversight: page data exists for only
+    ~52% of chunks (5,859 / 11,252 across 168 of 330 documents), so a locator that appears on
+    some citations and not others reads as an error. Giving every citation a page needs a
+    datastore rebuild — **deferred until usage justifies it**. Preserving pages *where they
+    exist* (`[N, p. X]` when known, `[N]` when not) would cost no datastore work if wanted.
 - **M3.C** Post-processor rewrites markers. Regex matches **only** `[digits]` / `[digits, p. …]`
   — never arbitrary brackets like `[sic]` or `[…]`. Numbered styles leave `[N]` intact.
 - **M3.D** Reference list built via `format_reference` + `order_references`; replaces `refs_md`.

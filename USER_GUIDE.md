@@ -171,10 +171,10 @@ If you see this warning, consider:
 | **Retrieve top N** | How many source documents to pull in for the report | 15–20 for focused questions; 30–40 for broad topics or when the corpus is large. More sources = more complete report but longer generation time. |
 | **Mode** | Which search method to use for retrieval | Hybrid or Embedding for nuanced topics; Keyword for reports built around specific terms or names. |
 | **Target words** | Minimum word count for the generated report | 400–600 for a summary; 800–1200 for a detailed synthesis. The AI will expand to this length using only the provided sources. |
-| **Chunks per source** | How many text chunks to include per source document | 1–2 for broad coverage; 3–4 when you want depth on each source. Higher values use more of the context window. |
+| **Chunks per source** *(desktop app only)* | How many text chunks to include per source document | 1–2 for broad coverage; 3–4 when you want depth on each source. Higher values use more of the context window. |
 | **Authority boost** | Prioritizes Bowen, Kerr, Papero as sources (does not eliminate other sources) | Leave on for most reports; turn off when you specifically want secondary sources included on equal footing. Carries over from the Search page automatically. |
 | **Include sources as Appendix** | Append full section texts after the report body | Use when you want a self-contained document with all sources readable in one place. Adds significant length. Included in the downloaded file. |
-| **Citation style** | The style used for in-text citations and the References list | APA (default), MLA, Chicago, Harvard, or Vancouver. Set it in the Streamlit app under **Settings → Citations**, or on the **Report tab** in the desktop app. See [Citation style](#citation-style) below. |
+| **Citation style** | The style used for in-text citations and the References list | Vancouver (default), APA, MLA, Chicago, or Harvard. Set it in the Streamlit app under **Settings → Citations**, or on the **Report tab** in the desktop app. See [Citation style](#citation-style) below. |
 
 ### Report structure
 
@@ -182,21 +182,21 @@ Generated reports follow this three-part structure:
 
 1. **Executive Summary** (300–500 words) — concise overview of the topic for quick reading
 2. **Full Report** — in-depth treatment with sections covering Introduction & Definition, Theoretical Foundations, Key Dimensions, Relationships to Other Concepts, Clinical Presentation, Clinical Implications, Direct Quotations, and Gaps & Limitations
-3. **References** — the source list, formatted in your chosen citation style (appears once, at the end). For author–date styles it lists only the works actually cited, in alphabetical order; for Vancouver it is numbered in citation order.
+3. **References** — appears once, at the end. In the **web app** each cited passage is listed in number order with its chapter and paragraph (or page), for example `3. Kerr, Bowen (1988) *Family Evaluation* [Ch. 10, ¶ 291–292]. In *Family Evaluation: An Approach Based on Bowen Theory*.`, and a closing line tells you how many of those passages rest on automatically extracted, unverified bibliographic details. In the **desktop app** the list is formatted in your chosen citation style (for author–date styles only the works actually cited, alphabetically; for Vancouver the cited works keep their numbers).
 
 ### Citation style
 
-The Report formats its in-text citations and reference list in one of five styles. Set it once in **Settings → Citations** (Streamlit web app) or on the **Report tab** (desktop app); it applies to every report you generate until you change it.
+The Report formats its in-text citations in one of five styles (in the desktop app the reference list follows the same style; the web app's reference list is always the passage-by-passage format described above). Set it once in **Settings → Citations** (Streamlit web app) or on the **Report tab** (desktop app); it applies to every report you generate until you change it.
 
 | Style | In-text looks like | Reference list |
 |---|---|---|
-| **APA** (default) | (Bowen, 1978) — quotes add a page: (Bowen, 1978, p. 45) | Alphabetical by author |
+| **Vancouver** (default) | [1] — the number matches that source's entry in the reference list | Numbered, in source-list order |
+| **APA** | (Bowen, 1978) — quotes add a page: (Bowen, 1978, p. 45) | Alphabetical by author |
 | **MLA** | (Bowen 45) | Alphabetical by author |
 | **Chicago** (author–date) | (Bowen 1978, 45) | Alphabetical by author |
 | **Harvard** | (Bowen, 1978, p. 45) | Alphabetical by author |
-| **Vancouver** | [1] | Numbered, in citation order |
 
-**Where the citation data comes from.** Full references need author, year, title, and publisher — details the search index does not store. They live in a separate file, **`sources.yml`**, which an admin creates by running `seed_sources.py` (see [Bibliography — sources.yml](#bibliography--sourcesyml) in the Admin guide). Until a source is verified there, its citation shows only what is known and marks the rest honestly — a missing year appears as **`n.d.`** ("no date"), and a source with no record falls back to a cleaned version of its filename. **The app never invents a citation detail.** For polished references, verify the works you cite in `sources.yml`.
+**Where the citation data comes from.** The index stores author, year, title and chapter for every passage, extracted automatically from the book or the document header (`chapter_map.yml`, `headers_candidates.yml`) — these are **not verified**. A separate file, **`sources.yml`**, holds hand-editable records; a record you mark `verified: true` overrides the extracted data, and an unverified one only fills a missing author or title (never a year). An admin creates it by running `seed_sources.py` (see [Bibliography — sources.yml](#bibliography--sourcesyml) in the Admin guide). Until a source is verified there, its citation shows only what is known — a missing year appears as **`n.d.`** ("no date") — and the report's closing line says how many cited passages are unverified. **The app never invents a citation detail.** For polished references, verify the works you cite in `sources.yml`.
 
 **Quotes.** When the report quotes a specific passage and the source is a PDF with a known page, the in-text citation includes the page (e.g. `p. 45`). Text sources without page numbers cite without a locator.
 
@@ -323,22 +323,23 @@ Place `.txt` or `.pdf` files in `source_files/`. After adding files, [rebuild th
 
 ## Rebuilding the Search Index
 
-Run after adding, removing, or changing documents in `source_files/`:
+Run after adding, removing, or changing documents in `source_files/` (building from PDFs needs `pip install -r requirements-build.txt`):
 
 ```bash
 python3 rag-document-search/scripts/build_index.py source_files/ rag-document-search/references/
+python3 rag-document-search/scripts/build_embeddings.py
 ```
 
-This writes three files to `references/`:
-- `chunk_metadata.json` — chunk text, section titles, page numbers, positions
+The first command writes three files to `references/`:
+- `chunk_metadata.json` — chunk text, section titles, page and paragraph numbers, author/date/chapter metadata
 - `tfidf_matrix.npz` — sparse TF-IDF matrix
-- `vectorizer.json` — TF-IDF vocabulary
+- `vectorizer.json` — TF-IDF vocabulary and settings
 
-**After rebuilding the TF-IDF index, always rebuild the embedding index.** The chunk count changes and a stale `embed_matrix.npy` will cause a startup error.
+The second rebuilds `embed_matrix.npy`. **Always run both:** the chunk count changes, and a stale `embed_matrix.npy` makes Embedding and Hybrid search fail.
 
-You can also trigger a rebuild from within the app:
-- **Web app:** Index page → Rebuild Index
-- **Desktop GUI:** Index tab → Rebuild Index
+The build lists anything it could not index instead of skipping it quietly. In particular, **scanned PDFs with no text layer cannot be searched** until they are run through OCR; the build names each one. A malformed `chapter_map.yml` or `headers_candidates.yml` stops the build with an error.
+
+You can also rebuild from the **Desktop GUI**: Index tab → Rebuild Index. The web app's Index page only shows statistics; rebuild locally and commit the updated `references/` files.
 
 ---
 

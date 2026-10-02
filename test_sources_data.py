@@ -12,8 +12,13 @@ import re
 import unittest
 from pathlib import Path
 
+import sys
+
 import citations as C
 import seed_sources as S
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "rag-document-search" / "scripts"))
+import build_index as B  # noqa: E402
 
 BASE = Path(__file__).resolve().parent
 AUTHOR_MAP = S._load_yaml(BASE / "author_map.yml", "authors")
@@ -84,6 +89,58 @@ class TestSourcesData(unittest.TestCase):
     def test_m1b_life_dates_are_not_a_publication_year(self):
         rec = next(r for r in SOURCES if "Panksepp" in r["pattern"])
         self.assertEqual(str(rec.get("year")), "n.d.")
+
+
+class TestChunkMetadataAgreesWithSources(unittest.TestCase):
+    """The chunk side (chapter_map.yml / headers_candidates.yml, copied into every chunk)
+    and sources.yml are two unverified sources for the same documents. Where both name an
+    author they must agree; the extraction used to credit Murray Bowen with other authors'
+    articles that merely mention Bowen in the title."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.chapters, cls.books, cls.headers = B.load_metadata(BASE)
+
+    def chunk_authors(self, doc):
+        meta = B.resolve_metadata(doc, self.chapters, self.books, self.headers)
+        fams = []
+        for name in meta["author"]:
+            fams += [a["family"].lower() for a in C.parse_author_string(name) if a.get("family")]
+        return sorted(set(fams)), meta
+
+    def test_data_headers_loaded(self):
+        self.assertGreater(len(self.headers), 300)
+
+    def test_data_no_author_disagreement_between_chunk_metadata_and_sources_yml(self):
+        bad = []
+        for r in SOURCES:
+            doc = r["pattern"]
+            chunk_f, _ = self.chunk_authors(doc)
+            src_f = sorted({a.get("family", "").lower() for a in (r.get("authors") or [])
+                            if a.get("family")})
+            if chunk_f and src_f and chunk_f != src_f:
+                bad.append((doc, chunk_f, src_f))
+        self.assertEqual(bad, [])
+
+    def test_data_conference_recording_chunks_carry_no_author(self):
+        for r in SOURCES:
+            if r["pattern"].startswith("Wisdom of the Ages"):
+                self.assertEqual(self.chunk_authors(r["pattern"])[0], [], r["pattern"])
+
+    def test_data_life_dates_are_not_a_chunk_year(self):
+        _, meta = self.chunk_authors("FSJ 12.2 Noone Jaak Panksepp (1943-2017)")
+        self.assertIsNone(meta["date"])
+
+    def test_data_kerr_book_chapters_are_credited_to_kerr_in_both_maps(self):
+        doc = "Bowen Theory Secrets_Chapter05_Differentiation_of_Self"
+        self.assertEqual(S._first_match(doc, AUTHOR_MAP, "author"), "Michael Kerr")
+        self.assertEqual(self.chunk_authors(doc)[0], ["kerr"])
+
+    def test_data_every_document_with_a_header_record_resolves_to_it(self):
+        # the restored document must have its own header record, not "unknown"
+        doc = "Emotional Regression and Cancer - Michael Kerr - 2021-01-15"
+        self.assertEqual(B.resolve_metadata(doc, self.chapters, self.books,
+                                            self.headers)["kind"], "article")
 
 
 if __name__ == "__main__":

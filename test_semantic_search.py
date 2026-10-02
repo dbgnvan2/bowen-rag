@@ -41,10 +41,8 @@ DOCS = {
 def build(tmp_src, tmp_out):
     for name, text in DOCS.items():
         (Path(tmp_src) / f"{name}.txt").write_text(text)
-    ix = B.DocumentIndexer(tmp_src)
-    with contextlib.redirect_stdout(io.StringIO()):
-        ix.build_index()
-        ix.save_index(tmp_out)
+    # config_dir=tmp_src: no chapter_map/headers there, so metadata is simply empty
+    B.build(tmp_src, tmp_out, config_dir=tmp_src, log=lambda m: None)
 
 
 class TestCliSearch(unittest.TestCase):

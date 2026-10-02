@@ -39,7 +39,7 @@ class SemanticSearcher:
                 "Run build_index.py first."
             )
 
-        with open(metadata_path, 'r') as f:
+        with open(metadata_path, 'r', encoding='utf-8') as f:
             self.metadata = json.load(f)
 
         # Load the sparse TF-IDF matrix written by build_index.py

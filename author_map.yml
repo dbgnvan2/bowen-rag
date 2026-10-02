@@ -13,6 +13,11 @@ authors:
   - pattern: "Galloway"
     author: "Dave Galloway"
 
+  # ── Michael Kerr's book "Bowen Theory's Secrets" (filenames start "Bowen Theory ...") ─
+  # Must come before the bare "Bowen" catch-all, which would credit Murray Bowen.
+  - pattern: "Bowen Theory Secrets"
+    author: "Michael Kerr"
+
   # ── Transcripts with explicit "- Author Name -" format ───────────────────
   - pattern: "Kathleen Kerr"
     author: "Kathleen Kerr"

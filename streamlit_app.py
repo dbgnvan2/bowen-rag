@@ -12,6 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import citations
+import index_fingerprint
 import usage_limit
 
 # Load .env so local runs pick up API keys without manual export
@@ -283,7 +284,7 @@ class IndexManager:
         if not meta_path.exists():
             raise FileNotFoundError(f"Index not found at {refs_dir}.")
 
-        with open(meta_path) as f:
+        with open(meta_path, encoding="utf-8") as f:
             self.chunks = json.load(f)
 
         if not matrix_npz.exists():
@@ -313,6 +314,7 @@ class IndexManager:
         embed_npy = refs_dir / "embed_matrix.npy"
         if EMBEDDING_AVAILABLE and embed_npy.exists():
             self.embed_matrix = np.load(str(embed_npy))
+            index_fingerprint.verify(refs_dir, self.chunks)   # same text, not just same count
 
         if BM25_AVAILABLE:
             tokenized = [self._tokenize(c["text"]) for c in self.chunks]
@@ -1477,8 +1479,8 @@ def page_report(idx: IndexManager):
         help="The question or topic the report will address. Pre-filled from your last search.",
     )
 
-    # Single row: Retrieve | Mode | Target words | Chunks per source
-    rc1, rc2, rc3, rc4 = st.columns([1, 2, 1, 1])
+    # Single row: Retrieve | Mode | Target words
+    rc1, rc2, rc3 = st.columns([1, 2, 1])
     with rc1:
         rpt_k = st.number_input(
             "Retrieve top", min_value=5, max_value=150, value=30,
@@ -1514,15 +1516,6 @@ def page_report(idx: IndexManager):
             help=(
                 "Approximate minimum word count for the generated report. "
                 "2000 is a solid summary; 4000+ for a deep dive."
-            ),
-        )
-    with rc4:
-        cpd = st.number_input(
-            "Chunks per source", min_value=1, max_value=20, value=5,
-            help=(
-                "How many text chunks from each document are included as context "
-                "(sliding window around the top chunk). "
-                "Higher = more context per document but larger LLM input."
             ),
         )
 
@@ -1570,47 +1563,21 @@ def page_report(idx: IndexManager):
             st.warning("No relevant sources found.")
             return
 
-        # Build context
-        docs: dict = {}
-        window = max(0, (cpd - 1) // 2)
-        for c in chunks:
-            cid = c.get("id")
-            expanded = (idx.get_context_window(cid, window=window)
-                        if cid is not None and hasattr(idx, "_doc_chunk_ids")
-                        else [c["text"]])
-            existing = set(docs.get(c["doc_name"], []))
-            for t in expanded:
-                if t not in existing:
-                    docs.setdefault(c["doc_name"], []).append(t)
-                    existing.add(t)
+        # Each retrieved chunk is its own citable unit with a precise locator
+        # (chapter + paragraph, or page). No context-window expansion — that would
+        # smear one chunk across several paragraphs and make its locator wrong.
+        num_to_chunk = dict(enumerate(chunks, start=1))
+        num_to_record = {n: citations.record_from_chunk(
+            c, st.session_state.get("sources") or SOURCES) for n, c in num_to_chunk.items()}
 
-        ref_map  = {name: i + 1 for i, name in enumerate(sorted(docs))}
-        # Page per document, but ONLY when the retrieved chunks for that doc resolve to
-        # a SINGLE page — otherwise a page locator would be confidently wrong (a doc's
-        # retrieved chunks span several pages). Ambiguous → no page; the model cites
-        # without a locator rather than with a made-up one.
-        doc_pages: dict = {}
-        for c in chunks:
-            p = c.get("page")
-            if p is not None:
-                doc_pages.setdefault(c["doc_name"], set()).add(p)
-        doc_page = {dn: next(iter(ps)) for dn, ps in doc_pages.items() if len(ps) == 1}
-        # Source list handed to the model — [[N]] so citations can't collide with the
-        # single brackets that appear inside quoted source text.
-        refs_md  = "\n".join(f"[[{num}]] {name}"
-                             for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
-        # Deterministic bibliographic record per cited number (sources.yml → filename fallback).
-        # Use session-edited records when present (Settings bibliography editor), else the file.
-        _srcs = st.session_state.get("sources") or SOURCES
-        num_to_record = {ref_map[dn]: citations.record_for_doc(dn, _srcs, doc_author)
-                         for dn in docs}
-        context_parts = [
-            f"### [[{ref_map[dn]}]] {dn}"
-            + (f" (p. {doc_page[dn]})" if dn in doc_page else "") + "\n"
-            + "\n…\n".join(txts)
-            for dn, txts in docs.items()
-        ]
+        context_parts, refs_md_lines = [], []
+        for n, c in num_to_chunk.items():
+            loc = citations.passage_locator(c)
+            tag = f" — {loc}" if loc else ""
+            context_parts.append(f"### [[{n}]] {c['doc_name']}{tag}\n{c['text']}")
+            refs_md_lines.append(f"[[{n}]] {c['doc_name']}{tag}")
         context = "\n\n---\n\n".join(context_parts)
+        refs_md = "\n".join(refs_md_lines)
         st.session_state.last_rpt_context = context
 
         prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
@@ -1619,7 +1586,7 @@ def page_report(idx: IndexManager):
 
 ---
 
-## SOURCE EXCERPTS ({len(docs)} documents)
+## SOURCE EXCERPTS ({len(num_to_chunk)} passages)
 
 {context}
 
@@ -1630,7 +1597,7 @@ def page_report(idx: IndexManager):
 - **Use only the excerpts above.** Do not add any information from outside these sources.
 - **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
 - **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
-- **When you quote a specific passage** and that source's header shows a page (e.g. "(p. 45)"), cite it as [[N, p. 45]]. If no page is shown, just use [[N]]. Do not invent page numbers.
+- **Cite the NUMBER only.** Each source's header above already shows its exact location (chapter and paragraph, or page), and that location will appear in the References section automatically. Do NOT add page or paragraph numbers inside the brackets.
 - Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
 
 ## REPORT STRUCTURE
@@ -1691,42 +1658,22 @@ Develop the topic in depth with these sections:
                      "the form above so there is less for the model to reason over.")
             return
 
-        # Rewrite [[N]] markers into the chosen style and build the reference list from
-        # ONLY the sources actually cited. Guard the whole post-process: a human-edited
-        # sources.yml record must never crash the page and lose the streamed report.
-        try:
-            styled_body = citations.apply_intext_citations(result, num_to_record, style)
-            raw_cited = citations.cited_numbers(result, set(num_to_record))
-            cited = raw_cited or set(num_to_record)
-            refs_body = citations.build_reference_list_md(num_to_record, style, cited)
-            final_report = styled_body + f"\n\n## References\n\n{refs_body}\n"
-            if not raw_cited and len(result.strip()) > 200:
-                # Non-empty report but zero [[N]] markers → the model ignored the required
-                # citation format. Surface it loudly instead of silently listing all sources.
-                note, warn = ("No [[N]] citation markers were found — the model may not have "
-                              "used the required format, so in-text citations are unstyled and "
-                              "the reference list shows all retrieved sources. Try regenerating."), True
-            else:
-                verified_n = sum(1 for n in cited if num_to_record[n].get("verified"))
-                note, warn = (f"Citations in {style} style · {verified_n}/{len(cited)} cited "
-                              "sources have verified bibliographic data (edit sources.yml).", False)
-        except Exception as e:
-            plain = re.sub(r'\[\[\s*(\d[^\]]*?)\s*\]\]', r'[\1]', result)
-            plain_refs = "\n".join(f"{n}. {nm}"
-                                   for nm, n in sorted(ref_map.items(), key=lambda x: x[1]))
-            final_report = plain + f"\n\n## References\n\n{plain_refs}\n"
-            note, warn = f"Citation styling failed ({e}); showing plain numbered references.", True
+        # Rewrite [[N]] markers into the chosen style and append the reference list (shared
+        # with bowen_ask.py; never raises, a bad record degrades to plain references).
+        final_report, note, warn = citations.assemble_report(
+            result, num_to_record, num_to_chunk, style)
         report_ph.markdown(final_report)                 # final view replaces raw stream
         (st.warning if warn else st.caption)(note)
         st.session_state.last_report = final_report
 
-        # Build appendix from source texts
-        if include_appendix and docs:
+        # Build appendix from source texts (chunk-level, with locators)
+        if include_appendix and num_to_chunk:
             appendix_parts = ["\n\n---\n\n## Appendix: Source Texts\n"]
-            for doc_name in sorted(docs, key=lambda d: ref_map[d]):
-                appendix_parts.append(f"\n### [{ref_map[doc_name]}] {doc_name}\n")
-                for txt in docs[doc_name]:
-                    appendix_parts.append(_format_chunk_text(txt) + "\n")
+            for n, c in num_to_chunk.items():
+                loc = citations.passage_locator(c)
+                tag = f" — {loc}" if loc else ""
+                appendix_parts.append(f"\n### [{n}] {c['doc_name']}{tag}\n")
+                appendix_parts.append(_format_chunk_text(c["text"]) + "\n")
                 appendix_parts.append("\n---\n")
             st.session_state.last_rpt_appendix = "\n".join(appendix_parts)
         else:

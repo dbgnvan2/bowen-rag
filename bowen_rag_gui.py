@@ -21,6 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 import citations  # shared citation-style formatting (no tkinter/streamlit deps)
+import index_fingerprint  # ties embed_matrix.npy to the chunk text it was built from
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -273,7 +274,7 @@ class IndexManager:
         if not meta_path.exists():
             raise FileNotFoundError(f"Index not found at {refs_dir}. Rebuild first.")
 
-        with open(meta_path) as f:
+        with open(meta_path, encoding="utf-8") as f:
             self.chunks = json.load(f)
 
         if not matrix_npz.exists():
@@ -304,6 +305,7 @@ class IndexManager:
         embed_npy = refs_dir / "embed_matrix.npy"
         if EMBEDDING_AVAILABLE and embed_npy.exists():
             self.embed_matrix = np.load(str(embed_npy))
+            index_fingerprint.verify(refs_dir, self.chunks)   # same text, not just same count
         else:
             self.embed_matrix = None
             self.embed_model  = None
@@ -363,6 +365,7 @@ class IndexManager:
         out    = refs_dir / "embed_matrix.npy"
         refs_dir.mkdir(parents=True, exist_ok=True)
         np.save(str(out), vecs)
+        index_fingerprint.write(refs_dir, self.chunks)
         self.embed_matrix = vecs
         self.embed_model  = model
         _log(f"Saved {len(texts):,} embeddings to {out}\n")
@@ -898,7 +901,10 @@ class App:
         self._claude_models = list(dict.fromkeys(CLAUDE_MODELS + extra_claude))
         self._openai_models = list(dict.fromkeys(OPENAI_MODELS + extra_oai))
         self.top_k          = tk.IntVar(value=15)
-        self.srch_mode      = tk.StringVar(value="top-docs")
+        # Hybrid (BM25 + embedding) is the default: it finds both exact terminology
+        # and conceptual matches. Falls back to top-docs where embeddings aren't built.
+        _default_mode       = "hybrid" if (EMBEDDING_AVAILABLE and BM25_AVAILABLE) else "top-docs"
+        self.srch_mode      = tk.StringVar(value=_default_mode)
         self._use_boost     = tk.BooleanVar(value=True)
         self._rpt_use_boost = tk.BooleanVar(value=True)
         self._author_filter = tk.StringVar(value="All authors")
@@ -1481,6 +1487,14 @@ class App:
             self._idx_stat_lbl.config(text=msg)
         self._set_status("Index loaded.")
         self._log(f"[{_ts()}] Index loaded: {msg}\n")
+        if not stats.get("embeddings"):
+            # "hybrid" was the default because the libraries are installed, but without a
+            # loaded embedding matrix it raises on the first query: fall back and say so.
+            if self.srch_mode.get() in ("hybrid", "embedding"):
+                self.srch_mode.set("top-docs")
+            if hasattr(self, "_rpt_mode") and self._rpt_mode.get() in ("hybrid", "embedding"):
+                self._rpt_mode.set("top-docs (recommended)")
+            self._log("  No embedding matrix loaded: search and report default to top-docs.\n")
 
     def _on_index_error(self, err: str):
         self.index_stats.set(f"⚠  {err}")
@@ -1512,9 +1526,9 @@ class App:
                 bi   = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(bi)
 
-                indexer = bi.DocumentIndexer(src)
-                indexer.build_index()
-                indexer.save_index(out)
+                # log= is called at run time, so it reaches the GUI log (a `log=print`
+                # default would be bound to the real print before it is patched).
+                bi.build(src, out, config_dir=BASE_DIR, log=lambda m: print(m))
                 self.root.after(0, self._on_rebuild_done)
             except Exception as e:
                 self.root.after(0, self._log, f"\n[EXCEPTION] {e}\n")
@@ -1860,7 +1874,9 @@ class App:
             self._bg).pack(side="left", padx=(2, 16))
 
         ttk.Label(r2, text="Mode:").pack(side="left")
-        self._rpt_mode = tk.StringVar(value="top-docs")
+        self._rpt_mode = tk.StringVar(
+            value="hybrid" if (EMBEDDING_AVAILABLE and BM25_AVAILABLE)
+            else "top-docs (recommended)")
         _rpt_modes = ["top-docs (recommended)", "semantic", "keyword", "both"]
         if EMBEDDING_AVAILABLE:
             _rpt_modes.append("embedding")

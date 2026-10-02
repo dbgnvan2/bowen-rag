@@ -105,6 +105,24 @@ class TestReferenceGolden(unittest.TestCase):
             "Kerr M. Chronic anxiety and defining a self. "
             "The Atlantic. 1988;262(3):35-58.")
 
+    def test_m2a_vancouver_year_without_locators(self):
+        """Regression: an article-journal record with a year but no volume/issue/page
+        rendered 'n.d.;.' — a dangling separator. The ';' after the year is only
+        correct when locators actually follow it."""
+        rec = {"type": "article-journal", "year": "n.d.",
+               "title": "FSJ 13.1 Bowen Systems View of the Aging",
+               "authors": [{"family": "Bowen", "given": "Murray"}]}
+        self.assertEqual(
+            C.format_reference(rec, "Vancouver"),
+            "Bowen M. FSJ 13.1 Bowen Systems View of the Aging. n.d.")
+        # ...and the separator survives when there is something to separate.
+        rec.update({"year": "1988", "volume": "262", "issue": "3", "page": "35-58",
+                    "container_title": "Family Systems Journal",
+                    "title": "Emotional Process"})
+        self.assertEqual(
+            C.format_reference(rec, "Vancouver"),
+            "Bowen M. Emotional Process. Family Systems Journal. 1988;262(3):35-58.")
+
     def test_m2a_two_authors_join(self):
         self.assertEqual(
             C.format_reference(BOOK_TWO_AUTHORS, "APA"),
@@ -310,10 +328,13 @@ class TestLoaderAndHelpers(unittest.TestCase):
         self.assertEqual(C._initials("Murray"), "M.")
         self.assertEqual(C._initials("Michael E", period=False, spaced=False), "ME")
 
-    def test_normalize_style_defaults_to_apa(self):
+    def test_normalize_style_defaults(self):
         self.assertEqual(C.normalize_style("apa"), "APA")
-        self.assertEqual(C.normalize_style("nonsense"), "APA")
-        self.assertEqual(C.normalize_style(""), "APA")
+        self.assertEqual(C.normalize_style("vancouver"), "Vancouver")
+        # Unknown or empty input falls back to DEFAULT_STYLE — asserted against the
+        # constant, not a literal, so changing the app default doesn't break this.
+        self.assertEqual(C.normalize_style("nonsense"), C.DEFAULT_STYLE)
+        self.assertEqual(C.normalize_style(""), C.DEFAULT_STYLE)
 
     def test_dump_sources_round_trip(self):
         # The editor writes via dump_sources; it must load back through load_sources
@@ -329,6 +350,189 @@ class TestLoaderAndHelpers(unittest.TestCase):
         self.assertEqual(m["year"], 1978)
         self.assertEqual(m["authors"], [{"family": "Bowen", "given": "Murray"}])
         self.assertTrue(m["verified"])
+
+
+class TestEnrichedChunkCitations(unittest.TestCase):
+    """Workstream D — enriched chunk metadata -> locator + reference entry."""
+
+    CH = {
+        "doc_name": "Family Evaluation_Chapter04",
+        "author": ["Michael E. Kerr", "Murray Bowen"],
+        "date": "1988",
+        "chapter": 4,
+        "chapter_title": "Differentiation of Self",
+        "container": "Family Evaluation: An Approach Based on Bowen Theory",
+        "paragraph_start": 70,
+        "paragraph_end": 72,
+        "page": None,
+    }
+
+    def test_record_from_chunk_parses_authors(self):
+        rec = C.record_from_chunk(self.CH)
+        self.assertEqual(rec["authors"],
+                         [{"family": "Kerr", "given": "Michael E."},
+                          {"family": "Bowen", "given": "Murray"}])
+        self.assertEqual(rec["year"], "1988")
+        self.assertEqual(rec["type"], "chapter")
+        self.assertEqual(rec["title"], "Differentiation of Self")
+
+    def test_passage_locator_chapter_range(self):
+        self.assertEqual(C.passage_locator(self.CH), "Ch. 4, ¶ 70–72")
+
+    def test_passage_locator_single_paragraph(self):
+        self.assertEqual(C.passage_locator(dict(self.CH, paragraph_end=70)), "Ch. 4, ¶ 70")
+
+    def test_passage_locator_epilogue_label(self):
+        ch = dict(self.CH, chapter=None, chapter_label="Epilogue",
+                  paragraph_start=3, paragraph_end=3)
+        self.assertEqual(C.passage_locator(ch), "Epilogue, ¶ 3")
+
+    def test_passage_locator_page_fallback(self):
+        ch = dict(self.CH, paragraph_start=None, paragraph_end=None, page=63)
+        self.assertEqual(C.passage_locator(ch), "Ch. 4, p. 63")
+
+    def test_format_passage_reference_keeps_locator(self):
+        ref = C.format_passage_reference(C.record_from_chunk(self.CH), "Ch. 4 ¶ 70–72", number=3)
+        self.assertTrue(ref.startswith("3."))
+        self.assertIn("Kerr, Bowen (1988)", ref)
+        self.assertIn("[Ch. 4 ¶ 70–72]", ref)
+
+    def test_format_passage_reference_no_container(self):
+        ch = dict(self.CH, container=None, chapter=None, chapter_label=None,
+                  chapter_title=None, author=["Murray Bowen"], date=None)
+        ref = C.format_passage_reference(C.record_from_chunk(ch), "¶ 1", number=1)
+        self.assertIn("(n.d.)", ref)
+        self.assertNotIn("In ", ref)
+
+
+class TestChunkRecordPrecedence(unittest.TestCase):
+    """record_from_chunk: a verified sources.yml record wins; otherwise chunk metadata;
+    an unverified record only fills gaps. (How a human corrects a wrong extraction.)"""
+
+    DOC = "FSJ 5.1 Caskie Bowen Theory and Health Care Costs"
+
+    def chunk(self, **kw):
+        base = {"doc_name": self.DOC, "author": ["Murray Bowen"], "date": "1993",
+                "title": "Health Care Costs", "container": "Family Systems Journal"}
+        base.update(kw)
+        return base
+
+    def src(self, **kw):
+        rec = {"pattern": self.DOC, "authors": [{"family": "Caskie", "given": ""}],
+               "year": "n.d.", "title": "Bowen Theory and Health Care Costs",
+               "verified": False}
+        rec.update(kw)
+        return [rec]
+
+    def test_chunk_record_verified_source_overrides_a_wrong_chunk_author(self):
+        rec = C.record_from_chunk(self.chunk(), self.src(verified=True))
+        self.assertEqual([a["family"] for a in rec["authors"]], ["Caskie"])
+        self.assertTrue(rec["verified"])
+
+    def test_chunk_record_verified_source_keeps_the_chunk_chapter_fields(self):
+        rec = C.record_from_chunk(self.chunk(chapter=4, chapter_label=None),
+                                  self.src(verified=True))
+        self.assertEqual(rec["chapter"], 4)
+
+    def test_chunk_record_unverified_source_does_not_override_chunk_data(self):
+        rec = C.record_from_chunk(self.chunk(), self.src())
+        self.assertEqual([a["family"] for a in rec["authors"]], ["Bowen"])
+        self.assertFalse(rec["verified"])
+
+    def test_chunk_record_unverified_source_fills_an_author_the_chunk_lacks(self):
+        rec = C.record_from_chunk(self.chunk(author=[]), self.src())
+        self.assertEqual([a["family"] for a in rec["authors"]], ["Caskie"])
+
+    def test_chunk_record_unverified_source_never_supplies_a_year(self):
+        # Seeded years are digits guessed from the filename; print n.d., not a guess.
+        for year in ("n.d.", "1993", 1993):
+            rec = C.record_from_chunk(self.chunk(date=None), self.src(year=year))
+            self.assertIsNone(rec["year"], year)
+
+    def test_chunk_record_verified_source_does_supply_its_year(self):
+        rec = C.record_from_chunk(self.chunk(date=None), self.src(year="1993", verified=True))
+        self.assertEqual(str(rec["year"]), "1993")
+
+    def test_unverified_footer_counts_unverified_cited_passages_only(self):
+        recs = {1: {"verified": False}, 2: {"verified": True}, 3: {"verified": False}}
+        foot = C.unverified_footer(recs, {1, 2})
+        self.assertIn("1 of 2 cited passages", foot)
+        self.assertEqual(C.unverified_footer(recs, {2}), "")        # all verified: no footer
+        self.assertIn("2 of 2", C.unverified_footer(recs, {1, 3}))
+
+    def test_chunk_record_without_sources_is_unchanged(self):
+        self.assertEqual(C.record_from_chunk(self.chunk()),
+                         C.record_from_chunk(self.chunk(), None))
+        self.assertEqual(C.record_from_chunk(self.chunk(), []),
+                         C.record_from_chunk(self.chunk()))
+
+    def test_chunk_record_source_for_a_different_document_is_ignored(self):
+        other = self.src(pattern="Some Other Document", verified=True)
+        rec = C.record_from_chunk(self.chunk(), other)
+        self.assertEqual([a["family"] for a in rec["authors"]], ["Bowen"])
+
+
+class TestAssembleReport(unittest.TestCase):
+    """citations.assemble_report is shared by the web Report page and bowen_ask.py."""
+
+    CH1 = {"doc_name": "Doc A", "author": ["Murray Bowen"], "date": "1978",
+           "chapter": 4, "chapter_title": "Triangles", "container": "The Book",
+           "paragraph_start": 12, "paragraph_end": 14, "page": None}
+    CH2 = {"doc_name": "Doc B", "author": ["Jones"], "date": None, "title": "On Cutoff",
+           "container": None, "paragraph_start": 3, "paragraph_end": 3, "page": None}
+
+    def setUp(self):
+        self.chunks = {1: self.CH1, 2: self.CH2}
+        self.records = {n: C.record_from_chunk(c) for n, c in self.chunks.items()}
+        self.text = "Triangles stabilise anxiety [[1]]. Cutoff is distance [[2]]. " * 4
+
+    def test_assemble_report_cites_in_style_and_lists_cited_passages_with_locators(self):
+        report, note, warn = C.assemble_report(self.text, self.records, self.chunks, "vancouver")
+        self.assertFalse(warn)
+        self.assertIn("[1]", report)
+        self.assertNotIn("[[1]]", report)
+        self.assertIn("## References", report)
+        self.assertIn("[Ch. 4, ¶ 12–14]", report)
+        self.assertIn("[¶ 3]", report)
+        self.assertIn("vancouver style", note)
+
+    def test_assemble_report_lists_only_cited_passages(self):
+        only_one = "Triangles stabilise anxiety [[1]]. " * 10
+        report, _, _ = C.assemble_report(only_one, self.records, self.chunks, "vancouver")
+        refs = report.split("## References")[1]
+        self.assertIn("Triangles", refs)
+        self.assertNotIn("On Cutoff", refs)
+
+    def test_assemble_report_footer_counts_unverified_and_note_counts_verified(self):
+        self.records[1]["verified"] = True
+        report, note, _ = C.assemble_report(self.text, self.records, self.chunks, "vancouver")
+        self.assertIn("1 of 2 cited passages", report)
+        self.assertIn("1/2 cited passages have verified", note)
+
+    def test_assemble_report_no_footer_when_everything_is_verified(self):
+        for r in self.records.values():
+            r["verified"] = True
+        report, _, _ = C.assemble_report(self.text, self.records, self.chunks, "vancouver")
+        self.assertNotIn("unverified", report)
+
+    def test_assemble_report_without_markers_warns_and_lists_every_source(self):
+        long_text = "A long report that forgot to cite anything at all. " * 10
+        report, note, warn = C.assemble_report(long_text, self.records, self.chunks, "vancouver")
+        self.assertTrue(warn)
+        self.assertIn("No [[N]] citation markers", note)
+        refs = report.split("## References")[1]
+        self.assertIn("Triangles", refs)
+        self.assertIn("On Cutoff", refs)
+
+    def test_assemble_report_bad_record_keeps_the_report_with_plain_references(self):
+        broken = dict(self.records)
+        broken[2] = None                       # a malformed record must not lose the report
+        report, note, warn = C.assemble_report(self.text, broken, self.chunks, "vancouver")
+        self.assertTrue(warn)
+        self.assertIn("Citation styling failed", note)
+        self.assertIn("Triangles stabilise anxiety", report)       # the model's text survives
+        self.assertIn("1. Doc A", report)
+        self.assertIn("2. Doc B", report)
 
 
 if __name__ == "__main__":

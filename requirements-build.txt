@@ -1,0 +1,5 @@
+# Needed only to BUILD the search index from PDFs and to split source books/issues
+# (build_index.py, split_kerr_book.py, extract_headers.py, split_fsj_issues.py).
+# The deployed apps do not need it. PyMuPDF is AGPL-3.0 licensed (or commercial).
+-r requirements.txt
+PyMuPDF

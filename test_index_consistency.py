@@ -33,10 +33,7 @@ for _topic, _words in (("tri", "triangle anxiety two person system"),
 def build(src, out):
     for name, text in DOCS.items():
         (Path(src) / f"{name}.txt").write_text(text)
-    ix = B.DocumentIndexer(src)
-    with contextlib.redirect_stdout(io.StringIO()):
-        ix.build_index()
-        ix.save_index(out)
+    B.build(src, out, config_dir=src, log=lambda m: None)
 
 
 def vectorizer_kwargs(path):
@@ -95,6 +92,36 @@ class TestLoadersFailLoudly(unittest.TestCase):
         for name, cls in self.managers():
             with self.assertRaises(RuntimeError, msg=name):
                 cls().load(self.out)
+
+    def write_embeddings(self, text_for_fingerprint=None):
+        import numpy as np
+        import index_fingerprint as F
+        meta = json.loads((self.out / "chunk_metadata.json").read_text())
+        np.save(self.out / "embed_matrix.npy", np.zeros((len(meta), 384), dtype="float32"))
+        if text_for_fingerprint is not False:
+            chunks = meta if text_for_fingerprint is None else text_for_fingerprint
+            F.write(self.out, chunks)
+
+    def test_idx_loaders_accept_embeddings_with_a_matching_fingerprint(self):
+        self.write_embeddings()
+        for name, cls in self.managers():
+            self.assertTrue(cls().load(self.out)["embeddings"], name)
+
+    def test_idx_loaders_accept_embeddings_with_no_sidecar_for_older_indexes(self):
+        self.write_embeddings(text_for_fingerprint=False)
+        for name, cls in self.managers():
+            self.assertTrue(cls().load(self.out)["embeddings"], name)
+
+    def test_idx_loaders_reject_embeddings_built_from_different_text_same_count(self):
+        # The dirty-state case the row-count check cannot see: same number of chunks,
+        # different text (a rebuild after editing documents).
+        meta = json.loads((self.out / "chunk_metadata.json").read_text())
+        other = [dict(c, text=c["text"] + " edited") for c in meta]
+        self.write_embeddings(text_for_fingerprint=other)
+        for name, cls in self.managers():
+            with self.assertRaises(RuntimeError, msg=name) as cm:
+                cls().load(self.out)
+            self.assertIn("different chunk text", str(cm.exception))
 
     def test_idx_loaders_do_not_fall_back_to_a_stale_dense_npy(self):
         import numpy as np

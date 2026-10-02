@@ -24,7 +24,7 @@ Read the relevant file from `~/.claude/standards/` before starting work:
 pip install -r requirements.txt
 ```
 
-`sentence-transformers` is included in requirements and enables Embedding and Hybrid search modes. It pulls in PyTorch (~500 MB one-time download). The app runs without it — those search options are hidden if the import fails.
+`requirements-build.txt` (adds PyMuPDF, AGPL-licensed) is needed only to *build* the index from PDFs and to run the book/issue splitters; the deployed apps do not need it. `sentence-transformers` is included in requirements and enables Embedding and Hybrid search modes. It pulls in PyTorch (~500 MB one-time download). The app runs without it — those search options are hidden if the import fails.
 
 `python-dotenv` is included and is used by both apps to load `.env` at startup.
 
@@ -95,9 +95,9 @@ web: streamlit run streamlit_app.py --server.port=$PORT --server.address=0.0.0.0
 python3 rag-document-search/scripts/build_index.py source_files/ rag-document-search/references/
 ```
 
-Run this after adding or changing documents in `source_files/`. A sectioned transcript (`## Section N –` headings) is split per section — including a heading at the very first line — and the build prints a warning when a sectioned document yields fewer chunks than headings, or none. The TF-IDF settings are defined in `TFIDF_PARAMS` in `build_index.py`; the CLI search imports them, and the two apps repeat the values when they re-fit the vectorizer on load — `test_index_consistency.py` fails if the copies drift. Both apps also refuse to load an index whose matrix, chunk metadata and `vectorizer.json` disagree (no silent fallback to an old dense `tfidf_matrix.npy`). The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json`.
+Run this after adding or changing documents in `source_files/` (needs `pip install -r requirements-build.txt`). The builder is paragraph-aligned and metadata-enriched; see *Chunking strategy*. It reports instead of skipping: files with no extractable text (for example **scanned PDFs with no text layer — about 40 of them are in `source_files/` and are not searchable until they are OCR'd**), duplicate document names, sectioned transcripts with empty sections, and documents with no metadata are all listed, and a malformed `chapter_map.yml`/`headers_candidates.yml` or a missing PDF library is an error. The TF-IDF settings are defined in `TFIDF_PARAMS` in `build_index.py`; the CLI search imports them, and the two apps repeat the values when they re-fit the vectorizer on load — `test_index_consistency.py` fails if the copies drift. Both apps also refuse to load an index whose matrix, chunk metadata and `vectorizer.json` disagree (no silent fallback to an old dense `tfidf_matrix.npy`). The script writes three files to `references/`: `chunk_metadata.json`, `tfidf_matrix.npz`, and `vectorizer.json` (all three are written under temporary names and renamed together).
 
-**After rebuilding, always rebuild the embedding index too** — the chunk count changes and a stale `embed_matrix.npy` will cause a startup error.
+**After rebuilding, always rebuild the embedding index too** (`python3 rag-document-search/scripts/build_embeddings.py`, or the GUI) — the chunk count changes and a stale `embed_matrix.npy` makes Embedding/Hybrid search raise on every query.
 
 ## Building the embedding index
 
@@ -118,6 +118,8 @@ EOF
 ```
 
 This encodes all chunks with `all-MiniLM-L6-v2` and saves `embed_matrix.npy` alongside the TF-IDF files. First run downloads the model (~90 MB to `~/.cache/huggingface/`). Expect a few minutes on CPU for a large corpus.
+
+`build_embeddings.py` (and the GUI's Build Embeddings) also write `embed_meta.json` — a hash of the chunk text the embeddings were built from. Both apps check it on load and refuse an `embed_matrix.npy` that was built from different text, even when the chunk count happens to match (`index_fingerprint.py`; an index with no `embed_meta.json` is still accepted).
 
 The embedding index is required for Embedding and Hybrid search modes. It is loaded automatically on startup if the file exists. `embed_matrix.npy` (~16 MB) is committed to the repo so Railway gets it on deploy.
 
@@ -143,7 +145,7 @@ python3 test_skill.py   # runs 3 sample queries; writes results to test_results.
 
 `rag-document-search/scripts/semantic_search.py` is a plain TF-IDF command-line search (`python3 scripts/semantic_search.py references/ "query" 5`). It stops with a "rebuild the index" error if the index files disagree. It has no authority boost and no embedding/hybrid mode, so its ranking differs from the apps.
 
-The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency`.
+The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency` (the original citations tests also run with `python3 test_citations.py`).
 
 ## Building the macOS app
 
@@ -239,11 +241,11 @@ The Chat tab keeps conversation history as bare Q&A pairs — the user's questio
 
 ### Report citation format & citation styles
 
-**The LLM never writes a citation.** It emits **double-bracket** numbered placeholders `[[1]]`, `[[2]]` (grouped `[[1, 3]]`; optionally `[[N, p. X]]` when quoting a passage whose source header shows a page). Double brackets are deliberate: a single-bracket `[1]` can appear inside quoted source text (the corpus has footnote numbers in passages the report may quote verbatim), and a single-bracket scheme would rewrite those into wrong citations — so citations use `[[…]]`, which can't collide. After the stream completes, a deterministic post-processor in `citations.py` (`apply_intext_citations`) rewrites those markers into the user's chosen style and builds the reference list; grouped markers are expanded and joined. This preserves the no-fabrication guarantee — the model cannot invent an author, year, or publisher because it never writes one — and keeps the reference list the single source of truth (the LLM is still told NOT to output a References section).
+**The LLM never writes a citation.** It emits **double-bracket** numbered placeholders `[[1]]`, `[[2]]` (grouped `[[1, 3]]`; the web Report page and `bowen_ask.py` tell the model not to put page numbers inside the brackets — each numbered source is one chunk with its own locator, which goes in the reference list). Double brackets are deliberate: a single-bracket `[1]` can appear inside quoted source text (the corpus has footnote numbers in passages the report may quote verbatim), and a single-bracket scheme would rewrite those into wrong citations — so citations use `[[…]]`, which can't collide. After the stream completes, a deterministic post-processor in `citations.py` (`apply_intext_citations`) rewrites those markers into the user's chosen style and builds the reference list; grouped markers are expanded and joined. This preserves the no-fabrication guarantee — the model cannot invent an author, year, or publisher because it never writes one — and keeps the reference list the single source of truth (the LLM is still told NOT to output a References section).
 
-Page locators are offered to the model only when a document's retrieved chunks resolve to a single page (otherwise no locator, rather than a confidently-wrong one). Post-processing is guarded in both apps: a malformed hand-edited `sources.yml` record degrades to plain numbered references instead of crashing the report.
+Post-processing is guarded in both apps: a malformed hand-edited `sources.yml` record degrades to plain numbered references instead of crashing the report. (The desktop GUI's Report tab still uses the older per-document pipeline — one source per document, a page locator offered only when its retrieved chunks resolve to a single page — so its reports are structured differently from the web app's and `bowen_ask.py`'s.)
 
-**Selectable styles** (Settings → Citations in Streamlit; Report tab in the desktop GUI; default from `CITATION_STYLE` env var, else APA):
+**Selectable styles** (Settings → Citations in Streamlit; Report tab in the desktop GUI; default from `CITATION_STYLE` env var, else Vancouver):
 
 | Style | In-text | Reference list |
 |---|---|---|
@@ -252,11 +254,15 @@ Page locators are offered to the model only when a document's retrieved chunks r
 | Chicago (author–date) | `(Bowen 1978, 45)` | alphabetical by author |
 | Vancouver | `[1]` | numbered, citation order |
 
-For author–date/author–page styles the reference list contains **only the works actually cited** (parsed from the report body via `citations.cited_numbers`). Vancouver keeps the numbered markers.
+In the desktop GUI, for author–date/author–page styles the reference list contains **only the works actually cited** (parsed from the report body via `citations.cited_numbers`); Vancouver keeps the numbered markers. **In the web Report page and `bowen_ask.py` the style applies to the in-text markers only**; the reference list is always the traceability format `Author (Year) *Title* [Ch. N ¶ M]. In *Container*.`, one entry per cited chunk in number order, followed by a footer saying how many of those passages rest on unverified bibliographic data (`citations.unverified_footer`).
 
 **`citations.py`** (shared by both apps, no tkinter/streamlit deps): `load_sources` / `match_source` (longest-substring-match wins), `record_for_doc` (sources.yml record or a filename fallback), `format_reference`, `format_intext`, `order_references`, `build_reference_list_md`, `apply_intext_citations`, `cited_numbers`. Missing fields render with each style's real convention (APA `n.d.`); nothing is invented. Known simplifications (Chicago = author–date not footnotes; Harvard = "Cite Them Right"; et-al. thresholds) are documented in the module docstring. Tests: `test_citations.py`.
 
 **`sources.yml`** — bibliographic records (author/year/title/publisher/journal/volume/pages/type), pattern-matched to documents like `author_map.yml`. Editable in the app via **Settings → Citations → "Edit bibliographic records"** (`_sources_editor` in `streamlit_app.py`): a structured per-source form with a live reference preview that writes via `citations.dump_sources` and updates `st.session_state.sources` so reports reflect edits immediately (the report reads `st.session_state.get("sources") or SOURCES`). Save persists locally; on Railway (ephemeral FS) use Download + commit. Created by **`seed_sources.py`** (seeds author from `author_map.yml`, year from filename digits, title from cleaned filename; writes `sources.seeded.yml`, refuses to overwrite `sources.yml`; every field `verified: false` until a human confirms it). Editorial content — keep it in the YAML file, not code. Tests: `test_seed_sources.py`.
+
+**Chunk-level references and who wins.** Reports (Streamlit Report page and the headless `bowen_ask.py`) cite each retrieved *chunk*: `citations.record_from_chunk(chunk, sources)` builds the record, `passage_locator` the locator (`Ch. 4 ¶ 12–14`, `¶ 12`, `p. 63`), and `format_passage_reference` prints it in the reference list. Two unverified sources describe each document — the chunk's own metadata and the matching `sources.yml` record — and the precedence is: a `sources.yml` record with `verified: true` wins outright (that is how you correct a wrong extraction in Settings → Citations); otherwise the chunk metadata is used; an unverified `sources.yml` value only fills a field the chunk lacks (an "n.d." placeholder never does). `test_sources_data.py` fails if the two disagree on an author for any document.
+
+**Headless report (`bowen_ask.py`).** One command that runs the Report pipeline for the email bot: `echo "question" | python3 bowen_ask.py` (loads `streamlit_app.py` by path; `BOWEN_REPO` overrides the repo location). Exit codes: 0 ok, 1 no answer, 2 no question, 3 the model produced no text, 4 configuration fault. It has no daily token limit (that lives in the web app's `_llm_stream`) and does not check for a truncated reply.
 
 **Report structure (generated by the LLM):**
 1. **Executive Summary** (300–500 words) — concise overview
@@ -283,7 +289,7 @@ The markdown→docx and markdown→pdf converters handle a deliberately small su
 
 ### Chunking strategy
 
-`build_index.py` uses two chunking modes: if a document contains `## Section N –` headings (formatted transcript output from `process_transcripts.py`), each section becomes one chunk. Otherwise it falls back to overlapping word-count chunks (~1500 chars, 200-char overlap at sentence boundaries).
+`build_index.py` builds chunks from whole **paragraphs** (about 1,500 characters; a paragraph is never split, so an overlong paragraph is one oversized chunk). Paragraphs are numbered per document, so each chunk records `paragraph_start`/`paragraph_end` for a stable "Ch. N, ¶ M" locator. For `.txt` transcripts with `## Section N –` headings (output of `process_transcripts.py`; en dash, em dash or hyphen, LF or CRLF, heading allowed on the very first line) a chunk **never spans two sections**, so `section_title` is always where the text came from; a long section becomes several chunks that all carry its title, and a section with no text is reported. A one-line `# Transcript Formatting …` banner before the first heading is dropped. PDFs are read with PyMuPDF text blocks and keep their page number. There is no chunk overlap.
 
 ### Chunk metadata fields
 
@@ -293,15 +299,19 @@ Each entry in `chunk_metadata.json` has:
 |---|---|---|
 | `id` | int | Global chunk index |
 | `doc_name` | str | Source document filename (without extension) |
-| `section_title` | str | Section heading for transcript chunks; empty for word-count chunks |
+| `section_title` | str | Section heading for transcript chunks; empty otherwise |
 | `text` | str | Full chunk text (transcript chunks are prefixed with `[Section Title]\n\n`) |
 | `char_count` | int | Character length of `text` |
-| `page` | int or null | PDF page number of the first sentence in this chunk; `null` for `.txt` files |
+| `page` | int or null | PDF page number of the chunk's first paragraph; `null` for `.txt` files |
+| `paragraph_start`, `paragraph_end` | int | 1-based paragraph numbers (within the document) the chunk covers |
+| `author` | list of str | Full-name strings from `chapter_map.yml` (book chapters) or `headers_candidates.yml` (everything else); empty if unknown |
+| `date`, `title`, `container` | str or null | Year, title and containing work (book / journal) from the same two files |
+| `chapter`, `chapter_label`, `chapter_title` | int / str / str, or null | Book chapter number, front-matter label (Introduction, Epilogue) and chapter title |
 | `chunk_pos` | int | 1-based position of this chunk within its document |
 | `doc_chunk_count` | int | Total number of chunks in this document |
 | `preview` | str | First 150 characters of `text` |
 
-The `page` and `chunk_pos`/`doc_chunk_count` fields are used by the Streamlit UI to display location badges (`p.5` for PDFs, `~33%` for text files) on search result cards.
+`chapter_map.yml` and `headers_candidates.yml` are **extracted data, all unverified** (`headers_candidates.yml` records are `verified: false`). The `page` and `chunk_pos`/`doc_chunk_count` fields are used by the Streamlit UI to display location badges (`p.5` for PDFs, `~33%` for text files) on search result cards.
 
 ### Paths at runtime
 
