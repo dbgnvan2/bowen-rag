@@ -19,10 +19,23 @@ Options:
 Exit codes: 0 ok · 1 no answer produced (index unreadable, retrieval failed, or no
 relevant sources found) · 2 bad input (no question) · 3 the model produced no text ·
 4 configuration fault (API key missing).
+
+Exact-phrase lookup (spec E7; no model call, `anthropic` is never imported):
+
+  python3 bowen_ask.py --find "emotional programming" [--mode word|substring|regex]
+                       [--case] [--json]
+  echo "emotional programming" | python3 bowen_ask.py --find
+
+  Prints every document containing the phrase with hit counts, locators and OCR flags.
+  With --find, --mode is the match mode (default word), not the retrieval mode.
+  Exit codes: 0 found · 1 not found · 2 bad input (empty phrase, unknown mode, bad
+  regex; message on stderr) · 4 the index could not be read.
 """
 import argparse
 import importlib.util
+import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -38,68 +51,107 @@ spec = importlib.util.spec_from_file_location("bowen_app", REPO / "streamlit_app
 app = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(app)
 import citations  # noqa: E402
-import anthropic  # noqa: E402
+import exact_match  # noqa: E402
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 
 
-def build_prompt(query, context, refs_md, n_sources, target_words):
-    """The Report prompt. Each source header carries its locator (Ch. N ¶ M / p. X)."""
-    return f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
+def build_prompt(query, context, refs_md, n_sources, target_words, verification=""):
+    """The Report prompt — the same function the web Report page uses. Each source header
+    carries its locator (Ch. N ¶ M / p. X); `verification` is the EXACT-MATCH
+    VERIFICATION block (spec E8), placed at the top."""
+    return app.build_report_prompt(query, context, refs_md, n_sources, target_words,
+                                   verification=verification)
 
-**Topic / Question:** {query}
 
----
+def find(phrase: str, mode: str, case: bool, as_json: bool) -> int:
+    """Exact-phrase lookup over the whole index; returns the exit code.
 
-## SOURCE EXCERPTS ({n_sources} passages)
+    Purpose: a scriptable, model-free answer to "is this phrase in the corpus, and where?"
+    Spec:    docs/spec_exact_match_search_v2.md#E7
+    Tests:   test_exact_match.py::TestE7FindCli
+    """
+    phrase = phrase.strip()
+    if not phrase:
+        print("no phrase supplied (--find PHRASE, or on stdin)", file=sys.stderr)
+        return 2
+    if mode not in exact_match.MODES:
+        print(f"unknown match mode {mode!r}; use one of {', '.join(exact_match.MODES)}",
+              file=sys.stderr)
+        return 2
+    try:
+        idx = app.IndexManager()
+        idx.load(app.REFS_DIR)
+    except Exception as e:          # an unreadable index must not read as "not found"
+        print(f"could not read the index: {type(e).__name__}: {e}", file=sys.stderr)
+        return 4
+    try:
+        p = idx.exact_presence(phrase, mode=mode, case=case)
+    except re.error as e:
+        print(f"bad regular expression: re.error: {e}", file=sys.stderr)
+        return 2
+    except ValueError as e:
+        print(f"bad input: {e}", file=sys.stderr)
+        return 2
 
-{context}
+    if as_json:
+        print(json.dumps(p, ensure_ascii=False, indent=1))
+        return 0 if p["found"] else 1
 
----
-
-## STRICT INSTRUCTIONS
-
-- **Use only the excerpts above.** Do not add any information from outside these sources.
-- **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
-- **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
-- **Cite the NUMBER only.** Each source's header above already shows its exact location (chapter and paragraph, or page), and that location will appear in the References section automatically. Do NOT add page or paragraph numbers inside the brackets.
-- Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
-
-## REPORT STRUCTURE
-
-### 1. Executive Summary (300–500 words)
-A concise overview of the topic drawing from the sources. Mention key themes, major concepts, and main findings. This should give the reader a complete but brief understanding of the topic.
-
-### 2. Full Report
-Develop the topic in depth with these sections:
-
-1. **Introduction & Definition** — what do the sources say this concept is?
-2. **Theoretical Foundations** — how do the sources describe its origins and place in Bowen theory?
-3. **Key Dimensions** — what distinct aspects or components do the sources identify?
-4. **Relationship to Other Bowen Concepts** — what connections do the sources explicitly draw?
-5. **Clinical Presentation** — how do the sources describe this appearing in families or individuals?
-6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
-7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
-8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
-
-**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [[1]], [[2]], etc. (double brackets) for inline citations throughout your report, using the numbers from the source list below.
-
-## Source numbers (for inline citations only — do NOT reproduce this list in your output)
-{refs_md}
-"""
+    label = f'"{phrase}" ({mode} match{", case-sensitive" if case else ""})'
+    if not p["found"]:
+        loose = (f" ({p['loose_total_hits']} loose)" if mode == "word" else "")
+        print(f"{label}: 0 occurrences in the indexed text{loose} "
+              f"— {p['corpus_chunks']:,} passages scanned")
+        return 1
+    loose = ""
+    if mode == "word" and p["loose_total_hits"] != p["total_hits"]:
+        loose = f"; {p['loose_total_hits']} counting partial-word (loose) matches"
+    print(f"{label}: {p['total_hits']} occurrence{'s' if p['total_hits'] != 1 else ''} in "
+          f"{p['chunk_count']} passage{'s' if p['chunk_count'] != 1 else ''} across "
+          f"{p['doc_count']} document{'s' if p['doc_count'] != 1 else ''} "
+          f"(of {p['corpus_chunks']:,} passages){loose}")
+    for d in p["docs"]:
+        ocr = ""
+        if d["ocr"]:
+            conf = d.get("ocr_confidence")
+            ocr = f"  [scan, OCR{f' {conf}' if conf is not None else ''}]"
+        noun = "passage " if d["chunks"] == 1 else "passages"
+        print(f"  {d['hits']:4d}x  {d['chunks']:3d} {noun}  {d['doc_name']}{ocr}")
+        if d["locators"]:
+            print(f"                       {'; '.join(d['locators'])}")
+    return 0
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(add_help=True)
     ap.add_argument("--top", type=int, default=30)
     ap.add_argument("--words", type=int, default=2000)
-    ap.add_argument("--mode", default="hybrid",
-                    choices=["hybrid", "top-docs", "semantic", "keyword", "both",
-                             "embedding"],
-                    help="retrieval mode; hybrid matches the app's Report default")
+    ap.add_argument("--mode", default=None,
+                    help="retrieval mode (default hybrid, matching the app's Report page; "
+                         "also top-docs, semantic, keyword, both, embedding). With --find: "
+                         "the match mode (word, substring, regex; default word)")
     ap.add_argument("--style", default=None)
     ap.add_argument("--file", default=None, help="read the question from this file")
+    ap.add_argument("--find", nargs="?", const="", default=None, metavar="PHRASE",
+                    help="exact-phrase lookup, no model call (phrase from stdin if omitted)")
+    ap.add_argument("--case", action="store_true", help="--find: case-sensitive")
+    ap.add_argument("--json", action="store_true", help="--find: print the result as JSON")
     args = ap.parse_args()
+
+    if args.find is not None:
+        phrase = args.find
+        if not phrase:
+            phrase = (Path(args.file).read_text(encoding="utf-8") if args.file
+                      else sys.stdin.read())
+        sys.exit(find(phrase, args.mode or "word", args.case, args.json))
+
+    retrieval_modes = ["hybrid", "top-docs", "semantic", "keyword", "both", "embedding"]
+    if args.mode is None:
+        args.mode = "hybrid"
+    elif args.mode not in retrieval_modes:
+        ap.error(f"argument --mode: invalid choice: {args.mode!r} "
+                 f"(choose from {', '.join(retrieval_modes)})")
 
     if args.file:
         query = Path(args.file).read_text(encoding="utf-8").strip()
@@ -144,9 +196,18 @@ def main() -> None:
     except RuntimeError as e:
         print(f"retrieval failed: {e}", file=sys.stderr)
         sys.exit(1)
+    # Exact-match guard (spec E6/E8): passages containing the user's phrase reach the
+    # model when any exist; the verification block is computed, never the model's guess.
+    try:
+        chunks, _, ex_reason, ex_presence = exact_match.exact_guard(
+            idx, query, chunks, k=args.top)
+    except (ValueError, RuntimeError) as e:
+        print(f"exact-match check failed: {e}", file=sys.stderr)
+        sys.exit(1)
     if not chunks:
         print("no relevant sources found for that question", file=sys.stderr)
         sys.exit(1)
+    verification = exact_match.verification_block(ex_presence, chunks, ex_reason)
 
     # Each retrieved chunk is its own citable unit with a precise locator
     # (chapter + paragraph, or page). No context-window expansion — that would
@@ -164,7 +225,8 @@ def main() -> None:
     context = "\n\n---\n\n".join(context_parts)
     refs_md = "\n".join(refs_md_lines)
 
-    prompt = build_prompt(query, context, refs_md, len(num_to_chunk), args.words)
+    prompt = build_prompt(query, context, refs_md, len(num_to_chunk), args.words,
+                          verification=verification)
 
     api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:
@@ -172,6 +234,7 @@ def main() -> None:
               "corpus repo's .env)", file=sys.stderr)
         sys.exit(4)
 
+    import anthropic        # only the report path needs it (spec E7: --find never imports it)
     client = anthropic.Anthropic(api_key=api_key, base_url=DEEPSEEK_BASE_URL,
                                  timeout=900.0, max_retries=2)
     model = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
@@ -195,6 +258,10 @@ def main() -> None:
     if warn:
         # An unmarked or plain-reference report beats no report: warn, still exit 0.
         print(f"warning: {note}", file=sys.stderr)
+
+    # The email consumer sees stdout only: show the computed exact-match statement there,
+    # so any "is X in the corpus" claim the reader sees comes from the scan.
+    final_report = "\n".join("> " + ln for ln in verification.splitlines()) + "\n\n" + final_report
 
     if mode_substituted_from:
         # The delivered artifact has to show that a substitution happened: the email

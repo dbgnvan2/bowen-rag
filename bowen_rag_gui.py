@@ -186,13 +186,18 @@ SYSTEM_PROMPT = (
     "5. Do not add introductory or concluding remarks that go beyond what the sources say.\n"
     "6. If asked about something not covered in the provided excerpts, respond: "
     "'The provided sources do not contain information on this point.'\n"
-    "7. Terminology precision — CRITICAL for Bowen theory: Before answering, check whether the "
-    "exact term or phrase from the user's query appears verbatim in the provided excerpts. "
-    "If it does NOT appear verbatim, you MUST begin your response with a clearly visible notice:\n"
-    "⚠️ Note: The exact term/phrase \"[user's term]\" does not appear in the provided sources. "
-    "The following is drawn from semantically related content and represents an inference, "
-    "not a direct match. Bowen theory uses precise terminology — the absence of a term is "
-    "significant and should not be papered over by substituting similar-sounding concepts.\n"
+    "7. Terminology precision — CRITICAL for Bowen theory: whether a term occurs is checked by "
+    "the system, not by you. The user message begins with an EXACT-MATCH VERIFICATION block, "
+    "computed by scanning the whole indexed corpus. When that block reports on a term, begin "
+    "your response by restating its finding in one sentence, including how many of the "
+    "excerpts provided contain the term. Never state on your own that a term does or does not "
+    "occur in the corpus, the literature or 'the sources'; you may only say whether it appears "
+    "in the excerpts provided. If none of the excerpts provided contain the exact term, say "
+    "so (\"The exact term '…' does not appear in the excerpts provided\") and label anything "
+    "drawn from related wording as an inference, not a direct match. If the block says no "
+    "exact-match check was run, make no claim that any term is absent. Bowen theory uses "
+    "precise terminology — the absence of a term from the excerpts is significant and should "
+    "not be papered over by substituting similar-sounding concepts.\n"
     "This rule exists because, for example, Bowen uses 'emotional contact' with a specific "
     "clinical meaning that is distinct from everyday phrases like 'emotional connection' — "
     "treating them as equivalent would misrepresent the theory."
@@ -2058,6 +2063,16 @@ class App:
             messagebox.showerror("Error", str(e))
             return
 
+        # Exact-match guard (spec E6/E8). Hand-staged excerpts are used as staged.
+        staged = bool(self._staged_chunks)
+        try:
+            chunks, _, ex_reason, ex_presence = exact_match.exact_guard(
+                self.index, query, chunks,
+                k=len(chunks) if staged else self._rpt_k.get(), union=not staged)
+        except (ValueError, RuntimeError) as e:
+            messagebox.showerror("Exact-match check failed", str(e))
+            return
+
         if not chunks:
             messagebox.showinfo("No Results", "No relevant chunks found.")
             return
@@ -2098,7 +2113,12 @@ class App:
         num_to_record = {ref_map[dn]: citations.record_for_doc(dn, SOURCES, doc_author)
                          for dn in docs}
 
-        refs_numbered = "\n".join(
+        # Spec E8: counted over the text actually sent (chunks plus their context window).
+        verification = exact_match.verification_block(
+            ex_presence, [t for texts in docs.values() for t in texts], ex_reason,
+            note=("These excerpts were hand-staged on the Search tab; no exact-match "
+                  "passages were added." if staged else ""))
+        refs_numbered = verification + "\n\n" + "\n".join(
             f"{num}. {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         self._ref_box.config(state="normal")
         self._ref_box.delete("1.0", "end")
@@ -2121,7 +2141,11 @@ class App:
             f"[[{num}]] {name}" for name, num in sorted(ref_map.items(), key=lambda x: x[1]))
         target_wc = self._rpt_words.get()
 
-        prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
+        prompt = f"""{verification}
+
+---
+
+Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
 
 **Topic / Question:** {query}
 
@@ -2654,6 +2678,17 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
                 self._chat_write("error", f"No chunks found for author: {author}\n")
                 return
 
+        # Exact-match guard (spec E6): passages containing the user's phrase reach the
+        # model when any exist (within the author filter), k unchanged.
+        try:
+            chunks, _, ex_reason, ex_presence = exact_match.exact_guard(
+                self.index, msg, chunks, k=k,
+                keep=(None if not author or author == "All authors"
+                      else lambda c: doc_author(c["doc_name"]) == author))
+        except (ValueError, RuntimeError) as e:
+            self._chat_write("error", f"Exact-match check failed: {e}\n")
+            return
+
         # Update sources panel — styled: number, doc name, score, excerpt
         doc_names = sorted(set(c["doc_name"] for c in chunks))
         self._chat_src.config(state="normal")
@@ -2688,8 +2723,13 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
             f"### [{dn}]\n" + "\n…\n".join(txts)
             for dn, txts in docs.items()
         )
+        # Spec E8: counted over the text actually sent (chunks plus their ±1 neighbours).
+        verification = exact_match.verification_block(
+            ex_presence, [t for txts in docs.values() for t in txts], ex_reason)
+        self._chat_write("meta", verification + "\n")
         # Current turn: history (bare Q&A) + this question with fresh chunks
         current_content = (
+            f"{verification}\n\n---\n\n"
             f"[Retrieved {len(chunks)} chunks from {len(docs)} documents]\n\n"
             f"{context}\n\n---\nQuestion: {msg}"
         )

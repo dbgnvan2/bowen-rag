@@ -10,7 +10,14 @@ the phrase). No app code is modified; the app's SYSTEM_PROMPT is used unchanged.
 Run from the repo root (needs the index files, and the embedding model for hybrid):
     python3 review_2026-11-01/llm_presence_experiment.py [--provider deepseek|claude] [--reps 2]
 Keys come from .env (DEEPSEEK_API_KEY / ANTHROPIC_API_KEY); they are never printed.
-Output: review_2026-11-01/llm_presence_results.json and one .md per response.
+Output: review_2026-11-01/llm_presence_results{TAG}.json and one .md per response in
+llm_presence_responses{TAG}/.
+
+Since Tier 2 of docs/implementation_plan_exact_match_2026-11-01.md the default builds the
+messages with the app's own pipeline (exact_match.exact_guard, streamlit_app.
+build_chat_message, bowen_ask.build_prompt with the EXACT-MATCH VERIFICATION block) and the
+current SYSTEM_PROMPT. `--legacy` reproduces the first run (the pre-E8 message builders
+below, frozen copies of page_chat / page_report at c5ac598, no union, no block).
 """
 import argparse, json, os, re, sys, time, pathlib as _pl
 ROOT = _pl.Path(__file__).resolve().parent.parent
@@ -22,6 +29,7 @@ import anthropic
 import streamlit_app as app
 import bowen_ask                      # for build_prompt (same text as page_report)
 import citations
+import exact_match
 
 PHRASE = "emotional programming"
 RX = re.compile(re.escape(PHRASE), re.I)
@@ -65,6 +73,29 @@ def report_message(chunks, query, words):
         parts.append(f"### [[{n}]] {c['doc_name']}{tag}\n{c['text']}"); refs.append(f"[[{n}]] {c['doc_name']}{tag}")
     return bowen_ask.build_prompt(query, "\n\n---\n\n".join(parts), "\n".join(refs), len(chunks), words)
 
+def current_message(idx, page, chunks, query, words, k):
+    """The message the app sends today: exact-match union, then the verification block."""
+    chunks, _, reason, presence = exact_match.exact_guard(idx, query, chunks, k=k)
+    if page == "chat":
+        content, _, _ = app.build_chat_message(idx, chunks, query, presence, reason)
+    else:
+        block = exact_match.verification_block(presence, chunks, reason)
+        parts, refs = [], []
+        for n, c in enumerate(chunks, 1):
+            loc = citations.passage_locator(c); tag = f" — {loc}" if loc else ""
+            parts.append(f"### [[{n}]] {c['doc_name']}{tag}\n{c['text']}"); refs.append(f"[[{n}]] {c['doc_name']}{tag}")
+        content = bowen_ask.build_prompt(query, "\n\n---\n\n".join(parts), "\n".join(refs),
+                                         len(chunks), words, verification=block)
+    return chunks, content
+
+def excerpt_text(content, page):
+    """Only the excerpts (not the verification block, which quotes the phrase itself)."""
+    if page == "chat":
+        body = content[content.index("[Retrieved"):]
+        return body.split("---\nQuestion:")[0]
+    body = content[content.index("## SOURCE EXCERPTS"):]
+    return body.split("## STRICT INSTRUCTIONS")[0]
+
 def call(client, model, system, content, max_tokens):
     r = client.messages.create(model=model, max_tokens=max_tokens, system=system,
                                messages=[{"role": "user", "content": content}])
@@ -77,7 +108,10 @@ def main():
     ap.add_argument("--reps", type=int, default=2, help="repeats per CHAT condition (reports run once)")
     ap.add_argument("--words", type=int, default=500, help="report target words (cost control)")
     ap.add_argument("--query", default="What is emotional programming?")
+    ap.add_argument("--legacy", action="store_true", help="pre-E8 message builders (the first run)")
+    ap.add_argument("--tag", default="", help="suffix for the results file and responses folder")
     a = ap.parse_args()
+    out_dir = OUT.parent / (OUT.name + a.tag)
     env = {**dotenv_values(ROOT / ".env"), **os.environ}
     if a.provider == "deepseek":
         client = anthropic.Anthropic(api_key=env["DEEPSEEK_API_KEY"], base_url=app.DEEPSEEK_BASE_URL, timeout=900)
@@ -87,14 +121,18 @@ def main():
         model, max_tokens = env.get("ANTHROPIC_MODEL") or "claude-sonnet-4-6", 16000
 
     idx = app.IndexManager(); idx.load()
-    OUT.mkdir(exist_ok=True)
+    out_dir.mkdir(exist_ok=True)
     results = []
     for label, page, mode, k, boost in CONDITIONS:
         reps = a.reps if page == "chat" else 1
         chunks = retrieve(idx, mode, a.query, k, boost)
-        content = chat_message(idx, chunks, a.query) if page == "chat" else report_message(chunks, a.query, a.words)
+        if a.legacy:
+            content = chat_message(idx, chunks, a.query) if page == "chat" else report_message(chunks, a.query, a.words)
+            n_in_sent = len(RX.findall(content.split("---\nQuestion:")[0] if page == "chat" else content.split("## STRICT INSTRUCTIONS")[0]))
+        else:
+            chunks, content = current_message(idx, page, chunks, a.query, a.words, k)
+            n_in_sent = len(RX.findall(excerpt_text(content, page)))
         n_chunks_with = sum(1 for c in chunks if RX.search(c["text"]))
-        n_in_sent = len(RX.findall(content.split("---\nQuestion:")[0] if page == "chat" else content.split("## STRICT INSTRUCTIONS")[0]))
         for r in range(reps):
             t = time.time()
             try:
@@ -114,13 +152,13 @@ def main():
                               else "no absence claim; phrase was sent" if n_in_sent > 0
                               else "FALSE POSITIVE?: no absence claim although nothing containing it was sent")
             results.append(rec)
-            fn = OUT / f"{page}_{mode}_k{k}_{'on' if boost else 'off'}_r{r+1}.md"
+            fn = out_dir / f"{page}_{mode}_k{k}_{'on' if boost else 'off'}_r{r+1}.md"
             fn.write_text(f"# {label} rep {r+1}\n\nsent: {len(chunks)} chunks, {n_chunks_with} contain the phrase, "
                           f"{n_in_sent} occurrences in the sent text\n\n---\n\n{text}", encoding="utf-8")
             print(f"{label:42s} rep{r+1}  sent={len(chunks):2d} containing={n_chunks_with:2d} occ={n_in_sent:3d}  "
                   f"claims_absent={rec['model_claims_absent']!s:5s} ⚠={rec['warning_marker']!s:5s}  -> {rec['verdict']}")
-    (OUT.parent / "llm_presence_results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
-    print(f"\n{len(results)} responses written to {OUT}/ ; summary in llm_presence_results.json")
+    (OUT.parent / f"llm_presence_results{a.tag}.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    print(f"\n{len(results)} responses written to {out_dir}/ ; summary in llm_presence_results{a.tag}.json")
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@
 Tests for exact_match.py and the exact_search / exact_presence delegations in both
 IndexManager classes.
 
-Spec: docs/spec_exact_match_search_v2.md (E0-E5 here; later tiers add E6-E12).
+Spec: docs/spec_exact_match_search_v2.md (E0-E8; later tiers add E10-E12).
 Offline fixtures: synthetic chunk dicts for the matching rules, and a small index built
 with build_index.build(src, out, config_dir=src) as test_index_consistency.py does.
 Note: build_index collapses single newlines inside a paragraph to a space, so the
@@ -10,8 +10,13 @@ Note: build_index collapses single newlines inside a paragraph to a space, so th
 
 Run: python3 -m unittest test_exact_match -v
 """
+import ast
 import copy
+import hashlib
+import json
+import os
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -298,6 +303,378 @@ class TestE5Presence(FixtureIndex):
         ix = em.ExactIndex(CHUNKS)
         p = ix.presence("emotional programming", locator_fn=lambda c: "")
         self.assertTrue(all(d["locators"] == [] for d in p["docs"]))
+
+
+
+# ── E6a ───────────────────────────────────────────────────────────────────────
+class TestE6aPhrases(unittest.TestCase):
+    def test_e6a_quoted(self):
+        self.assertEqual(em.phrases_for('What is "emotional programming"?'),
+                         (["emotional programming"], "quoted"))
+        self.assertEqual(em.phrases_for('“emotional cutoff” and "nodal events" and "Emotional Cutoff"'),
+                         (["emotional cutoff", "nodal events"], "quoted"))
+
+    def test_e6a_short_query(self):
+        self.assertEqual(em.phrases_for("emotional programming"),
+                         (["emotional programming"], "short-query"))
+        self.assertEqual(em.phrases_for("  emotional programming?! "),
+                         (["emotional programming"], "short-query"))
+        # the rule is literal: a short question is checked whole, frame words included
+        self.assertEqual(em.phrases_for("What is emotional programming?"),
+                         (["What is emotional programming"], "short-query"))
+
+    def test_e6a_long_query_none(self):
+        self.assertEqual(em.phrases_for("How does Bowen describe the process of emotional "
+                                        "programming across generations?"), ([], "none"))
+        self.assertEqual(em.phrases_for("?!"), ([], "none"))
+        self.assertEqual(em.phrases_for('a "  " b'), (["a \"  \" b"], "short-query"))
+
+
+# ── E6 ────────────────────────────────────────────────────────────────────────
+def _hits(ix, phrase):
+    return ix.search(phrase)
+
+
+class TestE6Union(unittest.TestCase):
+    def setUp(self):
+        self.ix = em.ExactIndex(CHUNKS)
+
+    def contains(self, c):
+        return em.count_matches(c["text"], "emotional programming") > 0
+
+    def test_e6_auto_union(self):
+        ranked = [CHUNKS[2], CHUNKS[6]]                         # retrieval found none
+        out = em.union_exact(ranked, _hits(self.ix, "emotional programming"), budget=2)
+        self.assertEqual(len(out), 2)
+        self.assertTrue(all(self.contains(c) for c in out))
+        self.assertEqual(out[0]["id"], 1)                        # most hits first
+        self.assertTrue(out[0]["exact_union"])
+        self.assertEqual(ranked, [CHUNKS[2], CHUNKS[6]])        # inputs untouched
+
+    def test_e6_existing_hits_count_toward_budget(self):
+        ranked = [CHUNKS[0], CHUNKS[2], CHUNKS[6]]              # one hit already present
+        out = em.union_exact(ranked, _hits(self.ix, "emotional programming"), budget=2)
+        self.assertEqual(len(out), 3)
+        self.assertEqual(sum(1 for c in out if self.contains(c)), 2)
+        self.assertIn(0, [c["id"] for c in out])
+
+    def test_e6_trim_keeps_existing_hit_at_the_tail(self):
+        ranked = [CHUNKS[2], CHUNKS[6], CHUNKS[0]]              # the one hit is last
+        out = em.union_exact(ranked, _hits(self.ix, "emotional programming"), budget=2)
+        self.assertEqual([c["id"] for c in out], [1, 2, 0])
+
+    def test_e6_noop_when_absent(self):
+        ranked = [CHUNKS[2]]
+        self.assertEqual(em.union_exact(ranked, _hits(self.ix, "emotional contact"), 5), ranked)
+
+    def test_e6_k_extends_a_short_ranked_list(self):
+        out = em.union_exact([], _hits(self.ix, "emotional programming"), budget=2, k=4)
+        self.assertEqual([c["id"] for c in out], [1, 0])
+        self.assertEqual(em.union_exact([], _hits(self.ix, "emotional programming"), 2), [])
+
+    def test_e6_budget_rule(self):
+        self.assertEqual(em.union_budget(12, 5), 5)
+        self.assertEqual(em.union_budget(6, 5), 3)
+        self.assertEqual(em.union_budget(1, 5), 1)
+        self.assertEqual(em.union_budget(30, 10), 10)
+        self.assertEqual(em.union_budget(12, 0), 0)
+        self.assertEqual(em.union_budget(12), min(em.EXACT_UNION_BUDGET, 6))
+
+    def test_e6_guard_unions_and_reports(self):
+        class Idx:
+            exact = self.ix
+            def exact_search(s, n, **kw): return self.ix.search(n, **kw)
+            def exact_presence(s, n, **kw): return self.ix.presence(n, **kw)
+        out, phrases, reason, pres = em.exact_guard(Idx(), "emotional programming",
+                                                    [CHUNKS[2], CHUNKS[6]], k=4)
+        self.assertEqual((phrases, reason), (["emotional programming"], "short-query"))
+        self.assertEqual(len(out), 4)
+        self.assertEqual(sum(1 for c in out if self.contains(c)), 2)     # budget = 4 // 2
+        self.assertTrue(pres["emotional programming"]["found"])
+        # union=False (hand-staged) leaves the list alone but still reports presence
+        out2, _, _, pres2 = em.exact_guard(Idx(), "emotional programming",
+                                           [CHUNKS[2]], union=False)
+        self.assertEqual(out2, [CHUNKS[2]])
+        self.assertTrue(pres2["emotional programming"]["found"])
+        # keep= filters candidate hits (the Chat author filter)
+        out3, *_ = em.exact_guard(Idx(), "emotional programming", [CHUNKS[2], CHUNKS[6]],
+                                  k=4, keep=lambda c: c["doc_name"] == "F")
+        self.assertEqual([c["id"] for c in out3 if self.contains(c)], [7])
+
+    def test_e6_guard_long_question_adds_nothing(self):
+        class Idx:
+            def exact_search(s, n, **kw): raise AssertionError("no search expected")
+            def exact_presence(s, n, **kw): raise AssertionError("no check expected")
+        q = "How does Bowen describe the process of emotional programming across generations?"
+        out, phrases, reason, pres = em.exact_guard(Idx(), q, [CHUNKS[2]])
+        self.assertEqual((out, phrases, reason, pres), ([CHUNKS[2]], [], "none", {}))
+
+
+REFS = ROOT / "rag-document-search" / "references"
+
+
+def _corpus_has_chapter09() -> bool:
+    try:
+        meta = json.loads((REFS / "chunk_metadata.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return any("Emotional_Programming" in c.get("doc_name", "") for c in meta)
+
+
+@unittest.skipUnless(_corpus_has_chapter09(), "shipped index not present (corpus volume unmounted)")
+class TestE6Corpus(unittest.TestCase):
+    """Corpus-gated: runs against rag-document-search/references when it is present."""
+
+    @classmethod
+    def setUpClass(cls):
+        import streamlit_app
+        cls.idx = streamlit_app.IndexManager()
+        cls.idx.load(REFS)
+
+    def test_e6_emotional_programming_chapter09(self):
+        q = "emotional programming"
+        modes = {"bm25": lambda: self.idx.bm25_search(q, 12, use_boost=True)}
+        if self.idx.embed_matrix is not None:
+            modes["hybrid"] = lambda: self.idx.hybrid_search(q, 12, use_boost=True)
+        for mode, run in modes.items():
+            out, *_ = em.exact_guard(self.idx, q, run(), k=12)
+            self.assertEqual(len(out), 12, mode)
+            self.assertTrue(any("Bowen Theory Secrets_Chapter09_Emotional_Programming"
+                                in c["doc_name"] for c in out), mode)
+            self.assertGreaterEqual(
+                sum(1 for c in out if em.count_matches(c["text"], q)), 1, mode)
+
+
+# ── E7 ────────────────────────────────────────────────────────────────────────
+_RUN_FIND = """
+import contextlib, io, json, sys
+from pathlib import Path
+cases = json.loads(sys.argv[1])
+sys.argv = ["bowen_ask.py"]
+import bowen_ask
+results = []
+for refs, argv, stdin in cases:
+    bowen_ask.app.REFS_DIR = Path(refs)
+    sys.argv = ["bowen_ask.py"] + argv
+    sys.stdin = io.StringIO(stdin)
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        try:
+            bowen_ask.main()
+            code = 0
+        except SystemExit as e:
+            code = e.code
+    results.append({"code": code, "out": out.getvalue(), "err": err.getvalue()})
+print("@@" + json.dumps({"results": results, "anthropic": "anthropic" in sys.modules}))
+"""
+
+_FIND_CASES = {          # name: (use the fixture index?, argv, stdin)
+    "found":     (True, ["--find", "emotional programming"], ""),
+    "stdin":     (True, ["--find"], "emotional programming\n"),
+    "absent":    (True, ["--find", "no such phrase xyz"], ""),
+    "bad_regex": (True, ["--find", "(", "--mode", "regex"], ""),
+    "empty":     (True, ["--find"], "  \n"),
+    "bad_mode":  (True, ["--find", "x", "--mode", "fuzzy"], ""),
+    "json":      (True, ["--find", "emotional programming", "--mode", "substring", "--json"], ""),
+    "no_index":  (False, ["--find", "emotional programming"], ""),
+}
+
+
+class TestE7FindCli(FixtureIndex):
+    """Every case runs through bowen_ask.main() in ONE fresh interpreter (the import of
+    streamlit_app and its ML libraries costs seconds), with stdout/stderr captured per case."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        names = list(_FIND_CASES)
+        cases = [(str(cls.out) if fx else "/nonexistent/refs", argv, stdin)
+                 for fx, argv, stdin in _FIND_CASES.values()]
+        r = subprocess.run([sys.executable, "-c", _RUN_FIND, json.dumps(cases)],
+                           capture_output=True, text=True, cwd=ROOT, timeout=300)
+        line = next((ln for ln in r.stdout.splitlines() if ln.startswith("@@")), None)
+        if line is None:
+            raise AssertionError(f"find runner failed:\n{r.stdout}\n{r.stderr}")
+        data = json.loads(line[2:])
+        cls.res = dict(zip(names, data["results"]))
+        cls.anthropic_imported = data["anthropic"]
+
+    def test_e7_find_cli_found_exit0(self):
+        r = self.res["found"]
+        self.assertEqual(r["code"], 0, r["err"])
+        self.assertIn("8 occurrences in 8 passages across 1 document ", r["out"])
+        self.assertIn("kerr_book", r["out"])
+        self.assertIn("9 counting partial-word (loose) matches", r["out"])
+
+    def test_e7_find_cli_reads_stdin(self):
+        r = self.res["stdin"]
+        self.assertEqual(r["code"], 0, r["err"])
+        self.assertIn("kerr_book", r["out"])
+
+    def test_e7_find_cli_absent_exit1(self):
+        r = self.res["absent"]
+        self.assertEqual(r["code"], 1, r["err"])
+        self.assertIn("0 occurrences in the indexed text (0 loose)", r["out"])
+
+    def test_e7_find_cli_bad_regex_exit2(self):
+        r = self.res["bad_regex"]
+        self.assertEqual(r["code"], 2)
+        self.assertIn("re.error", r["err"])
+        self.assertIn("missing )", r["err"])
+
+    def test_e7_find_cli_empty_and_bad_mode_exit2(self):
+        self.assertEqual(self.res["empty"]["code"], 2)
+        self.assertEqual(self.res["bad_mode"]["code"], 2)
+        self.assertIn("unknown match mode", self.res["bad_mode"]["err"])
+
+    def test_e7_find_json_and_ocr_flag(self):
+        r = self.res["json"]
+        self.assertEqual(r["code"], 0, r["err"])
+        scan = [d for d in json.loads(r["out"])["docs"] if d["doc_name"] == "scan_doc"][0]
+        self.assertEqual((scan["ocr"], scan["ocr_confidence"]), (True, 81.5))
+
+    def test_e7_find_does_not_import_anthropic(self):
+        self.assertEqual(self.res["found"]["code"], 0)
+        self.assertFalse(self.anthropic_imported, "the --find path imported anthropic")
+
+    def test_e7_unreadable_index_is_not_reported_as_absent(self):
+        r = self.res["no_index"]
+        self.assertEqual(r["code"], 4, r["out"])
+        self.assertIn("could not read the index", r["err"])
+
+
+# ── E8 ────────────────────────────────────────────────────────────────────────
+_OLD_RULE7 = (
+    "7. Terminology precision — CRITICAL for Bowen theory: Before answering, check whether the "
+    "exact term or phrase from the user's query appears verbatim in the provided excerpts. "
+    "If it does NOT appear verbatim, you MUST begin your response with a clearly visible notice:\n"
+    "⚠️ Note: The exact term/phrase \"[user's term]\" does not appear in the provided sources. "
+    "The following is drawn from semantically related content and represents an inference, "
+    "not a direct match. Bowen theory uses precise terminology — the absence of a term is "
+    "significant and should not be papered over by substituting similar-sounding concepts.\n"
+)
+
+
+def _system_prompt(path):
+    tree = ast.parse((ROOT / path).read_text())
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and getattr(node.targets[0], "id", "") == "SYSTEM_PROMPT":
+            return ast.literal_eval(node.value)
+    raise AssertionError(f"no literal SYSTEM_PROMPT in {path}")
+
+
+class TestE8Verification(FixtureIndex):
+    def setUp(self):
+        self.ix = em.ExactIndex(CHUNKS)
+
+    def test_e8_block_text(self):
+        pres = {"emotional programming": self.ix.presence("emotional programming")}
+        block = em.verification_block(pres, [CHUNKS[2], CHUNKS[0]], "short-query")
+        self.assertTrue(block.startswith("EXACT-MATCH VERIFICATION"))
+        self.assertIn("scanning all 8 indexed passages", block)
+        self.assertIn('"emotional programming": occurs 7 times in 6 passages across '
+                      "4 documents of the indexed corpus. 1 of the 2 excerpts provided "
+                      "contain it.", block)
+
+    def test_e8_block_absent_quoted(self):
+        pres = {"emotional contact": self.ix.presence("emotional contact")}
+        block = em.verification_block(pres, [CHUNKS[2]], "quoted")
+        self.assertIn('"emotional contact": does not occur as a whole word or phrase anywhere '
+                      "in the indexed corpus. 0 of the 1 excerpts provided contain it.", block)
+
+    def test_e8_block_whole_question_miss_is_not_a_term_miss(self):
+        q = "What is emotional programming"
+        block = em.verification_block({q: self.ix.presence(q)}, [CHUNKS[0]], "short-query")
+        self.assertIn("(the whole question, checked as one phrase)", block)
+        self.assertIn("says nothing about the individual words or any shorter term", block)
+
+    def test_e8_block_none_says_no_check_ran(self):
+        block = em.verification_block({}, [CHUNKS[0]], "none")
+        self.assertIn("no exact-match check was run", block)
+        self.assertIn("Nothing here says whether any term occurs in the corpus", block)
+
+    def test_e8_block_reports_loose_matches(self):
+        for name, idx in self.loaded():
+            p = idx.exact_presence("emotional programming")
+            block = em.verification_block({"emotional programming": p}, [], "short-query")
+            self.assertIn("A further 1 occurrence runs into a neighbouring word", block, name)
+
+    def test_e8_block_note_appended(self):
+        block = em.verification_block({}, [], "none", note="These excerpts were hand-staged.")
+        self.assertTrue(block.endswith("These excerpts were hand-staged."))
+
+    def test_e8_counts_text_actually_sent(self):
+        pres = {"emotional programming": self.ix.presence("emotional programming")}
+        sent = ["no phrase here", "a neighbour: emotional\nprogramming"]
+        block = em.verification_block(pres, sent, "quoted")
+        self.assertIn("1 of the 2 excerpts provided contain it.", block)
+        self.assertEqual(em.count_matches("a neighbour: emotional\nprogramming",
+                                          "emotional programming"), 1)
+
+    def test_e8_chat_message_counts_neighbours(self):
+        import streamlit_app
+        for name, idx in self.loaded():
+            if name != "streamlit_app":
+                continue
+            q = "emotional programming"
+            # a chunk without the phrase whose ±1 neighbour has it
+            target = next(c for c in idx.chunks
+                          if c["doc_name"] == "kerr_book" and not em.count_matches(c["text"], q)
+                          and any(em.count_matches(t, q)
+                                  for t in idx.get_context_window(c["id"], window=1)))
+            p = idx.exact_presence(q)
+            content, block, docs = streamlit_app.build_chat_message(
+                idx, [target], q, {q: p}, "short-query")
+            self.assertTrue(content.startswith("EXACT-MATCH VERIFICATION"))
+            sent = [t for ts in docs.values() for t in ts]
+            containing = sum(1 for t in sent if em.count_matches(t, q))
+            self.assertGreater(len(sent), 1)                    # the chunk and its neighbours
+            self.assertGreaterEqual(containing, 1)              # only via a neighbour
+            self.assertIn(f"{containing} of the {len(sent)} excerpts provided contain it.", block)
+            self.assertIn(f"Question: {q}", content)
+
+    def test_e8_prompt_contains_block(self):
+        import streamlit_app
+        block = em.verification_block(
+            {"x": self.ix.presence("emotional contact")}, [], "quoted")
+        prompt = streamlit_app.build_report_prompt("q", "ctx", "refs", 3, 500, verification=block)
+        self.assertTrue(prompt.startswith(block + "\n\n---\n\n"))
+        self.assertIn("## SOURCE EXCERPTS (3 passages)", prompt)
+        self.assertNotIn("EXACT-MATCH", streamlit_app.build_report_prompt("q", "c", "r", 1, 1))
+        # bowen_ask.build_prompt is that same function, not a copy
+        tree = ast.parse((ROOT / "bowen_ask.py").read_text())
+        fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "build_prompt")
+        calls = [ast.unparse(c.func) for c in ast.walk(fn) if isinstance(c, ast.Call)]
+        self.assertIn("app.build_report_prompt", calls)
+
+    def test_e8_rule7_wording(self):
+        prompts = {p: _system_prompt(p) for p in ("streamlit_app.py", "bowen_rag_gui.py")}
+        for path, sp in prompts.items():
+            self.assertNotIn("does not appear in the provided sources", sp, path)
+            self.assertIn("EXACT-MATCH VERIFICATION", sp, path)
+            self.assertIn("'emotional contact'", sp, path)       # the rationale stays
+        self.assertEqual(prompts["streamlit_app.py"], prompts["bowen_rag_gui.py"])
+
+    def test_e8_session_prompt_bump(self):
+        import streamlit_app
+        current = streamlit_app.SYSTEM_PROMPT
+        start = current.index("7. Terminology precision")
+        end = current.index("This rule exists because")
+        old = current[:start] + _OLD_RULE7 + current[end:]
+        self.assertEqual(hashlib.sha256(old.encode()).hexdigest(),
+                         "0da4491b1e2398eae6f1cb5ab89e60be40ec30b57975f357c1cf26daa3fc054c")
+        self.assertTrue(streamlit_app._is_superseded_system_prompt(old))
+        self.assertFalse(streamlit_app._is_superseded_system_prompt(current))
+        self.assertFalse(streamlit_app._is_superseded_system_prompt(old + " (edited)"))
+
+
+# ── Carried over from the literal_search.py prototype ─────────────────────────
+class TestCarriedOver(unittest.TestCase):
+    def test_highlight(self):
+        self.assertEqual(em.highlight("x Emotional programming y", "emotional programming"),
+                         "x **Emotional programming** y")
+        self.assertEqual(em.highlight("a emotional\nprogramming b", "emotional programming"),
+                         "a **emotional\nprogramming** b")
 
 
 if __name__ == "__main__":

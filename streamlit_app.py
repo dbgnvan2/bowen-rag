@@ -4,6 +4,7 @@ Bowen Theory RAG — Streamlit web app
 Same backend as the desktop app; designed for Railway deployment.
 """
 
+import hashlib
 import json
 import logging
 import os
@@ -155,17 +156,35 @@ SYSTEM_PROMPT = (
     "5. Do not add introductory or concluding remarks that go beyond what the sources say.\n"
     "6. If asked about something not covered in the provided excerpts, respond: "
     "'The provided sources do not contain information on this point.'\n"
-    "7. Terminology precision — CRITICAL for Bowen theory: Before answering, check whether the "
-    "exact term or phrase from the user's query appears verbatim in the provided excerpts. "
-    "If it does NOT appear verbatim, you MUST begin your response with a clearly visible notice:\n"
-    "⚠️ Note: The exact term/phrase \"[user's term]\" does not appear in the provided sources. "
-    "The following is drawn from semantically related content and represents an inference, "
-    "not a direct match. Bowen theory uses precise terminology — the absence of a term is "
-    "significant and should not be papered over by substituting similar-sounding concepts.\n"
+    "7. Terminology precision — CRITICAL for Bowen theory: whether a term occurs is checked by "
+    "the system, not by you. The user message begins with an EXACT-MATCH VERIFICATION block, "
+    "computed by scanning the whole indexed corpus. When that block reports on a term, begin "
+    "your response by restating its finding in one sentence, including how many of the "
+    "excerpts provided contain the term. Never state on your own that a term does or does not "
+    "occur in the corpus, the literature or 'the sources'; you may only say whether it appears "
+    "in the excerpts provided. If none of the excerpts provided contain the exact term, say "
+    "so (\"The exact term '…' does not appear in the excerpts provided\") and label anything "
+    "drawn from related wording as an inference, not a direct match. If the block says no "
+    "exact-match check was run, make no claim that any term is absent. Bowen theory uses "
+    "precise terminology — the absence of a term from the excerpts is significant and should "
+    "not be papered over by substituting similar-sounding concepts.\n"
     "This rule exists because, for example, Bowen uses 'emotional contact' with a specific "
     "clinical meaning that is distinct from everyday phrases like 'emotional connection' — "
     "treating them as equivalent would misrepresent the theory."
 )
+
+# Default system prompts this app has shipped before, by SHA-256 (spec E8(d)). A session
+# still holding one of them is moved to the current SYSTEM_PROMPT; a prompt the user
+# edited is left alone. Hashes, not text, so the retired Rule-7 wording ("does not appear
+# in the provided … sources") does not live on in the source.
+_SUPERSEDED_SYSTEM_PROMPT_SHA256 = frozenset({
+    "0da4491b1e2398eae6f1cb5ab89e60be40ec30b57975f357c1cf26daa3fc054c",  # Rule 7 before 2026-11-01
+})
+
+
+def _is_superseded_system_prompt(text: str) -> bool:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest() in _SUPERSEDED_SYSTEM_PROMPT_SHA256
+
 
 INTERVIEW_SYSTEM_PROMPT = (
     SYSTEM_PROMPT + "\n\n"
@@ -793,6 +812,8 @@ def _init_session():
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+    if _is_superseded_system_prompt(st.session_state.get("system_prompt", "")):
+        st.session_state["system_prompt"] = SYSTEM_PROMPT       # spec E8(d)
 
     # Env vars always override stale session state for provider and keys.
     # This prevents a browser session that had "ollama" selected from
@@ -829,6 +850,92 @@ def _check_auth():
             else:
                 st.error("Incorrect password.")
     st.stop()
+
+
+def build_chat_message(idx: "IndexManager", chunks: list, question: str,
+                       presence_by_phrase: dict, reason: str) -> tuple:
+    """The Chat page's user message for one turn: the EXACT-MATCH VERIFICATION block, then
+    each retrieved chunk with its ±1 neighbours grouped by document, then the question.
+
+    Purpose: one place that builds what the Chat model is sent, so the verification block
+        counts presence over the text actually sent (spec E8), including neighbours.
+    Spec:    docs/spec_exact_match_search_v2.md#E8
+    Tests:   test_exact_match.py::TestE8Verification::test_e8_chat_message_counts_neighbours
+    Returns (content, verification, docs_by_name).
+    """
+    docs: dict = {}
+    for c in chunks:
+        cid  = c.get("id")
+        txts = (idx.get_context_window(cid, window=1)
+                if cid is not None and hasattr(idx, "_doc_chunk_ids")
+                else [c["text"]])
+        seen = set(docs.get(c["doc_name"], []))
+        for t in txts:
+            if t not in seen:
+                docs.setdefault(c["doc_name"], []).append(t)
+                seen.add(t)
+
+    context = "\n\n---\n\n".join(
+        f"### [{dn}]\n" + "\n…\n".join(txts) for dn, txts in docs.items()
+    )
+    verification = exact_match.verification_block(
+        presence_by_phrase, [t for txts in docs.values() for t in txts], reason)
+    content = (
+        f"{verification}\n\n---\n\n"
+        f"[Retrieved {len(chunks)} chunks from {len(docs)} documents]\n\n"
+        f"{context}\n\n---\nQuestion: {question}"
+    )
+    return content, verification, docs
+
+
+def build_report_prompt(query: str, context: str, refs_md: str, n_sources: int,
+                        target_words: int, verification: str = "") -> str:
+    """The Report prompt (web Report page and bowen_ask.py). Each source header carries its
+    locator (Ch. N ¶ M / p. X). `verification` is the EXACT-MATCH VERIFICATION block
+    (spec E8), placed at the top of the user message when given."""
+    verification_prefix = f"{verification}\n\n---\n\n" if verification else ""
+    return verification_prefix + f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
+
+**Topic / Question:** {query}
+
+---
+
+## SOURCE EXCERPTS ({n_sources} passages)
+
+{context}
+
+---
+
+## STRICT INSTRUCTIONS
+
+- **Use only the excerpts above.** Do not add any information from outside these sources.
+- **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
+- **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
+- **Cite the NUMBER only.** Each source's header above already shows its exact location (chapter and paragraph, or page), and that location will appear in the References section automatically. Do NOT add page or paragraph numbers inside the brackets.
+- Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
+
+## REPORT STRUCTURE
+
+### 1. Executive Summary (300–500 words)
+A concise overview of the topic drawing from the sources. Mention key themes, major concepts, and main findings. This should give the reader a complete but brief understanding of the topic.
+
+### 2. Full Report
+Develop the topic in depth with these sections:
+
+1. **Introduction & Definition** — what do the sources say this concept is?
+2. **Theoretical Foundations** — how do the sources describe its origins and place in Bowen theory?
+3. **Key Dimensions** — what distinct aspects or components do the sources identify?
+4. **Relationship to Other Bowen Concepts** — what connections do the sources explicitly draw?
+5. **Clinical Presentation** — how do the sources describe this appearing in families or individuals?
+6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
+7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
+8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
+
+**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [[1]], [[2]], etc. (double brackets) for inline citations throughout your report, using the numbers from the source list below.
+
+## Source numbers (for inline citations only — do NOT reproduce this list in your output)
+{refs_md}
+"""
 
 
 def _gather_chunks(idx: IndexManager, query: str) -> list:
@@ -1434,26 +1541,19 @@ def page_chat(idx: IndexManager):
                 st.error(f"No chunks found for author: {chat_author}")
                 return
 
-        # Build context
-        docs: dict = {}
-        for c in chunks:
-            cid  = c.get("id")
-            txts = (idx.get_context_window(cid, window=1)
-                    if cid is not None and hasattr(idx, "_doc_chunk_ids")
-                    else [c["text"]])
-            seen = set(docs.get(c["doc_name"], []))
-            for t in txts:
-                if t not in seen:
-                    docs.setdefault(c["doc_name"], []).append(t)
-                    seen.add(t)
+        # Exact-match guard (spec E6): passages containing the user's phrase reach the
+        # model when any exist (within the author filter), k unchanged.
+        try:
+            chunks, _, ex_reason, ex_presence = exact_match.exact_guard(
+                idx, prompt, chunks, k=chat_k,
+                keep=(None if chat_author == "All authors"
+                      else lambda c: doc_author(c["doc_name"]) == chat_author))
+        except (ValueError, RuntimeError) as e:
+            st.error(f"Exact-match check failed: {e}")
+            return
 
-        context = "\n\n---\n\n".join(
-            f"### [{dn}]\n" + "\n…\n".join(txts) for dn, txts in docs.items()
-        )
-        current_content = (
-            f"[Retrieved {len(chunks)} chunks from {len(docs)} documents]\n\n"
-            f"{context}\n\n---\nQuestion: {prompt}"
-        )
+        current_content, verification, docs = build_chat_message(
+            idx, chunks, prompt, ex_presence, ex_reason)
         messages_to_send = [{"role": m["role"], "content": m["content"]}
                             for m in st.session_state.chat_history] + [
             {"role": "user", "content": current_content}
@@ -1470,6 +1570,7 @@ def page_chat(idx: IndexManager):
         )
 
         with st.chat_message("assistant"):
+            st.caption(verification)
             try:
                 response = st.write_stream(_llm_stream(messages_to_send, system))
             except usage_limit.UsageLimitError as e:
@@ -1599,9 +1700,24 @@ def page_report(idx: IndexManager):
                 st.error(str(e))
                 return
 
+        # Exact-match guard (spec E6/E8). Hand-staged excerpts are used as staged: no
+        # passages are added, and the verification block says so.
+        staged = bool(st.session_state.get("staged_chunks"))
+        try:
+            chunks, _, ex_reason, ex_presence = exact_match.exact_guard(
+                idx, query, chunks, k=len(chunks) if staged else st.session_state.get("rpt_k", 30),
+                union=not staged)
+        except (ValueError, RuntimeError) as e:
+            st.error(f"Exact-match check failed: {e}")
+            return
+
         if not chunks:
             st.warning("No relevant sources found.")
             return
+        verification = exact_match.verification_block(
+            ex_presence, chunks, ex_reason,
+            note=("These excerpts were hand-staged on the Search page; no exact-match "
+                  "passages were added." if staged else ""))
 
         # Each retrieved chunk is its own citable unit with a precise locator
         # (chapter + paragraph, or page). No context-window expansion — that would
@@ -1620,50 +1736,11 @@ def page_report(idx: IndexManager):
         refs_md = "\n".join(refs_md_lines)
         st.session_state.last_rpt_context = context
 
-        prompt = f"""Write a comprehensive report on the following topic using ONLY the source excerpts provided below.
-
-**Topic / Question:** {query}
-
----
-
-## SOURCE EXCERPTS ({len(num_to_chunk)} passages)
-
-{context}
-
----
-
-## STRICT INSTRUCTIONS
-
-- **Use only the excerpts above.** Do not add any information from outside these sources.
-- **Do not infer, assume, or extrapolate.** If the sources do not explicitly address a point, write: "The provided sources do not address this point."
-- **Every factual claim must be cited** immediately after the claim using the reference number in DOUBLE brackets, e.g. [[1]] or [[3]]. To cite several sources at once, group them: [[1, 3]]. Always use double brackets so your citations are never confused with bracketed numbers that appear inside quoted source text.
-- **Cite the NUMBER only.** Each source's header above already shows its exact location (chapter and paragraph, or page), and that location will appear in the References section automatically. Do NOT add page or paragraph numbers inside the brackets.
-- Write at least {target_words} words total. Develop each section fully using evidence from the excerpts.
-
-## REPORT STRUCTURE
-
-### 1. Executive Summary (300–500 words)
-A concise overview of the topic drawing from the sources. Mention key themes, major concepts, and main findings. This should give the reader a complete but brief understanding of the topic.
-
-### 2. Full Report
-Develop the topic in depth with these sections:
-
-1. **Introduction & Definition** — what do the sources say this concept is?
-2. **Theoretical Foundations** — how do the sources describe its origins and place in Bowen theory?
-3. **Key Dimensions** — what distinct aspects or components do the sources identify?
-4. **Relationship to Other Bowen Concepts** — what connections do the sources explicitly draw?
-5. **Clinical Presentation** — how do the sources describe this appearing in families or individuals?
-6. **Clinical Implications & Therapeutic Approach** — what do the sources say about working with this clinically?
-7. **Direct Quotations & Illustrations** — include key verbatim or near-verbatim passages from the sources
-8. **Gaps & Limitations** — what does this topic lack coverage on in the provided sources?
-
-**IMPORTANT: Do NOT include a References section in your output.** The reference list will be appended automatically. Just use [[1]], [[2]], etc. (double brackets) for inline citations throughout your report, using the numbers from the source list below.
-
-## Source numbers (for inline citations only — do NOT reproduce this list in your output)
-{refs_md}
-"""
+        prompt = build_report_prompt(query, context, refs_md, len(num_to_chunk),
+                                     target_words, verification=verification)
 
         st.subheader("Report")
+        st.caption(verification)
         system = st.session_state.get("system_prompt", SYSTEM_PROMPT)
         style  = citations.normalize_style(
             st.session_state.get("citation_style", citations.DEFAULT_STYLE))

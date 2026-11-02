@@ -14,10 +14,18 @@ mutated: the normalised copies live in a parallel list.
 """
 from __future__ import annotations
 
+import os
 import re
+import string
 import unicodedata
 
 MODES = ("word", "substring", "regex")
+
+# How many exact-match passages a model-feeding retrieval guarantees (spec E6). The
+# budget for a request is min(this, max(1, k // 2)); 0 disables the union.
+EXACT_UNION_BUDGET = int(os.environ.get("EXACT_UNION_BUDGET", 5))
+# A whole unquoted query of at most this many words is checked as one phrase (E6a).
+MAX_SHORT_QUERY_WORDS = 6
 
 _SOFT_HYPHEN = "­"
 _CHAR_MAP = str.maketrans({
@@ -51,6 +59,18 @@ def normalize(text: str, case: bool = False) -> str:
 def _word_pattern(needle: str, case: bool) -> re.Pattern:
     cls = "[A-Za-z0-9]" if case else "[a-z0-9]"
     return re.compile(f"(?<!{cls}){re.escape(needle)}(?!{cls})")
+
+
+def count_matches(text: str, needle: str, mode: str = "word", case: bool = False) -> int:
+    """Occurrences of `needle` in one raw `text`, by the same rules as ExactIndex.scan.
+
+    Purpose: count presence over the text actually sent to a model (which may include
+        neighbouring chunks), not over the chunk list.
+    Spec:    docs/spec_exact_match_search_v2.md#E8
+    Tests:   test_exact_match.py::TestE8Verification::test_e8_counts_text_actually_sent
+    """
+    found = ExactIndex([{"text": text}]).scan(needle, mode=mode, case=case)
+    return found[0][1] if found else 0
 
 
 class ExactIndex:
@@ -130,11 +150,12 @@ class ExactIndex:
         Tests:   test_exact_match.py::TestE5Presence
 
         `loose_*` are the substring-mode counts in mode "word"; in the other modes they
-        equal the main counts. `docs` is sorted by hits (desc), then document name.
+        equal the main counts. `docs` is sorted by hits (desc), then document name; each document's
+        locators are in reading (chunk) order.
         """
         hits = self.search(needle, mode=mode, case=case)
         docs: dict = {}
-        for c in hits:
+        for c in sorted(hits, key=lambda c: c.get("id", 0)):     # locators in reading order
             d = docs.setdefault(c["doc_name"], {
                 "doc_name": c["doc_name"], "hits": 0, "chunks": 0,
                 "ocr": bool(c.get("ocr")), "ocr_confidence": c.get("ocr_confidence"),
@@ -163,3 +184,191 @@ class ExactIndex:
             "loose_doc_count": loose_docs,
             "corpus_chunks": len(self.chunks),
         }
+
+
+# ── Retrieval guarantee and prompt guard (spec E6a, E6, E8) ───────────────────
+
+_QUOTED = re.compile(r'["\u201c]([^"\u201c\u201d]+)["\u201d]')
+_EDGE = string.whitespace + string.punctuation + "\u2018\u2019\u201c\u201d\u2026\u2013\u2014\u00bf\u00a1"
+
+
+def phrases_for(query: str) -> tuple[list[str], str]:
+    """The phrases to check exactly for a query, and why.
+
+    Purpose: a deterministic rule for which strings get an exact-match check.
+    Spec:    docs/spec_exact_match_search_v2.md#E6a
+    Tests:   test_exact_match.py::TestE6aPhrases
+
+    (1) every "…" / “…” quoted span -> reason "quoted"; else (2) the whole query,
+    stripped of surrounding punctuation, if it has at most MAX_SHORT_QUERY_WORDS words
+    -> "short-query"; else (3) nothing -> "none". Duplicates (after normalising) and
+    spans that normalise to nothing are dropped.
+    """
+    def dedupe(items):
+        seen, out = set(), []
+        for it in items:
+            key = normalize(it)
+            if key and key not in seen:
+                seen.add(key)
+                out.append(it.strip())
+        return out
+
+    quoted = dedupe(_QUOTED.findall(query))
+    if quoted:
+        return quoted, "quoted"
+    whole = query.strip(_EDGE)
+    if whole and len(whole.split()) <= MAX_SHORT_QUERY_WORDS and normalize(whole):
+        return [whole], "short-query"
+    return [], "none"
+
+
+def union_budget(k: int, configured: int | None = None) -> int:
+    """min(configured, max(1, k // 2)); configured defaults to EXACT_UNION_BUDGET.
+
+    Purpose: never let guaranteed exact-match passages crowd out more than half of k.
+    Spec:    docs/spec_exact_match_search_v2.md#E6
+    Tests:   test_exact_match.py::TestE6Union::test_e6_budget_rule
+    """
+    configured = EXACT_UNION_BUDGET if configured is None else configured
+    if configured <= 0:
+        return 0
+    return min(configured, max(1, k // 2))
+
+
+def union_exact(ranked: list[dict], exact_hits: list[dict], budget: int,
+                k: int | None = None) -> list[dict]:
+    """`ranked` with up to `budget` exact-match chunks guaranteed present.
+
+    Purpose: make sure passages containing the user's phrase reach the model when any
+        exist, without changing how many passages the user asked for.
+    Spec:    docs/spec_exact_match_search_v2.md#E6
+    Tests:   test_exact_match.py::TestE6Union
+
+    Exact hits already in `ranked` (by id) count toward the budget. Missing ones are
+    prepended (best first: `exact_hits` is sorted by hits). The result is trimmed to
+    `k` (default len(ranked)), dropping non-containing passages from the tail first so
+    the guarantee survives the trim. Returns a new list; inputs are not modified.
+    Deviation from the spec text: `k` is optional; the spec trims to len(ranked), which
+    is the default. Callers pass the user's k so a ranker that returned fewer than k
+    passages (top-docs, author filter) does not also cap the guarantee at zero.
+    """
+    limit = len(ranked) if k is None else max(k, 0)
+    hit_ids = {h["id"] for h in exact_hits}
+    present = {r.get("id") for r in ranked}
+    need = max(0, budget - len(hit_ids & present))
+    added = []
+    for h in exact_hits:
+        if need == 0:
+            break
+        if h["id"] not in present:
+            added.append({**h, "score": float(h["hits"]),
+                          "score_label": f"{h['hits']} exact", "exact_union": True})
+            need -= 1
+    out, seen = [], set()
+    for c in added + list(ranked):
+        if c.get("id") not in seen:
+            seen.add(c.get("id"))
+            out.append(c)
+    while len(out) > limit:
+        drop = next((j for j in range(len(out) - 1, -1, -1)
+                     if out[j].get("id") not in hit_ids), len(out) - 1)
+        out.pop(drop)
+    return out
+
+
+def exact_guard(idx, query: str, ranked: list[dict], k: int | None = None,
+                union: bool = True, budget: int | None = None, keep=None):
+    """Run E6a, the presence check and (optionally) the E6 union for one request.
+
+    Purpose: the one entry point every model-feeding dispatch calls (Chat, Report,
+        bowen_ask.py, the desktop GUI), so they behave identically.
+    Spec:    docs/spec_exact_match_search_v2.md#E6
+    Tests:   test_exact_match.py::TestE6Union::test_e6_guard_*
+
+    `idx` is either IndexManager (anything with exact_search / exact_presence). `keep`
+    filters candidate exact hits (the Chat author filter). Returns
+    (chunks, phrases, reason, presence_by_phrase).
+    """
+    phrases, reason = phrases_for(query)
+    k = len(ranked) if k is None else k
+    b = union_budget(k) if budget is None else budget
+    out = list(ranked)
+    presence = {}
+    for p in phrases:
+        presence[p] = idx.exact_presence(p)
+        if union and b > 0 and presence[p]["found"]:
+            hits = idx.exact_search(p)
+            if keep is not None:
+                hits = [h for h in hits if keep(h)]
+            out = union_exact(out, hits, b, k=k)
+    return out, phrases, reason, presence
+
+
+VERIFICATION_HEADER = "EXACT-MATCH VERIFICATION"
+
+
+def _n(count: int, noun: str) -> str:
+    return f"{count} {noun}{'' if count == 1 else 's'}"
+
+
+def verification_block(presence_by_phrase: dict, provided: list, reason: str,
+                       note: str = "") -> str:
+    """The computed statement placed at the top of the model's user message and in the UI.
+
+    Purpose: every "is X in the corpus" statement the user sees comes from a scan of
+        the whole index, never from the model's reading of k excerpts.
+    Spec:    docs/spec_exact_match_search_v2.md#E8
+    Tests:   test_exact_match.py::TestE8Verification
+
+    `provided` is the list of texts actually sent to the model (dicts with "text", or
+    strings); "K of N" is counted over them with the same matching rules. `note` is
+    appended verbatim (e.g. that the excerpts were hand-staged).
+    """
+    texts = [t["text"] if isinstance(t, dict) else t for t in provided]
+    if reason == "none" or not presence_by_phrase:
+        lines = [f"{VERIFICATION_HEADER}: no exact-match check was run (no phrase was "
+                 f"quoted and the question is longer than {MAX_SHORT_QUERY_WORDS} words). "
+                 "Nothing here says whether any term occurs in the corpus. To have a term "
+                 'checked, put it in double quotes, e.g. "emotional cutoff".']
+    else:
+        corpus = next(iter(presence_by_phrase.values())).get("corpus_chunks")
+        scope = f"all {corpus:,} indexed passages" if corpus else "the whole indexed corpus"
+        lines = [f"{VERIFICATION_HEADER} (computed by the system by scanning {scope}; "
+                 "a count, not a judgement):"]
+        for phrase, p in presence_by_phrase.items():
+            sent = sum(1 for t in texts if count_matches(t, phrase, p["mode"], p["case"]))
+            in_sent = f"{sent} of the {len(texts)} excerpts provided contain it."
+            loose = ""
+            if p["mode"] == "word" and p["loose_total_hits"] > p["total_hits"]:
+                extra = p["loose_total_hits"] - p["total_hits"]
+                loose = (f" A further {extra} occurrence{'s run' if extra != 1 else ' runs'} "
+                         "into a neighbouring word (for example a space lost in the scan) "
+                         f"and {'are' if extra != 1 else 'is'} not counted as whole-word matches.")
+            if p["found"]:
+                lines.append(f'- "{phrase}": occurs {_n(p["total_hits"], "time")} in '
+                             f'{_n(p["chunk_count"], "passage")} across '
+                             f'{_n(p["doc_count"], "document")} of the indexed corpus. '
+                             f"{in_sent}{loose}")
+            elif reason == "short-query":
+                lines.append(f'- "{phrase}" (the whole question, checked as one phrase): '
+                             "does not occur verbatim in the indexed corpus. This says "
+                             "nothing about the individual words or any shorter term in it; "
+                             "no shorter term was checked. To have a term checked, put it in "
+                             f"double quotes. {in_sent}{loose}")
+            else:
+                lines.append(f'- "{phrase}": does not occur as a whole word or phrase '
+                             f"anywhere in the indexed corpus. {in_sent}{loose}")
+    if note:
+        lines.append(note)
+    return "\n".join(lines)
+
+
+def highlight(text: str, phrase: str, mark: str = "**") -> str:
+    """Wrap each occurrence of `phrase` in raw `text` with `mark` (case-insensitive;
+    whitespace in the phrase matches any whitespace run, so soft-wraps still match).
+
+    Spec:  docs/spec_exact_match_search_v2.md#E9
+    Tests: test_exact_match.py::TestCarriedOver::test_highlight
+    """
+    p = re.escape(normalize(phrase)).replace(r"\ ", r"\s+")
+    return re.sub(f"({p})", lambda m: f"{mark}{m.group(1)}{mark}", text, flags=re.I)

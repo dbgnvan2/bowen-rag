@@ -30,6 +30,7 @@ This guide covers the Streamlit web app. The desktop GUI has the same features w
   - [Processing Transcripts](#processing-transcripts)
   - [LLM Provider Configuration](#llm-provider-configuration)
   - [Authority Tiers](#authority-tiers)
+  - [Exact Find (command line)](#exact-find-command-line)
   - [Railway Deployment](#railway-deployment)
   - [Desktop App Build](#desktop-app-build)
 
@@ -149,14 +150,19 @@ This means:
 
 Every AI response shows a **Sources** expander beneath it. Expand it to see which document chunks were retrieved for that answer. Each source has a **↗** button to open the full section text. Use this to verify that the AI's answer is grounded in the source, and to read the passage in full context.
 
-### Terminology precision warning
+### Exact-match check and terminology warning
 
-If the exact term or phrase in your question does not appear verbatim in the retrieved sources, the AI will open its response with a **⚠️ notice** identifying the term and explaining what related concept it is drawing on instead. This is important for Bowen theory, where precise terminology matters — "emotional contact" and "emotional connection" are not interchangeable in Bowen's framework.
+Retrieval returns the top passages by score, so a term can be in the corpus and still be missing from the passages the AI receives. Before each Chat answer and each Report, the app scans **every indexed passage** for the term and shows the result above the answer as an **EXACT-MATCH VERIFICATION** note, for example: *"emotional programming" occurs 91 times in 65 passages across 22 documents … 6 of the 32 excerpts provided contain it.* This count is computed by the program, not judged by the AI.
 
-If you see this warning, consider:
-- Rephrasing your query using Bowen's exact terminology.
-- Checking whether the concept you are looking for is indexed under a different term.
-- Using Keyword search with the exact phrase in quotes to verify whether the term appears in the corpus at all.
+What the app checks: every phrase in "double quotes"; if there are none, the whole question when it is six words or fewer. When the term is in the corpus but in none of the retrieved passages, up to 5 passages that contain it are added to what the AI receives (staged Report chunks are never changed; the note says so).
+
+**Put the term in quotes.** A question such as *What is emotional programming?* is checked as the whole phrase "What is emotional programming", which does not occur anywhere, so nothing is added and the note says the question was not found as written. Ask *What is "emotional programming"?* instead.
+
+The AI then opens its answer by restating that count. If none of the excerpts it received contain the term, it says so and labels anything drawn from related wording as an inference. It is not allowed to say on its own that a term is absent from the corpus. This matters in Bowen theory, where "emotional contact" and "emotional connection" are not interchangeable.
+
+To see every document that contains a phrase, without the AI, run `python3 bowen_ask.py --find "emotional programming"` (see the Admin Guide).
+
+Known gap: words hyphenated across a line in the original PDFs ("emo- tional") are not matched, so counts can be slightly low (4 occurrences of "emotional programming" are missed this way).
 
 ---
 
@@ -243,8 +249,8 @@ Use Keyword mode with quoted phrases for exact matching. Example: `"nodal events
 - Try turning off Authority boost to see if a secondary source has better coverage.
 - Try rephrasing using Bowen's own terminology — the corpus is indexed on his language, not paraphrases.
 
-**If the AI warns about a missing term (⚠️):**
-The exact phrase is not in the retrieved sources. Run a Keyword search with the term in quotes to confirm whether it appears in the corpus at all before drawing conclusions.
+**If the AI says a term is not in the excerpts:**
+Read the EXACT-MATCH VERIFICATION note above the answer: it gives the whole-corpus count. If it says no check was run, or the question was not found as written, ask again with the term in "double quotes". Do not rely on a Keyword search to prove a term is absent — it also returns only the top results.
 
 **For thorough reports:**
 Increase Retrieve top N to 30–40 and use Hybrid mode. Stage the best results from a Search first, then generate to supplement with additional retrieval.
@@ -411,7 +417,7 @@ Configure the LLM provider in **Settings** (web app) or **LLM Settings** (deskto
 
 ### System prompt
 
-The system prompt instructs the model to cite only the provided source excerpts and not draw on outside knowledge. It includes a terminology precision rule (Rule 7) that requires the model to warn the user when it is inferring from semantic similarity rather than citing verbatim source text.
+The system prompt instructs the model to cite only the provided source excerpts and not draw on outside knowledge. It includes a terminology precision rule (Rule 7): the model restates the program's EXACT-MATCH VERIFICATION count, says when none of its excerpts contain the term, labels inferences from related wording, and may not claim on its own that a term is absent from the corpus. A session still using the previous version of the default prompt is moved to the new one automatically; a prompt you edited yourself is left alone.
 
 **Do not soften these constraints.** The app is used for Bowen Family Systems Theory research where source fidelity is clinically important — "emotional contact" and "emotional connection" are not interchangeable.
 
@@ -495,6 +501,20 @@ You don't have to edit the YAML by hand. In the Streamlit app, open **Settings �
 **Persistence on Railway:** the hosted app's filesystem is *ephemeral* — a **Save** lasts only for that session and is lost on the next redeploy. To make edits permanent on Railway, use **Download**, then commit the downloaded `sources.yml` to the repo and push (Railway redeploys with it). Running locally (desktop app or local Streamlit), **Save** persists normally.
 
 ---
+
+## Exact Find (command line)
+
+`bowen_ask.py --find` lists every document that contains a phrase. It scans all indexed passages, makes no AI call and needs no API key.
+
+```bash
+python3 bowen_ask.py --find "emotional programming"
+echo "emotional programming" | python3 bowen_ask.py --find
+python3 bowen_ask.py --find "programm(ed|ing)" --mode regex --json
+```
+
+Documents are listed by number of hits, with the passages and their locators (Ch. N ¶ M or p. X) and an OCR flag for scanned documents. `--mode` is `word` (default: whole words, so "self" does not match "yourself"), `substring` or `regex`; `--case` makes the match case-sensitive; `--json` prints machine-readable output. Exit codes: 0 found, 1 not found, 2 empty phrase or invalid regular expression, 4 the index could not be read.
+
+Without `--find`, `bowen_ask.py` writes a report as before; the EXACT-MATCH VERIFICATION note is printed at the top of its output as lines starting with "> ".
 
 ## Railway Deployment
 

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Measure literal_search against the real index and show the pipeline effect."""
+"""Measure literal_search against the real index and show the pipeline effect.
+
+literal_search.py was a prototype; it was replaced by exact_match.py and deleted in Tier 2.
+This script is kept as the record of how measure_literal.output.txt was produced. To re-run
+it, restore the prototype first: git show 50da727:literal_search.py > literal_search.py
+"""
 import re, time, json
 import literal_search as ls
 import sys as _sys, pathlib as _pl
