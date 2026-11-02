@@ -97,3 +97,42 @@ A literal search is exact by definition: it does not find "emotionally programme
 ## What would have caught it
 
 A test that asks the shipped pipeline, for a list of terms that are certainly in the corpus, whether at least one returned chunk contains the term (M3); and a rule that any "absent" statement shown to the user is produced by code that looked at the whole corpus, never by the model (B3). Both are now cheap: the first is a loop over `presence()` and the page defaults; the second is one prepended line.
+
+## Addendum 2026-11-01 (b) — LLM presence experiment, run locally against DeepSeek
+
+Command: `python3 review_2026-11-01/llm_presence_experiment.py --provider deepseek --reps 2 --words 500`, run on davemini2 from `/Volumes/CrucialX9/a Downloads/bowen_rag` at `50da727` (app code identical to `c5ac598`; unchanged `SYSTEM_PROMPT`, Rule 7 as shipped). Model `deepseek-v4-flash`, 9 calls, exit 0. Query: "What is emotional programming?". Per-call figures are in `review_2026-11-01/llm_presence_results.json`; the nine replies are in `review_2026-11-01/llm_presence_responses/` (not committed: they quote the corpus at length, and the corpus is kept out of git).
+
+Printed table:
+
+```
+chat/hybrid/k12/boost-on  (app default)    rep1  sent=12 containing= 0 occ=  0  claims_absent=True  ⚠=True   -> correct absent (nothing containing it was sent)
+chat/hybrid/k12/boost-on  (app default)    rep2  sent=12 containing= 0 occ=  0  claims_absent=True  ⚠=True   -> correct absent (nothing containing it was sent)
+chat/hybrid/k12/boost-off                  rep1  sent=12 containing=12 occ= 34  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+chat/hybrid/k12/boost-off                  rep2  sent=12 containing=12 occ= 34  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+chat/semantic/k12/boost-on                 rep1  sent=12 containing= 9 occ= 28  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+chat/semantic/k12/boost-on                 rep2  sent=12 containing= 9 occ= 28  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+report/top-docs/k30/boost-on (default)     rep1  sent=30 containing=17 occ= 28  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+report/hybrid/k30/boost-on                 rep1  sent=30 containing= 3 occ= 11  claims_absent=False ⚠=True   -> no absence claim; phrase was sent
+report/hybrid/k30/boost-off                rep1  sent=30 containing=28 occ= 52  claims_absent=False ⚠=False  -> no absence claim; phrase was sent
+```
+
+The containing-chunk counts (0, 12, 9, 17, 3, 28) equal the expected ground truth for the six conditions.
+
+Per condition, read from the reply files (a: ⚠ Rule-7 notice printed; b: claims the term is absent; c: claim true of the excerpts sent; d: absence worded about "the corpus"/"the sources" rather than "the excerpts provided"):
+
+| # | Condition | containing | (a) ⚠ | (b) absent claim | (c) true of excerpts | (d) worded as corpus/sources |
+|---|---|---|---|---|---|---|
+| 1 | chat/hybrid/k12/boost-on (default), rep 1 | 0 | yes | yes | yes | yes — "does not appear in the provided **sources**" (the Rule-7 template), then "The sources use the word 'programming' … without defining it as a formal concept called 'emotional programming'" |
+| 1 | same, rep 2 | 0 | yes | yes | yes | yes — the same template sentence; the body then says "The provided excerpts use … 'programming' without the qualifier 'emotional'" |
+| 2 | chat/hybrid/k12/boost-off, reps 1–2 | 12 | no | no | — | — |
+| 3 | chat/semantic/k12/boost-on, reps 1–2 | 9 | no | no | — | — |
+| 4 | report/top-docs/k30/boost-on (default) | 17 | no | no | — | — |
+| 5 | report/hybrid/k30/boost-on | 3 | yes, but inverted: "The exact phrase 'emotional programming' **does** appear verbatim in the provided sources [[27, 28, 30]]" | no | — (the positive claim is true: the three cited numbers are where the phrase was) | — |
+| 6 | report/hybrid/k30/boost-off | 28 | no | no | — | — |
+
+The two questions:
+
+1. **Condition 1 (default Chat, 0 containing chunks) reproduces the reported failure in both repetitions.** The model prints the Rule-7 notice "The exact term/phrase "emotional programming" does not appear in the provided sources", which is true of the 12 excerpts and false of the corpus (22 documents). The wording is the system prompt's own: "provided sources", not "corpus". The word "corpus" did not occur in any reply (`absence_worded_as_corpus` false for all 9). A reader cannot tell "the 12 excerpts I was given" from "the sources" — this is the defect, and it comes from the template text, not from model error.
+2. **The model never claimed absence when the phrase was in its excerpts** (0 of 7 replies in conditions 2–6). In condition 5, with only 3 of 30 excerpts containing it, it located those three and cited them by number. In the 7 replies that had the phrase, Rule-7 matching was correct every time.
+
+What this changes: B3's mechanism is confirmed (a true statement about the excerpts is read as a statement about the corpus); B3's secondary concern, that the model is an unreliable substring matcher, was not observed at this sample size (7 replies, one model). The fix order stands — retrieval (B1, M1) decides what the model sees, and the absence wording must come from code that scanned the whole index (E8). Seven replies do not establish reliability; the pipeline still must not depend on it.

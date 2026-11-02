@@ -1,0 +1,191 @@
+[
+  {
+    "condition": "chat/hybrid/k12/boost-on  (app default)",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 0,
+    "phrase_occurrences_in_sent_text": 0,
+    "model_claims_absent": true,
+    "warning_marker": true,
+    "absence_worded_as_corpus": false,
+    "seconds": 8.3,
+    "usage": {
+      "input": 9038,
+      "output": 1347
+    },
+    "verdict": "correct absent (nothing containing it was sent)"
+  },
+  {
+    "condition": "chat/hybrid/k12/boost-on  (app default)",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": true,
+    "rep": 2,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 0,
+    "phrase_occurrences_in_sent_text": 0,
+    "model_claims_absent": true,
+    "warning_marker": true,
+    "absence_worded_as_corpus": false,
+    "seconds": 7.9,
+    "usage": {
+      "input": 206,
+      "output": 1521
+    },
+    "verdict": "correct absent (nothing containing it was sent)"
+  },
+  {
+    "condition": "chat/hybrid/k12/boost-off",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": false,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 12,
+    "phrase_occurrences_in_sent_text": 34,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 12.6,
+    "usage": {
+      "input": 5681,
+      "output": 2667
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "chat/hybrid/k12/boost-off",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": false,
+    "rep": 2,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 12,
+    "phrase_occurrences_in_sent_text": 34,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 10.7,
+    "usage": {
+      "input": 177,
+      "output": 2134
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "chat/semantic/k12/boost-on",
+    "page": "chat",
+    "mode": "semantic",
+    "k": 12,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 9,
+    "phrase_occurrences_in_sent_text": 28,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 8.7,
+    "usage": {
+      "input": 6055,
+      "output": 1936
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "chat/semantic/k12/boost-on",
+    "page": "chat",
+    "mode": "semantic",
+    "k": 12,
+    "boost": true,
+    "rep": 2,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 9,
+    "phrase_occurrences_in_sent_text": 28,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 7.0,
+    "usage": {
+      "input": 167,
+      "output": 1216
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "report/top-docs/k30/boost-on (default)",
+    "page": "report",
+    "mode": "top-docs",
+    "k": 30,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 17,
+    "phrase_occurrences_in_sent_text": 28,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 28.8,
+    "usage": {
+      "input": 8430,
+      "output": 5510
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "report/hybrid/k30/boost-on",
+    "page": "report",
+    "mode": "hybrid",
+    "k": 30,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 3,
+    "phrase_occurrences_in_sent_text": 11,
+    "model_claims_absent": false,
+    "warning_marker": true,
+    "absence_worded_as_corpus": false,
+    "seconds": 31.4,
+    "usage": {
+      "input": 9754,
+      "output": 5407
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "report/hybrid/k30/boost-off",
+    "page": "report",
+    "mode": "hybrid",
+    "k": 30,
+    "boost": false,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 28,
+    "phrase_occurrences_in_sent_text": 52,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 37.5,
+    "usage": {
+      "input": 8356,
+      "output": 7036
+    },
+    "verdict": "no absence claim; phrase was sent"
+  }
+]
