@@ -800,5 +800,107 @@ class TestCarriedOver(unittest.TestCase):
                          "a **emotional\nprogramming** b")
 
 
+# ── E9 ────────────────────────────────────────────────────────────────────────
+class TestE9Display(unittest.TestCase):
+    def test_e9_word_spans_respect_boundaries(self):
+        t = "Self and yourself; self-differentiation, the self."
+        self.assertEqual([t[a:b] for a, b in em.match_spans(t, "self")],
+                         ["Self", "self", "self"])
+        self.assertEqual(len(em.match_spans(t, "self", mode="substring")), 4)
+        self.assertEqual([t[a:b] for a, b in em.match_spans(t, "self", case=True)],
+                         ["self", "self"])
+
+    def test_e9_spans_cross_soft_wraps_and_regex(self):
+        t = "the emotional\nprogramming and Emotional  Programming"
+        self.assertEqual(len(em.match_spans(t, "emotional programming")), 2)
+        self.assertEqual([t[a:b] for a, b in em.match_spans(t, r"emotional\s+prog\w+", "regex")],
+                         ["emotional\nprogramming", "Emotional  Programming"])
+        with self.assertRaises(re.error):
+            em.match_spans(t, "emotional (", "regex")
+
+    def test_e9_snippet_centres_on_match(self):
+        t = "filler " * 100 + "emotional\nprogramming" + " tail" * 100
+        out = em.snippet(t, "emotional programming", mark="**")
+        self.assertIn("**emotional programming**", out)
+        self.assertTrue(out.startswith("…") and out.endswith("…"))
+        self.assertLessEqual(len(out), 260)
+        # no markable match: falls back to the start of the text
+        self.assertTrue(em.snippet("abc " * 100, "zzz").startswith("abc abc"))
+
+    def test_e9_presence_summary(self):
+        idx = em.ExactIndex([{"doc_name": "a", "text": "emotional programming x"},
+                             {"doc_name": "b", "text": "emotional programmings"}])
+        found = em.presence_summary(idx.presence("emotional programming"), "emotional programming")
+        self.assertEqual(found, '"emotional programming" (word match): 1 occurrence in 1 passage '
+                                'across 1 document (of 2 passages); 2 counting partial-word '
+                                '(loose) matches')
+        none = em.presence_summary(idx.presence("nodal"), "nodal")
+        self.assertEqual(none, '"nodal" (word match): 0 occurrences in the indexed text '
+                               '(0 loose) — 2 passages scanned')
+
+
+class TestE9Modes(unittest.TestCase):
+    def test_e9_search_mode_registered(self):
+        """Both apps define EXACT_SEARCH_MODE = (label, "exact"), add it to the Search page's
+        mode list, and send mode "exact" to the exact-match index."""
+        for path in ("streamlit_app.py", "bowen_rag_gui.py"):
+            src = (ROOT / path).read_text(encoding="utf-8")
+            tree = ast.parse(src)
+            consts = [n for n in tree.body if isinstance(n, ast.Assign)
+                      and any(getattr(t, "id", "") == "EXACT_SEARCH_MODE" for t in n.targets)]
+            self.assertEqual(len(consts), 1, path)
+            value = ast.literal_eval(consts[0].value)
+            self.assertEqual(value[1], "exact", path)
+            self.assertIn(".append(EXACT_SEARCH_MODE)", src, path)
+            self.assertRegex(src, r"if mode == \"exact\":", path)
+            self.assertIn(".exact_presence(needle, mode=", src, path)
+            self.assertIn(".exact_search(needle, mode=", src, path)
+
+
+@unittest.skipUnless(_corpus_has_chapter09(), "shipped index not present (corpus volume unmounted)")
+class TestE9StreamlitPage(unittest.TestCase):
+    """Drives the real Search page with streamlit.testing (no browser, no LLM)."""
+
+    def _search(self, query, match, author=None, results=None):
+        from streamlit.testing.v1 import AppTest
+        at = AppTest.from_file(str(ROOT / "streamlit_app.py"), default_timeout=300)
+        at.run()
+        mode = next(s for s in at.selectbox if s.label == "Mode")
+        mode.set_value(mode.options.index("Exact phrase (every passage)")).run()
+        at.text_area[0].set_value(query)
+        next(s for s in at.selectbox if s.label == "Match").set_value(match)
+        if author:
+            next(s for s in at.selectbox if s.label == "Author filter").set_value(author)
+        if results:
+            next(n for n in at.number_input if n.label == "Results").set_value(results)
+        next(b for b in at.button if b.label == "Search").click().run()
+        self.assertFalse(at.exception, at.exception)
+        return at
+
+    def test_e9_exact_mode_shows_counts_documents_and_marked_passages(self):
+        at = self._search("emotional programming", "word")
+        self.assertEqual(len(at.success), 1)
+        m = re.match(r'"emotional programming" \(word match\): (\d+) occurrences in (\d+) '
+                     r'passages across (\d+) documents \(of [\d,]+ passages\)', at.success[0].value)
+        self.assertIsNotNone(m, at.success[0].value)
+        passages, docs = int(m.group(2)), int(m.group(3))
+        self.assertGreater(passages, 15)                 # the Results cap (15) must bite
+        captions = [c.value for c in at.caption]
+        self.assertIn(f"showing the first 15 of {passages} passages (raise Results to see more). "
+                      "The counts above are for the whole corpus.", captions)
+        self.assertEqual(sum(1 for c in captions if "**emotional programming**" in c.lower()), 15)
+        self.assertIn(f"Documents containing it ({docs})", [x.label for x in at.expander])
+        doc_list = next(m.value for m in at.markdown if m.value.startswith("- **"))
+        self.assertIn("Bowen Theory Secrets_Chapter09_Emotional_Programming", doc_list)
+        self.assertIn("Ch. 9, ¶", doc_list)
+
+    def test_e9_exact_mode_reports_absence_and_bad_regex(self):
+        at = self._search("thatemotional programmingx", "word")
+        self.assertEqual(len(at.warning), 1)
+        self.assertIn("0 occurrences in the indexed text", at.warning[0].value)
+        at = self._search("emotional (programming", "regex")
+        self.assertTrue(any(e.value.startswith("Bad regular expression:") for e in at.error))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -266,7 +266,6 @@ class IndexManager:
             self.vectorizer.set_params(vocabulary=vocab)
         self.vectorizer.fit(texts)
         self._check_index_in_sync(refs_dir)
-        self.loaded = True
 
         # Build per-document ordered chunk index for context-window expansion
         self._doc_chunk_ids: dict = {}
@@ -288,6 +287,9 @@ class IndexManager:
             tokenized  = [self._tokenize(c["text"]) for c in self.chunks]
             self.bm25  = BM25Okapi(tokenized)
 
+        # Set last: the desktop app loads on a background thread, and a search must not
+        # start before the exact-match index, embeddings and BM25 exist.
+        self.loaded = True
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
 
@@ -813,6 +815,8 @@ class LLMClient:
 # GUI App
 # ══════════════════════════════════════════════════════════════════════════════
 
+EXACT_SEARCH_MODE = ("Exact phrase  (every passage)", "exact")   # spec E9
+
 class App:
     PAD = 8
 
@@ -873,6 +877,8 @@ class App:
         self._use_boost     = tk.BooleanVar(value=True)
         self._rpt_use_boost = tk.BooleanVar(value=True)
         self._author_filter = tk.StringVar(value="All authors")
+        self._exact_match   = tk.StringVar(value="word")    # Exact phrase mode (spec E9)
+        self._exact_case    = tk.BooleanVar(value=False)
         self.index_stats = tk.StringVar(value="Loading index…")
         self._status     = tk.StringVar(value="Initializing…")
 
@@ -1088,7 +1094,12 @@ class App:
             "• Hybrid (BM25 + Embedding) — best of both worlds: BM25 finds exact "
             "terms with length-normalized scoring; embedding finds conceptual matches "
             "regardless of wording. Reciprocal Rank Fusion merges both lists. "
-            "Requires embeddings to be built.",
+            "Requires embeddings to be built.\n\n"
+            "• Exact phrase — every passage in the corpus that contains the phrase, with "
+            "corpus-wide counts and the list of documents (shown in the Preview pane). Not "
+            "ranked by relevance or authority: most occurrences first. Match: word = whole "
+            "words ('self' does not match 'yourself'); substring = anywhere ('nodal event' "
+            "also matches 'nodal events'); regex = a Python regular expression.",
             self._bg).pack(side="left", padx=2)
 
         modes = [
@@ -1101,9 +1112,17 @@ class App:
             modes.append(("Embedding  (sentence-transformers)", "embedding"))
         if EMBEDDING_AVAILABLE and BM25_AVAILABLE:
             modes.append(("Hybrid  (BM25 + Embedding)",         "hybrid"))
+        modes.append(EXACT_SEARCH_MODE)
         for label, val in modes:
             ttk.Radiobutton(lf, text=label, variable=self.srch_mode,
                             value=val).pack(anchor="w")
+        ex_row = ttk.Frame(lf)
+        ex_row.pack(anchor="w", padx=(20, 0))
+        ttk.Label(ex_row, text="Match:").pack(side="left")
+        ttk.Combobox(ex_row, textvariable=self._exact_match, values=exact_match.MODES,
+                     state="readonly", width=10).pack(side="left", padx=4)
+        ttk.Checkbutton(ex_row, text="Case-sensitive",
+                        variable=self._exact_case).pack(side="left")
 
         ttk.Separator(lf).pack(fill="x", pady=8)
         tk.Frame(lf, bg=self._bg).pack()
@@ -1215,6 +1234,9 @@ class App:
         k     = self.top_k.get()
         boost = self._use_boost.get()
 
+        if mode == "exact":
+            self._do_exact_search(query, k)
+            return
         if mode == "top-docs":
             results = self.index.top_docs_search(query, top_chunks=300, top_docs=k, use_boost=boost)
         elif mode == "semantic":
@@ -1246,6 +1268,63 @@ class App:
         self._render_results(results)
         author_tag = f"  ·  {author}" if author and author != "All authors" else ""
         self._set_status(f"{len(results)} results for: \"{query}\"{author_tag}")
+
+    def _do_exact_search(self, needle: str, k: int):
+        """Exact phrase search: every containing passage, corpus counts, document list.
+
+        Purpose: show where a phrase occurs across the whole corpus, even when the passage
+            list is cut to the Results number or narrowed by the author filter.
+        Spec:    docs/spec_exact_match_search_v2.md#E9
+        Tests:   test_exact_match.py::TestE9Display (hand-checked in the app)
+        """
+        match, case = self._exact_match.get(), self._exact_case.get()
+        try:
+            p = self.index.exact_presence(needle, mode=match, case=case)
+            hits = self.index.exact_search(needle, mode=match, case=case)
+        except (re.error, ValueError, RuntimeError) as e:
+            bad_rx = isinstance(e, re.error)
+            self.search_results = []
+            self._render_results([])
+            messagebox.showerror("Bad regular expression" if bad_rx
+                                 else "Exact phrase search failed", str(e))
+            self._set_status(f"Bad regular expression: {e}" if bad_rx else str(e))
+            return
+        results = [{**r, "score": r["hits"],
+                    "score_label": f"{r['hits']} hit{'s' if r['hits'] != 1 else ''}",
+                    "exact_needle": (needle, match, case)} for r in hits]
+        author = self._author_filter.get()
+        if author and author != "All authors":
+            results = [r for r in results if doc_author(r["doc_name"]) == author]
+        filtered = len(results)
+        results = results[:k]
+        self.search_results = results
+        self._render_results(results)
+
+        summary = exact_match.presence_summary(p, needle)
+        notes = []
+        if author and author != "All authors":
+            notes.append(f"{filtered} of the {len(hits)} passages "
+                         f"{'is' if filtered == 1 else 'are'} by {author}")
+        if len(results) < filtered:
+            notes.append(f"showing the first {len(results)} of {filtered} passages "
+                         "(raise Results to see more)")
+        lines = [summary]
+        if notes:
+            lines.append("; ".join(notes) + ". The counts above are for the whole corpus.")
+        if p["found"]:
+            lines += ["", f"Documents containing it ({p['doc_count']}):", ""]
+            for d in p["docs"]:
+                ocr = "  [scan, OCR]" if d["ocr"] else ""
+                lines.append(f"{d['hits']:4d} hit{'s' if d['hits'] != 1 else ' '} in "
+                             f"{d['chunks']} passage{'s' if d['chunks'] != 1 else ''}  "
+                             f"{d['doc_name']}{ocr}")
+                if d["locators"]:
+                    lines.append(f"        {'; '.join(d['locators'])}")
+        self._preview.config(state="normal")
+        self._preview.delete("1.0", "end")
+        self._preview.insert("1.0", "\n".join(lines))
+        self._preview.config(state="disabled")
+        self._set_status(summary + (f"  ·  {'; '.join(notes)}" if notes else ""))
 
     def _render_results(self, results: list):
         for w in self._inner.winfo_children():
@@ -1302,7 +1381,11 @@ class App:
                      wraplength=700).pack(side="left", padx=6, fill="x")
 
             # Excerpt
-            excerpt = res["text"][:220].replace("\n", " ") + "…"
+            if res.get("exact_needle"):                  # centred on the match
+                needle, match, case = res["exact_needle"]
+                excerpt = exact_match.snippet(res["text"], needle, match, case)
+            else:
+                excerpt = res["text"][:220].replace("\n", " ") + "…"
             body = tk.Label(card, text=excerpt, fg="#374151",
                             font=("Helvetica", 10), bg="white",
                             wraplength=760, justify="left", anchor="w")
@@ -1319,6 +1402,12 @@ class App:
         self._preview.delete("1.0", "end")
         header = f"Document: {res['doc_name']}\n{'─'*60}\n\n"
         self._preview.insert("1.0", header + res["text"])
+        if res.get("exact_needle"):                      # mark the phrase (spec E9)
+            needle, match, case = res["exact_needle"]
+            self._preview.tag_configure("exact_hit", background="#fde68a")
+            for a, b in exact_match.match_spans(res["text"], needle, match, case):
+                self._preview.tag_add("exact_hit", f"1.0 + {len(header) + a} chars",
+                                      f"1.0 + {len(header) + b} chars")
         self._preview.config(state="disabled")
 
     def _sel_all(self):

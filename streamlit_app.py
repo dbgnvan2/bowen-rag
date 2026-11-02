@@ -288,7 +288,6 @@ class IndexManager:
             self.vectorizer.set_params(vocabulary=vocab)
         self.vectorizer.fit(texts)
         self._check_index_in_sync(refs_dir)
-        self.loaded = True
 
         self._doc_chunk_ids: dict = {}
         for i, c in enumerate(self.chunks):
@@ -306,6 +305,9 @@ class IndexManager:
             tokenized = [self._tokenize(c["text"]) for c in self.chunks]
             self.bm25 = BM25Okapi(tokenized)
 
+        # Set last: the desktop app loads on a background thread, and a search must not
+        # start before the exact-match index, embeddings and BM25 exist.
+        self.loaded = True
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
 
@@ -1090,7 +1092,11 @@ def _show_section_dialog() -> None:
                    + " and may contain recognition errors. Check any quotation against the "
                      "original page before relying on it.")
     st.divider()
-    st.markdown(_format_chunk_text(result.get("text", "")))
+    body = _format_chunk_text(result.get("text", ""))
+    if result.get("exact_needle"):                       # Exact phrase search (spec E9)
+        needle, match, case = result["exact_needle"]
+        body = exact_match.highlight(body, needle, "**", match, case)
+    st.markdown(body)
 
 
 def _ocr_doc_names(idx) -> set:
@@ -1102,7 +1108,7 @@ def _ocr_doc_names(idx) -> set:
 
 def _score_color(result: dict) -> str:
     score = result.get("score", 0)
-    if result.get("mode") == "keyword":
+    if result.get("mode") in ("keyword", "exact"):
         return "#7c3aed"
     if isinstance(score, float):
         if score > 0.4:
@@ -1116,7 +1122,11 @@ def _result_card(result: dict, checkbox_key: str):
     """Render a single search result card with checkbox."""
     author  = doc_author(result["doc_name"])
     color   = _score_color(result)
-    excerpt = re.sub(r'\s+', ' ', result["text"][:220]).strip()
+    if result.get("exact_needle"):                       # centred on the match, marked
+        needle, match, case = result["exact_needle"]
+        excerpt = exact_match.snippet(result["text"], needle, match, case, mark="**")
+    else:
+        excerpt = re.sub(r'\s+', ' ', result["text"][:220]).strip() + "…"
     page    = result.get("page")
 
     col_cb, col_body, col_view = st.columns([0.04, 0.88, 0.08])
@@ -1156,7 +1166,7 @@ def _result_card(result: dict, checkbox_key: str):
             f'{badges}<strong style="font-size:13px">{result["doc_name"]}</strong>',
             unsafe_allow_html=True
         )
-        st.caption(excerpt + "…")
+        st.caption(excerpt)
     with col_view:
         if st.button("↗", key=f"view_{checkbox_key}", use_container_width=True):
             st.session_state["_dialog_result"] = result
@@ -1167,6 +1177,41 @@ def _result_card(result: dict, checkbox_key: str):
 # ══════════════════════════════════════════════════════════════════════════════
 # Pages
 # ══════════════════════════════════════════════════════════════════════════════
+
+EXACT_SEARCH_MODE = ("Exact phrase (every passage)", "exact")   # spec E9
+
+
+def _exact_presence_panel(info: dict, shown: int) -> None:
+    """Corpus counts and the per-document list for an Exact phrase search.
+
+    Purpose: show where a phrase occurs across the whole corpus, even when the passage
+        list below is cut to the Results number or narrowed by the author filter.
+    Spec:    docs/spec_exact_match_search_v2.md#E9
+    Tests:   test_exact_match.py::TestE9Display (hand-checked in the app)
+    """
+    p = info["presence"]
+    summary = exact_match.presence_summary(p, info["needle"])
+    (st.success if p["found"] else st.warning)(summary)
+    if not p["found"]:
+        return
+    notes = []
+    if info.get("author", "All authors") != "All authors":
+        notes.append(f"{info['filtered']} of the {info['matched']} passages "
+                     f"{'is' if info['filtered'] == 1 else 'are'} by {info['author']}")
+    if shown < info.get("filtered", shown):
+        notes.append(f"showing the first {shown} of {info['filtered']} passages "
+                     "(raise Results to see more)")
+    if notes:
+        st.caption("; ".join(notes) + ". The counts above are for the whole corpus.")
+    with st.expander(f"Documents containing it ({p['doc_count']})"):
+        lines = []
+        for d in p["docs"]:
+            ocr = " · **OCR**" if d["ocr"] else ""
+            locs = f"  \n{'; '.join(d['locators'])}" if d["locators"] else ""
+            lines.append(f"- **{d['doc_name']}** — {d['hits']} hit{'s' if d['hits'] != 1 else ''}"
+                         f" in {d['chunks']} passage{'s' if d['chunks'] != 1 else ''}{ocr}{locs}")
+        st.markdown("\n".join(lines))
+
 
 def page_search(idx: IndexManager):
     st.header("Search")
@@ -1190,6 +1235,7 @@ def page_search(idx: IndexManager):
             mode_options.append(("Embedding", "embedding"))
         if EMBEDDING_AVAILABLE and BM25_AVAILABLE and idx.embed_matrix is not None:
             mode_options.append(("Hybrid (BM25 + Embedding)", "hybrid"))
+        mode_options.append(EXACT_SEARCH_MODE)
 
         mode_labels = [m[0] for m in mode_options]
         mode_values = [m[1] for m in mode_options]
@@ -1206,10 +1252,22 @@ def page_search(idx: IndexManager):
                 "**Keyword** — exact word matching with stemming; good for names.\n\n"
                 "**Both** — merges semantic + keyword.\n\n"
                 "**Embedding** — conceptual similarity regardless of exact wording.\n\n"
-                "**Hybrid** — BM25 + Embedding via Reciprocal Rank Fusion; usually best overall."
+                "**Hybrid** — BM25 + Embedding via Reciprocal Rank Fusion; usually best overall.\n\n"
+                "**Exact phrase** — every passage in the corpus that contains the phrase, "
+                "with corpus-wide counts and a list of the documents. Not ranked by relevance "
+                "or authority: passages with the most occurrences come first."
             ),
         )
         mode = mode_values[mode_idx]
+        if mode == "exact":
+            ex_match = st.selectbox(
+                "Match", exact_match.MODES,
+                help=("**word** — whole words: \"self\" does not match \"yourself\".\n\n"
+                      "**substring** — anywhere, including inside words: \"nodal event\" "
+                      "also matches \"nodal events\".\n\n"
+                      "**regex** — a Python regular expression."),
+            )
+            ex_case = st.checkbox("Case-sensitive", value=False)
 
         top_k = st.number_input(
             "Results", min_value=1, max_value=200, value=15,
@@ -1241,9 +1299,19 @@ def page_search(idx: IndexManager):
 
     if search_clicked and query.strip():
         st.session_state.last_search_query = query.strip()
+        st.session_state.exact_info = None
         with st.spinner("Searching…"):
             try:
-                if mode == "top-docs":
+                if mode == "exact":
+                    needle = query.strip()
+                    presence = idx.exact_presence(needle, mode=ex_match, case=ex_case)
+                    results = [{**r, "score": r["hits"],
+                                "score_label": f"{r['hits']} hit{'s' if r['hits'] != 1 else ''}",
+                                "exact_needle": (needle, ex_match, ex_case)}
+                               for r in idx.exact_search(needle, mode=ex_match, case=ex_case)]
+                    st.session_state.exact_info = {"needle": needle, "presence": presence,
+                                                   "matched": len(results)}
+                elif mode == "top-docs":
                     results = idx.top_docs_search(query, top_chunks=300,
                                                   top_docs=top_k, use_boost=use_boost)
                 elif mode == "semantic":
@@ -1256,12 +1324,16 @@ def page_search(idx: IndexManager):
                     results = idx.hybrid_search(query, top_k, use_boost=use_boost)
                 else:
                     results = idx.combined_search(query, top_k, use_boost=use_boost)
-            except RuntimeError as e:
-                st.error(str(e))
+            except (RuntimeError, ValueError, re.error) as e:
+                st.error(f"Bad regular expression: {e}" if isinstance(e, re.error) else str(e))
                 results = []
 
         if author_filter != "All authors":
             results = [r for r in results if doc_author(r["doc_name"]) == author_filter]
+        if st.session_state.exact_info is not None:
+            st.session_state.exact_info["filtered"] = len(results)
+            st.session_state.exact_info["author"] = author_filter
+            results = results[:top_k]
 
         for key in list(st.session_state.keys()):
             if key.startswith("sel_"):
@@ -1273,8 +1345,12 @@ def page_search(idx: IndexManager):
 
     with results_col:
         results = st.session_state.get("search_results", [])
+        exact_info = st.session_state.get("exact_info")
+        if exact_info:
+            _exact_presence_panel(exact_info, len(results))
         if not results:
-            st.info("Run a search to see results.")
+            if not exact_info:
+                st.info("Run a search to see results.")
         else:
             sel_col1, sel_col2, sel_col3, sel_col4 = st.columns([1, 1, 1.5, 0.5])
             with sel_col1:
@@ -1326,7 +1402,7 @@ def page_search(idx: IndexManager):
 
             _rc, _hc = st.columns([9, 1])
             with _rc:
-                st.caption(f"{len(results)} results")
+                st.caption(f"{len(results)} results" + (" (most occurrences first)" if exact_info else ""))
             with _hc:
                 if st.button("?", key="help_score_badges", use_container_width=True):
                     st.session_state["show_help_badges"] = not st.session_state.get("show_help_badges", False)
@@ -1342,7 +1418,8 @@ def page_search(idx: IndexManager):
                     "| `45% ⬡ ×2 ★` | Hybrid + boosted | RRF score (unboosted); ×2 ★ = authority multiplier applied to its rank |\n"
                     "| `45% ✦` | Embedding | Cosine similarity on sentence-transformer vectors |\n"
                     "| `6 hits phrase ×3 ★` | Keyword | Hit count; *phrase* = the words appear together; ×3 = authority multiplier |\n"
-                    "| `3.42 ×3 ★` | BM25 | BM25 relevance score |\n\n"
+                    "| `3.42 ×3 ★` | BM25 | BM25 relevance score |\n"
+                    "| `4 hits` | Exact phrase | Occurrences of the phrase in the passage (no boost) |\n\n"
                     "**Authority boost (★):** Bowen ×3, Kerr and Papero ×2, "
                     "Family Systems Journal ×1.3, named theorists ×1.15. The score shown is the raw "
                     "relevance; the multiplier moves the result up the ranking (a ×3 result in 30th place "

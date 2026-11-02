@@ -98,19 +98,9 @@ def find(phrase: str, mode: str, case: bool, as_json: bool) -> int:
         print(json.dumps(p, ensure_ascii=False, indent=1))
         return 0 if p["found"] else 1
 
-    label = f'"{phrase}" ({mode} match{", case-sensitive" if case else ""})'
+    print(exact_match.presence_summary(p, phrase))
     if not p["found"]:
-        loose = (f" ({p['loose_total_hits']} loose)" if mode == "word" else "")
-        print(f"{label}: 0 occurrences in the indexed text{loose} "
-              f"— {p['corpus_chunks']:,} passages scanned")
         return 1
-    loose = ""
-    if mode == "word" and p["loose_total_hits"] != p["total_hits"]:
-        loose = f"; {p['loose_total_hits']} counting partial-word (loose) matches"
-    print(f"{label}: {p['total_hits']} occurrence{'s' if p['total_hits'] != 1 else ''} in "
-          f"{p['chunk_count']} passage{'s' if p['chunk_count'] != 1 else ''} across "
-          f"{p['doc_count']} document{'s' if p['doc_count'] != 1 else ''} "
-          f"(of {p['corpus_chunks']:,} passages){loose}")
     for d in p["docs"]:
         ocr = ""
         if d["ocr"]:

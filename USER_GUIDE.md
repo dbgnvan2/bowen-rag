@@ -67,11 +67,29 @@ Choose the mode that matches how you are thinking about your question.
 | **Both** | When you are unsure whether vocabulary will match | Merges Semantic and Keyword results. Broader than either alone, but the combined score scale can be uneven — try Top Docs first. |
 | **Embedding** | Conceptual questions where your phrasing may differ from the source | Uses a sentence-transformer neural model (`all-MiniLM-L6-v2`) to find passages that are *semantically similar* even if the exact words don't match. A query about "emotional autonomy" will find passages about "differentiation of self". Requires the embedding index to be built. |
 | **Hybrid** | Highest-quality results for complex questions | Combines BM25 (vocabulary-based) and Embedding (semantic) using Reciprocal Rank Fusion. Best overall quality for nuanced research questions. Requires the embedding index. |
+| **Exact phrase** | "Is this term in the sources, and where?" | Lists every passage that contains the phrase, not a top-ranked selection. See [Exact phrase search](#exact-phrase-search). |
 
 **Recommended workflow:**
 - Start with **Top Docs** or **Hybrid** for most questions.
 - Switch to **Keyword** when searching for a specific name, phrase, or technical term.
 - Use **Embedding** when your query is conceptual and you are not sure how Bowen would have phrased it.
+- Use **Exact phrase** to find out whether, and where, a term occurs at all.
+
+### Exact phrase search
+
+Choose **Exact phrase (every passage)** in the Mode list (desktop app: the **Exact phrase (every passage)** mode button). The search scans every passage in the corpus, makes no AI call, and shows:
+
+- **The corpus counts** — for example *"emotional programming" (word match): 91 occurrences in 65 passages across 22 documents (of 14,083 passages); 93 counting partial-word (loose) matches*. A loose match is the phrase inside a longer word ("emotional programmings") or with a lost space. These counts are always for the whole corpus, even when the list below is shorter. On the web page they are at the top of the results; in the desktop app they are in the status bar and in the Preview pane.
+- **Documents containing it** — each document with its number of hits and passages, the locators (Ch. N ¶ M, ¶ M, or p. X) and an **OCR** flag for scanned documents. On the web page this is an expandable list; in the desktop app it is in the Preview pane until you click a passage.
+- **The passages** — most occurrences first, up to the **Results** number. The excerpt on each card is taken from around the first match, and the phrase is marked (bold on the web page, yellow in the desktop Preview). Open a passage (**↗** on the web page, click the card in the desktop app) to read it with every occurrence marked. You can stage passages for a Report as in any other mode.
+
+Options (on the web page they appear when Exact phrase is chosen; in the desktop app they are just below the mode buttons):
+- **Match: word** (default) — whole words: "self" does not match "yourself"; "differentiation" matches "self-differentiation".
+- **Match: substring** — anywhere, including inside words: "nodal event" also matches "nodal events".
+- **Match: regex** — a Python regular expression, for example `programm(ed|ing)`. An invalid expression is reported as an error, not as "no matches".
+- **Case-sensitive** — off by default.
+
+Authority boost does not apply in this mode. The author filter narrows the passage list, and a note says how many of the passages are by that author; the counts stay corpus-wide. Line breaks, curly quotes and ligatures in the source do not stop a match. An occurrence broken across a line-end hyphen ("emo- tional") is not found; a few are missed this way.
 
 ### Authority boost
 
@@ -270,6 +288,7 @@ Each search result shows a score badge indicating how well the result matched yo
 | `45% ×3 ✦` | Embedding | Cosine similarity on sentence-transformer vectors |
 | `6 hits phrase ×3 ★` | Keyword | Hit count; *phrase* = your words appear together; ×3 = authority multiplier |
 | `3.42 ×3 ★` | BM25 | BM25 relevance score |
+| `4 hits` | Exact phrase | Occurrences of the phrase in that passage; no authority boost |
 
 **The ★ and multiplier:** the number is always the unboosted relevance. When the authority boost is on, the multiplier (×3 Bowen, ×2 Kerr and Papero, ×1.3, ×1.15) divides the result's place in the ranking: a ×3 result that is 30th by relevance is placed level with the 10th. So a boosted result can appear above one with a higher number. In Keyword mode, passages with your words together (*phrase*) always come before passages with the words apart. Turn off Authority boost to rank by relevance only.
 
@@ -518,6 +537,8 @@ python3 bowen_ask.py --find "programm(ed|ing)" --mode regex --json
 ```
 
 Documents are listed by number of hits, with the passages and their locators (Ch. N ¶ M or p. X) and an OCR flag for scanned documents. `--mode` is `word` (default: whole words, so "self" does not match "yourself"), `substring` or `regex`; `--case` makes the match case-sensitive; `--json` prints machine-readable output. Exit codes: 0 found, 1 not found, 2 empty phrase or invalid regular expression, 4 the index could not be read.
+
+The same lookup is in both apps as the **Exact phrase** search mode (see [Exact phrase search](#exact-phrase-search)); the first line of `--find` output is the same summary the apps show.
 
 Without `--find`, `bowen_ask.py` writes a report as before; the EXACT-MATCH VERIFICATION note is printed at the top of its output as lines starting with "> ".
 

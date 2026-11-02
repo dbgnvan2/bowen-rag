@@ -488,12 +488,84 @@ def verification_block(presence_by_phrase: dict, provided: list, reason: str,
     return "\n".join(lines)
 
 
-def highlight(text: str, phrase: str, mark: str = "**") -> str:
-    """Wrap each occurrence of `phrase` in raw `text` with `mark` (case-insensitive;
-    whitespace in the phrase matches any whitespace run, so soft-wraps still match).
+def match_spans(text: str, needle: str, mode: str = "word", case: bool = False) -> list:
+    """(start, end) of each occurrence of `needle` in the raw `text`, for highlighting.
+
+    Purpose: mark matches in the text as stored (with its line breaks), by the same
+        word / substring / regex rules as ExactIndex.scan.
+    Spec:    docs/spec_exact_match_search_v2.md#E9
+    Tests:   test_exact_match.py::TestE9Display
+
+    Whitespace in a word/substring needle matches any whitespace run, so a phrase split
+    by a soft-wrap is still marked. A match split by a "-\\n" hyphenation break, or one whose
+    stored text differs from the needle only by normalisation (curly quotes, ligatures),
+    is counted by scan() but not marked here. A bad regex raises re.error.
+    """
+    flags = 0 if case else re.I
+    if mode == "regex":
+        rx = re.compile(needle, flags)
+    else:
+        n = normalize(needle, case=True)
+        if not n:
+            return []
+        p = re.escape(n).replace(r"\ ", r"\s+")
+        if mode == "word":
+            p = f"(?<![A-Za-z0-9]){p}(?![A-Za-z0-9])"
+        rx = re.compile(p, flags)
+    return [(m.start(), m.end()) for m in rx.finditer(text) if m.end() > m.start()]
+
+
+def highlight(text: str, phrase: str, mark: str = "**", mode: str = "word",
+              case: bool = False) -> str:
+    """`text` with each match of `phrase` wrapped in `mark` (Markdown bold by default).
 
     Spec:  docs/spec_exact_match_search_v2.md#E9
     Tests: test_exact_match.py::TestCarriedOver::test_highlight
     """
-    p = re.escape(normalize(phrase)).replace(r"\ ", r"\s+")
-    return re.sub(f"({p})", lambda m: f"{mark}{m.group(1)}{mark}", text, flags=re.I)
+    out, pos = [], 0
+    for a, b in match_spans(text, phrase, mode, case):
+        out += [text[pos:a], mark, text[a:b], mark]
+        pos = b
+    return "".join(out) + text[pos:]
+
+
+def snippet(text: str, needle: str, mode: str = "word", case: bool = False,
+            width: int = 220, mark: str = "") -> str:
+    """About `width` characters of `text` around the first match, whitespace collapsed,
+    with the matches wrapped in `mark` when it is given. Falls back to the start of the
+    text when no match can be marked (for example one split by a hyphenation break).
+
+    Purpose: a result card shows where the phrase is, not the first 220 characters.
+    Spec:    docs/spec_exact_match_search_v2.md#E9
+    Tests:   test_exact_match.py::TestE9Display::test_e9_snippet_centres_on_match
+    """
+    spans = match_spans(text, needle, mode, case)
+    a = max(0, spans[0][0] - width // 3) if spans else 0
+    b = min(len(text), a + width)
+    piece = text[a:b]
+    if mark:
+        piece = highlight(piece, needle, mark, mode, case)
+    piece = _WS.sub(" ", piece).strip()
+    return ("…" if a > 0 else "") + piece + ("…" if b < len(text) else "")
+
+
+def presence_summary(p: dict, phrase: str) -> str:
+    """One line stating the corpus counts from ExactIndex.presence (shared by
+    bowen_ask.py --find and both apps' Exact phrase search).
+
+    Spec:  docs/spec_exact_match_search_v2.md#E7, #E9
+    Tests: test_exact_match.py::TestE7FindCli, TestE9Display::test_e9_presence_summary
+    """
+    mode = p["mode"]
+    label = f'"{phrase}" ({mode} match{", case-sensitive" if p["case"] else ""})'
+    if not p["found"]:
+        loose = f" ({p['loose_total_hits']} loose)" if mode == "word" else ""
+        return (f"{label}: 0 occurrences in the indexed text{loose} "
+                f"— {p['corpus_chunks']:,} passages scanned")
+    loose = ""
+    if mode == "word" and p["loose_total_hits"] != p["total_hits"]:
+        loose = f"; {p['loose_total_hits']} counting partial-word (loose) matches"
+    return (f"{label}: {p['total_hits']} occurrence{'s' if p['total_hits'] != 1 else ''} in "
+            f"{p['chunk_count']} passage{'s' if p['chunk_count'] != 1 else ''} across "
+            f"{p['doc_count']} document{'s' if p['doc_count'] != 1 else ''} "
+            f"(of {p['corpus_chunks']:,} passages){loose}")
