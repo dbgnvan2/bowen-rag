@@ -1,0 +1,48 @@
+LiteralIndex build: 1.04s for 14,083 chunks
+
+phrase                                         ms   occ chunks  docs
+emotional programming                        41.0    93     66    22
+emotional contact                            40.9   242    181    72
+emotional connection                         40.3    19     19    18
+nodal events                                 30.6    40     36    18
+nodal event                                  30.1    52     44    23
+multigenerational transmission process       19.3   136    122    52
+societal regression                          29.1   145    124    49
+emotional cutoff                             42.9   278    196    74
+I-position                                   34.9    34     19    11
+differentiation of self scale                22.8    28     27    15
+basic self                                   17.0    38     22    13
+pseudo-self                                  18.7   229    123    48
+pseudo self                                  18.5    18     12    10
+the family projection process                42.2   207    160    59
+undifferentiated family ego mass             20.0    51     43    25
+overfunctioning                              31.3   230    172    74
+emotional regression                         41.1    98     80    20
+emotional shock wave                         40.4    25     20    11
+sibling position                             29.0   293    189    71
+this phrase is not in the corpus             39.4     0      0     0
+
+quoted keyword_search vs literal presence (documents):
+  emotional programming        keyword docs= 22  literal docs= 22
+  nodal events                 keyword docs= 18  literal docs= 18
+  pseudo-self                  keyword docs= 48  literal docs= 48
+  emotional shock wave         keyword docs= 11  literal docs= 11
+
+phrase chunks handed to the LLM, before -> after ensure_literal_hits(reserve=5):
+  chat bm25 k=12 boost            0/12 ->  5/12
+  chat keyword k=12 boost         0/12 ->  5/12
+  report top-docs k=30 boost      5/30 ->  5/30
+  search semantic k=15 boost     12/15 -> 12/15
+
+CORPUS CHECK: the exact phrase "emotional programming" occurs 93 times in 66 passages across 22 documents in the indexed corpus; 0 of the excerpts provided below contain it verbatim.
+CORPUS CHECK: the exact phrase "emotional connection" occurs 19 times in 19 passages across 18 documents in the indexed corpus; 0 of the excerpts provided below contain it verbatim.
+
+Top 8 literal hits for 'emotional programming':
+  4x  Bowen Theory Secrets_Chapter09_Emotional_Programming    ¶1  …henomenon of emotional programming occurs through the transmission of info…
+  4x  Bowen Theory Secrets_Chapter09_Emotional_Programming    ¶15  …multaneously with the parent triggering emotional programming in the child. as i…
+  4x  FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-17 ¶308  … programming plays a role in the differences in social organization between spec…
+  3x  FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-17 ¶180  …will be discussed. the first process is emotional programming. emotional program…
+  3x  FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-17 ¶184  …nce system. behavioral transmission and emotional programming both involve learn…
+  3x  FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory       ¶180  …will be discussed. the first process is emotional programming. emotional program…
+  3x  FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory       ¶184  …nce system. behavioral transmission and emotional programming both involve learn…
+  2x  Bowen Theory Secrets_Chapter09_Emotional_Programming    ¶44  …y laced with anxiety it ratchets up the emotional programming of the child in ar…

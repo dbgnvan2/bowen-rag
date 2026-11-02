@@ -1,0 +1,286 @@
+loaded {'chunks': 14083, 'documents': 401, 'embeddings': True} 4.3s
+
+GROUND TRUTH: 66 chunks in 22 docs contain 'emotional programming' literally
+    14.2 galloway How Emotions Are Made x 3
+    Bowen Theory Secrets_Chapter04_Patterns_of_Emotional_Functioning x 2
+    Bowen Theory Secrets_Chapter06_Emotional_Regression x 1
+    Bowen Theory Secrets_Chapter09_Emotional_Programming x 8
+    Bowen Theory Secrets_Chapter10_Chronic_Anxiety x 1
+    Bowen Theory Secrets_Chapter11_The_Multigenerational_Family_Organism x 3
+    Bowen Theory Secrets_Chapter14_Societal_Emotional_Process x 1
+    Bowen Theory Secrets_Chapter15_Key_Ingredients_in_the_Process_of_Differentiation x 1
+    Bowen Theory Secrets_Chapter16_Personal_Vignettes_of_the_Process_of_Differentiation x 2
+    Bowen Theory Secrets_Chapter19_The_Unabomber_and_His_Family x 2
+    Bowen Theory Secrets_Chapter20_Gary_Gilmore_and_His_Family x 1
+    Bowen Theory Secrets_Chapter21_Adam_Lanza_and_His_Family x 1
+    Bowen Theory Secrets_Epilogue_Applying_Bowen_Theory_to_My_Own_Family x 1
+    Bowen Theory Secrets_Introduction_Introduction x 1
+    FSJ 13.1 Kerr How to Tame a Fox x 1
+    FSJ 14.2 Galloway How Emotions Are Made x 3
+    FSJ 15.2 Klever Divergent Spouse Functioning x 1
+    FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175 x 14
+    FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory x 15
+    FSJ 9.1 Kerr FROM THE EDITOR x 1
+    FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science x 1
+    Family Therapy Style Art and Theory Guerin  no date x 2
+
+mode        | k  | boost | query                                              | hits/k | docs with phrase among results
+hybrid      | 15 | True  | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 15 | False | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 12 | True  | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 12 | False | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 30 | True  | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 30 | False | emotional programming                              | ERROR 403 Forbidden
+top-docs    | 15 | True  | emotional programming                              | 11/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 15 | False | emotional programming                              | 14/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 12 | True  | emotional programming                              |  8/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+top-docs    | 12 | False | emotional programming                              | 11/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 30 | True  | emotional programming                              | 17/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 15.2 Klever Divergent Sp', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.1 Kerr FROM THE EDITOR', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 30 | False | emotional programming                              | 22/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'Bowen Theory Secrets_Introdu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 15.2 Klever Divergent Sp', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.1 Kerr FROM THE EDITOR', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+semantic    | 15 | True  | emotional programming                              | 12/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 15 | False | emotional programming                              | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 12 | True  | emotional programming                              |  9/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 12 | False | emotional programming                              | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 30 | True  | emotional programming                              | 23/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 30 | False | emotional programming                              | 30/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+keyword     | 15 | True  | emotional programming                              |  0/15  | []
+keyword     | 15 | False | emotional programming                              |  4/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+keyword     | 12 | True  | emotional programming                              |  0/12  | []
+keyword     | 12 | False | emotional programming                              |  4/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+keyword     | 30 | True  | emotional programming                              |  0/30  | []
+keyword     | 30 | False | emotional programming                              |  4/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+both        | 15 | True  | emotional programming                              |  0/15  | []
+both        | 15 | False | emotional programming                              |  4/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 Kerr Bowen Theory an']
+both        | 12 | True  | emotional programming                              |  0/12  | []
+both        | 12 | False | emotional programming                              |  4/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 Kerr Bowen Theory an']
+both        | 30 | True  | emotional programming                              |  1/30  | ['FSJ 4.2 Kerr Bowen Theory an']
+both        | 30 | False | emotional programming                              |  4/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+bm25        | 15 | True  | emotional programming                              |  3/15  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+bm25        | 15 | False | emotional programming                              | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 12 | True  | emotional programming                              |  0/12  | []
+bm25        | 12 | False | emotional programming                              | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | True  | emotional programming                              | 18/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | False | emotional programming                              | 27/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+embedding   | 15 | True  | emotional programming                              | ERROR 403 Forbidden
+embedding   | 15 | False | emotional programming                              | ERROR 403 Forbidden
+embedding   | 12 | True  | emotional programming                              | ERROR 403 Forbidden
+embedding   | 12 | False | emotional programming                              | ERROR 403 Forbidden
+embedding   | 30 | True  | emotional programming                              | ERROR 403 Forbidden
+embedding   | 30 | False | emotional programming                              | ERROR 403 Forbidden
+hybrid      | 15 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 15 | False | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 12 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 12 | False | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 30 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 30 | False | What is emotional programming?                     | ERROR 403 Forbidden
+top-docs    | 15 | True  | What is emotional programming?                     | 11/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 15 | False | What is emotional programming?                     | 14/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 12 | True  | What is emotional programming?                     |  8/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+top-docs    | 12 | False | What is emotional programming?                     | 11/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 30 | True  | What is emotional programming?                     | 17/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 15.2 Klever Divergent Sp', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.1 Kerr FROM THE EDITOR', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 30 | False | What is emotional programming?                     | 22/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'Bowen Theory Secrets_Introdu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 15.2 Klever Divergent Sp', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.1 Kerr FROM THE EDITOR', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+semantic    | 15 | True  | What is emotional programming?                     | 12/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 15 | False | What is emotional programming?                     | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 12 | True  | What is emotional programming?                     |  9/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 12 | False | What is emotional programming?                     | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 30 | True  | What is emotional programming?                     | 23/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 30 | False | What is emotional programming?                     | 30/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+keyword     | 15 | True  | What is emotional programming?                     |  0/15  | []
+keyword     | 15 | False | What is emotional programming?                     |  0/15  | []
+keyword     | 12 | True  | What is emotional programming?                     |  0/12  | []
+keyword     | 12 | False | What is emotional programming?                     |  0/12  | []
+keyword     | 30 | True  | What is emotional programming?                     |  0/30  | []
+keyword     | 30 | False | What is emotional programming?                     |  0/30  | []
+both        | 15 | True  | What is emotional programming?                     |  0/15  | []
+both        | 15 | False | What is emotional programming?                     |  0/15  | []
+both        | 12 | True  | What is emotional programming?                     |  0/12  | []
+both        | 12 | False | What is emotional programming?                     |  0/12  | []
+both        | 30 | True  | What is emotional programming?                     |  0/30  | []
+both        | 30 | False | What is emotional programming?                     |  0/30  | []
+bm25        | 15 | True  | What is emotional programming?                     |  3/15  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+bm25        | 15 | False | What is emotional programming?                     | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 12 | True  | What is emotional programming?                     |  0/12  | []
+bm25        | 12 | False | What is emotional programming?                     | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | True  | What is emotional programming?                     | 18/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | False | What is emotional programming?                     | 27/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+embedding   | 15 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+embedding   | 15 | False | What is emotional programming?                     | ERROR 403 Forbidden
+embedding   | 12 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+embedding   | 12 | False | What is emotional programming?                     | ERROR 403 Forbidden
+embedding   | 30 | True  | What is emotional programming?                     | ERROR 403 Forbidden
+embedding   | 30 | False | What is emotional programming?                     | ERROR 403 Forbidden
+hybrid      | 15 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+hybrid      | 15 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+hybrid      | 12 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+hybrid      | 12 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+hybrid      | 30 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+hybrid      | 30 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+top-docs    | 15 | True  | What does Bowen theory say about emotional program |  4/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+top-docs    | 15 | False | What does Bowen theory say about emotional program | 13/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+top-docs    | 12 | True  | What does Bowen theory say about emotional program |  4/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+top-docs    | 12 | False | What does Bowen theory say about emotional program | 11/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+top-docs    | 30 | True  | What does Bowen theory say about emotional program |  5/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+top-docs    | 30 | False | What does Bowen theory say about emotional program | 20/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'Bowen Theory Secrets_Introdu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 15.2 Klever Divergent Sp', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.1 Kerr FROM THE EDITOR', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+semantic    | 15 | True  | What does Bowen theory say about emotional program |  8/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+semantic    | 15 | False | What does Bowen theory say about emotional program | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 12 | True  | What does Bowen theory say about emotional program |  7/12  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+semantic    | 12 | False | What does Bowen theory say about emotional program | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+semantic    | 30 | True  | What does Bowen theory say about emotional program | 13/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+semantic    | 30 | False | What does Bowen theory say about emotional program | 30/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 13.1 Kerr How to Tame a ', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+keyword     | 15 | True  | What does Bowen theory say about emotional program |  0/15  | []
+keyword     | 15 | False | What does Bowen theory say about emotional program |  0/15  | []
+keyword     | 12 | True  | What does Bowen theory say about emotional program |  0/12  | []
+keyword     | 12 | False | What does Bowen theory say about emotional program |  0/12  | []
+keyword     | 30 | True  | What does Bowen theory say about emotional program |  0/30  | []
+keyword     | 30 | False | What does Bowen theory say about emotional program |  0/30  | []
+both        | 15 | True  | What does Bowen theory say about emotional program |  0/15  | []
+both        | 15 | False | What does Bowen theory say about emotional program |  0/15  | []
+both        | 12 | True  | What does Bowen theory say about emotional program |  0/12  | []
+both        | 12 | False | What does Bowen theory say about emotional program |  0/12  | []
+both        | 30 | True  | What does Bowen theory say about emotional program |  0/30  | []
+both        | 30 | False | What does Bowen theory say about emotional program |  0/30  | []
+bm25        | 15 | True  | What does Bowen theory say about emotional program |  3/15  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+bm25        | 15 | False | What does Bowen theory say about emotional program | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 12 | True  | What does Bowen theory say about emotional program |  0/12  | []
+bm25        | 12 | False | What does Bowen theory say about emotional program | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | True  | What does Bowen theory say about emotional program | 18/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+bm25        | 30 | False | What does Bowen theory say about emotional program | 27/30  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+embedding   | 15 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+embedding   | 15 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+embedding   | 12 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+embedding   | 12 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+embedding   | 30 | True  | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+embedding   | 30 | False | What does Bowen theory say about emotional program | ERROR 403 Forbidden
+
+CHAT CONTEXT (hybrid, k=12, boost on) — does the phrase appear anywhere in the assembled context?
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_transports/default.py", line 98, in map_httpcore_exceptions
+    yield
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_transports/default.py", line 245, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/usr/local/lib/python3.13/site-packages/httpcore2/_sync/connection_pool.py", line 242, in handle_request
+    raise exc from None
+  File "/usr/local/lib/python3.13/site-packages/httpcore2/_sync/connection_pool.py", line 224, in handle_request
+    response = connection.handle_request(pool_request.request)
+  File "/usr/local/lib/python3.13/site-packages/httpcore2/_sync/http_proxy.py", line 286, in handle_request
+    raise ProxyError(msg)
+httpcore2.ProxyError: 403 Forbidden
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/claude/bowen_rag/repro_emotional_programming.py", line 58, in <module>
+    res = idx.hybrid_search(q, 12, use_boost=True)
+  File "/home/claude/bowen_rag/streamlit_app.py", line 484, in hybrid_search
+    embed_results = self.embedding_search(query, pool, use_boost=use_boost)
+  File "/home/claude/bowen_rag/streamlit_app.py", line 511, in embedding_search
+    self.embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/sentence_transformers/util/decorators.py", line 46, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/sentence_transformers/sentence_transformer/model.py", line 193, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        model_name_or_path=model_name_or_path,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+        default_prompt_name=default_prompt_name,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/sentence_transformers/base/model.py", line 256, in __init__
+    modules, self.module_kwargs = self._load_modules(
+                                  ~~~~~~~~~~~~~~~~~~^
+        model_name_or_path,
+        ^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        config_kwargs=config_kwargs,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/sentence_transformers/base/model.py", line 1190, in _load_modules
+    modules_json_path = load_file_path(
+        model_name_or_path,
+    ...<4 lines>...
+        local_files_only=local_files_only,
+    )
+  File "/usr/local/lib/python3.13/site-packages/sentence_transformers/util/file_io.py", line 208, in load_file_path
+    return hf_hub_download(
+        model_name_or_path,
+    ...<6 lines>...
+        local_files_only=local_files_only,
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_http.py", line 276, in _inner
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/file_download.py", line 1047, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+        # Destination
+    ...<15 lines>...
+        dry_run=dry_run,
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/file_download.py", line 1117, in _hf_hub_download_to_cache_dir
+    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
+                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        repo_id=repo_id,
+        ^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        tree_cache_folder=storage_folder,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/file_download.py", line 1763, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+        url=url,
+    ...<4 lines>...
+        retry_on_errors=retry_on_errors,
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_validators.py", line 89, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/file_download.py", line 1670, in get_hf_file_metadata
+    response = _httpx2_follow_hub_redirects_with_backoff(
+        method="HEAD", url=url, headers=hf_headers, timeout=timeout, retry_on_errors=retry_on_errors
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_http.py", line 764, in _httpx2_follow_hub_redirects_with_backoff
+    response = http_backoff(
+        method=method,
+    ...<3 lines>...
+        **no_retry_kwargs,
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_http.py", line 637, in http_backoff
+    return next(
+        _http_backoff_base(
+    ...<9 lines>...
+        )
+    )
+  File "/usr/local/lib/python3.13/site-packages/huggingface_hub/utils/_http.py", line 545, in _http_backoff_base
+    response = client.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_client.py", line 797, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_client.py", line 980, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_client.py", line 1008, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_client.py", line 1043, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_client.py", line 1076, in _send_single_request
+    response = transport.handle_request(request)
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_transports/default.py", line 244, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/httpx2/_transports/default.py", line 115, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx2.ProxyError: 403 Forbidden

@@ -1,0 +1,44 @@
+GROUND TRUTH: 66 chunks in 22 docs contain 'emotional programming' literally
+hybrid      | 15 | True  | emotional programming                              |  0/15  | []
+hybrid      | 15 | False | emotional programming                              | 15/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+hybrid      | 12 | True  | emotional programming                              |  0/12  | []
+hybrid      | 12 | False | emotional programming                              | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+hybrid      | 30 | True  | emotional programming                              |  2/30  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+hybrid      | 30 | False | emotional programming                              | 27/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+embedding   | 15 | True  | emotional programming                              |  0/15  | []
+embedding   | 15 | False | emotional programming                              | 11/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+embedding   | 12 | True  | emotional programming                              |  0/12  | []
+embedding   | 12 | False | emotional programming                              |  9/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+embedding   | 30 | True  | emotional programming                              |  0/30  | []
+embedding   | 30 | False | emotional programming                              | 14/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+hybrid      | 15 | True  | What is emotional programming?                     |  0/15  | []
+hybrid      | 15 | False | What is emotional programming?                     | 15/15  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+hybrid      | 12 | True  | What is emotional programming?                     |  0/12  | []
+hybrid      | 12 | False | What is emotional programming?                     | 12/12  | ['Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+hybrid      | 30 | True  | What is emotional programming?                     |  3/30  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+hybrid      | 30 | False | What is emotional programming?                     | 28/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ', 'Family Therapy Style Art and']
+embedding   | 15 | True  | What is emotional programming?                     |  0/15  | []
+embedding   | 15 | False | What is emotional programming?                     | 12/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+embedding   | 12 | True  | What is emotional programming?                     |  0/12  | []
+embedding   | 12 | False | What is emotional programming?                     | 11/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+embedding   | 30 | True  | What is emotional programming?                     |  0/30  | []
+embedding   | 30 | False | What is emotional programming?                     | 16/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+hybrid      | 15 | True  | What does Bowen theory say about emotional program |  0/15  | []
+hybrid      | 15 | False | What does Bowen theory say about emotional program | 12/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+hybrid      | 12 | True  | What does Bowen theory say about emotional program |  0/12  | []
+hybrid      | 12 | False | What does Bowen theory say about emotional program |  9/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+hybrid      | 30 | True  | What does Bowen theory say about emotional program |  3/30  | ['FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+hybrid      | 30 | False | What does Bowen theory say about emotional program | 20/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'Bowen Theory Secrets_Epilogu', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an', 'FSJ 9.2 Bowen Subjectivity, ']
+embedding   | 15 | True  | What does Bowen theory say about emotional program |  0/15  | []
+embedding   | 15 | False | What does Bowen theory say about emotional program |  6/15  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+embedding   | 12 | True  | What does Bowen theory say about emotional program |  0/12  | []
+embedding   | 12 | False | What does Bowen theory say about emotional program |  6/12  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+embedding   | 30 | True  | What does Bowen theory say about emotional program |  0/30  | []
+embedding   | 30 | False | What does Bowen theory say about emotional program |  7/30  | ['14.2 galloway How Emotions A', 'Bowen Theory Secrets_Chapter', 'FSJ 14.2 Galloway How Emotio', 'FSJ 4.2 (3) Kerr, M. Bowen T', 'FSJ 4.2 Kerr Bowen Theory an']
+CHAT CONTEXT (hybrid, k=12, boost on) — does the phrase appear anywhere in the assembled context?
+  emotional programming                                   -> phrase occurrences in context: 0, chunks: 12
+  What is emotional programming?                          -> phrase occurrences in context: 0, chunks: 12
+  What does Bowen theory say about emotional programming? -> phrase occurrences in context: 0, chunks: 12
+KEYWORD with quotes:
+  k=15: 15 results, 15 contain phrase; docs=15
+  k=30: 22 results, 22 contain phrase; docs=22

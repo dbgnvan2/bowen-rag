@@ -1,0 +1,73 @@
+Authority multiplier of each document containing the phrase:
+  x1.0  14.2 galloway How Emotions Are Made
+  x1.0  Bowen Theory Secrets_Chapter04_Patterns_of_Emotional_Functioning
+  x1.0  Bowen Theory Secrets_Chapter06_Emotional_Regression
+  x1.0  Bowen Theory Secrets_Chapter09_Emotional_Programming
+  x1.0  Bowen Theory Secrets_Chapter10_Chronic_Anxiety
+  x1.0  Bowen Theory Secrets_Chapter11_The_Multigenerational_Family_Organism
+  x1.0  Bowen Theory Secrets_Chapter14_Societal_Emotional_Process
+  x1.0  Bowen Theory Secrets_Chapter15_Key_Ingredients_in_the_Process_of_Differentiation
+  x1.0  Bowen Theory Secrets_Chapter16_Personal_Vignettes_of_the_Process_of_Differentiation
+  x1.0  Bowen Theory Secrets_Chapter19_The_Unabomber_and_His_Family
+  x1.0  Bowen Theory Secrets_Chapter20_Gary_Gilmore_and_His_Family
+  x1.0  Bowen Theory Secrets_Chapter21_Adam_Lanza_and_His_Family
+  x1.0  Bowen Theory Secrets_Epilogue_Applying_Bowen_Theory_to_My_Own_Family
+  x1.0  Bowen Theory Secrets_Introduction_Introduction
+  x1.3  FSJ 13.1 Kerr How to Tame a Fox
+  x1.3  FSJ 14.2 Galloway How Emotions Are Made
+  x1.3  FSJ 15.2 Klever Divergent Spouse Functioning
+  x1.3  FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+  x1.3  FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+  x1.3  FSJ 9.1 Kerr FROM THE EDITOR
+  x1.3  FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science
+  x1.15 Family Therapy Style Art and Theory Guerin  no date
+
+BM25 boost=True k=12 — the 12 winners:
+    24.13 x3.0  emotional=  0 programm= 3 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    23.43 x3.0  emotional=  5 programm= 2 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    22.71 x3.0  emotional=  2 programm= 3 phrase=no  Family Evaluation_Chapter08_Multigenerational_Emotional_Proc
+    18.85 x3.0  emotional=  1 programm= 1 phrase=no  Family Evaluation_Chapter05_Chronic_Anxiety
+    17.03 x3.0  emotional=  3 programm= 2 phrase=no  Family Evaluation_Chapter08_Multigenerational_Emotional_Proc
+    16.81 x3.0  emotional=  3 programm= 1 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    16.27 x3.0  emotional=  2 programm= 1 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    15.93 x3.0  emotional=  1 programm= 2 phrase=no  BOWEN-KERR INTERVIEW SERIES #7 - OBSTACLES TO SYSTEMS
+    15.71 x3.0  emotional=  1 programm= 1 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    15.64 x3.0  emotional=  1 programm= 1 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+    15.03 x3.0  emotional=  0 programm= 2 phrase=no  BOWEN-KERR INTERVIEW SERIES #7 - OBSTACLES TO SYSTEMS
+    14.96 x3.0  emotional=  0 programm= 2 phrase=no  Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+
+  best raw BM25 among phrase chunks: 10.77 (doc Bowen Theory Secrets_Chapter09_Emotional_Programmi, x1.0)
+  12th boosted score: 14.96
+  rank of the best phrase chunk in the BOOSTED BM25 list: 25
+
+KEYWORD boost=True k=15 — winners:
+  12 hits ×3 ★       emotional= 12 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter09_The_Use_o
+  11 hits ×3 ★       emotional= 11 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter14_Family Th
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  BOWEN-KERR INTERVIEW SERIES #13 - THE CHANGING WORLD AN
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  Family Evaluation_Chapter02_The_Emotional_System
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  Family Evaluation_Chapter09_Symptom_Development
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter16_Theory_in
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter18_Society_C
+  10 hits ×3 ★       emotional= 10 programm= 0 phrase=no  Family and Society Kerr 
+  9 hits ×3 ★        emotional=  9 programm= 0 phrase=no  Family Evaluation_Chapter10_Family_Evaluation_Chapter
+  9 hits ×3 ★        emotional=  9 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter10_Family Th
+  9 hits ×3 ★        emotional=  9 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter15_Family_Re
+  9 hits ×3 ★        emotional=  9 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter21_On_the_Di
+  9 hits ×3 ★        emotional=  9 programm= 0 phrase=no  Family Therapy in_Clinical_Practice_Chapter22_Toward_th
+  8 hits ×3 ★        emotional=  8 programm= 0 phrase=no  Bowen Family Systems Theory_Chapter04_Family_Systems_Th
+  8 hits ×3 ★        emotional=  8 programm= 0 phrase=no  Chronic Anxiety and Defining Self Kerr 1988 09 The Atla
+
+keyword_search terms for 'What is emotional programming?' -> ['emotional', 'programming?'] | stems of last: ['programming?']
+
+SEMANTIC boost=True k=15 — non-phrase winners:
+  47% ★      emotional=  0 programm= 3 Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+  46% ★      emotional=  2 programm= 3 Family Evaluation_Chapter08_Multigenerational_Emotional_Proc
+  45% ★      emotional=  5 programm= 2 Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+
+TOP-DOCS boost=True k=15 — non-phrase winners:
+  121% ★     Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+  83% ★      Family Evaluation_Chapter08_Multigenerational_Emotional_Proc
+  54% ★      BOWEN-KERR INTERVIEW SERIES #7 - OBSTACLES TO SYSTEMS
+  52% ★      Family Evaluation_Chapter05_Chronic_Anxiety
+
+corpus counts: 'emotional'=12,769  'programming'=171  chunks with phrase=66
