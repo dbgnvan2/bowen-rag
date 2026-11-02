@@ -21,6 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 import citations  # shared citation-style formatting (no tkinter/streamlit deps)
+import authority  # authority tiers and the rank-based boost (spec E11)
 import exact_match  # exact term presence over the chunk text (spec E0-E5)
 import index_fingerprint  # ties embed_matrix.npy to the chunk text it was built from
 
@@ -90,55 +91,15 @@ DEEPSEEK_MODELS = [
 ]
 DEEPSEEK_BASE_URL = "https://api.deepseek.com/anthropic"
 
-# ── Authority tiers ────────────────────────────────────────────────────────────
-# Patterns matched against doc_name (case-insensitive prefix/substring).
-# Multiplier applied to raw TF-IDF score before ranking.
-_AUTHORITY_TIERS_DEFAULT = [
-    ("Family Therapy in_Clinical_Practice_Chapter",  3.0),
-    ("Family Evaluation",                             3.0),
-    ("Bowen Basic Series Tape",                       3.0),
-    ("BOWEN-KERR INTERVIEW SERIES",                   3.0),
-    ("Bowen Family Systems Theory",                   3.0),
-    ("Bowen on Triangles",                            3.0),
-    ("Bowen Theory and Therapy",                      3.0),
-    ("Chronic Anxiety and Defining",                  3.0),
-    ("Cancer and the Emotional System",               3.0),
-    ("Family and Society Kerr",                       3.0),
-    ("Family as a System Kerr",                       3.0),
-    ("Family Systems and Therapy Kerr",               3.0),
-    ("Physical Illness as the Family Emotional",      3.0),
-    ("Psychotherapy Past Present Future",             3.0),
-    ("Copy of ",                                      1.3),
-    ("Family Center Reports",                         1.3),
-    ("Papero",                                        1.15),
-    ("Friedman",                                      1.15),
-    ("Fogarty",                                       1.15),
-    ("Guerin",                                        1.15),
-    ("Toman",                                         1.15),
-]
+# ── Authority tiers ─────────────────────────────────────────────────────────
+# Editorial content: authority_tiers.yml (authority.DEFAULT_TIERS when the file is absent).
+# The multiplier divides a result's rank, not its score (spec E11 option b; authority.py).
+AUTHORITY_TIERS = tuple(authority.load_tiers(BASE_DIR / "authority_tiers.yml"))
 
-def _load_authority_tiers() -> list:
-    config = BASE_DIR / "authority_tiers.yml"
-    if not config.exists():
-        return _AUTHORITY_TIERS_DEFAULT
-    try:
-        import yaml
-        with open(config, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        return [(t["pattern"], float(t["multiplier"]))
-                for t in data.get("tiers", []) if "pattern" in t]
-    except Exception as e:
-        print(f"Warning: could not load authority_tiers.yml ({e}); using defaults.")
-        return _AUTHORITY_TIERS_DEFAULT
-
-AUTHORITY_TIERS = _load_authority_tiers()
 
 def authority_boost(doc_name: str) -> float:
-    dn = doc_name.lower()
-    for pattern, mult in AUTHORITY_TIERS:
-        if pattern.lower() in dn:
-            return mult
-    return 1.0
+    return authority.boost_for(doc_name, AUTHORITY_TIERS)
+
 
 def _load_author_map() -> list:
     config = BASE_DIR / "author_map.yml"
@@ -409,20 +370,13 @@ class IndexManager:
 
         qvec    = self.embed_model.encode([query])
         raw     = cosine_similarity(qvec, self.embed_matrix)[0]
-        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
-        boosted = np.array([
-            raw[i] * boost_fn(self.chunks[i]["doc_name"])
-            for i in range(len(self.chunks))
-        ])
-        idx = boosted.argsort()[::-1][:top_k]
+        weight = self._weight_fn(use_boost)
         return [
             {**self.chunks[i],
-             "score":       float(boosted[i]),
-             "score_label": (f"{boosted[i]*100:.0f}% ✦"
-                             if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0
-                             else f"{boosted[i]*100:.0f}%"),
+             "score":       float(raw[i]),
+             "score_label": f"{raw[i]*100:.0f}%" + (f" ×{weight(i):g} ✦" if weight(i) > 1.0 else ""),
              "mode":        "embedding"}
-            for i in idx if boosted[i] > 0
+            for i in authority.rank_order(raw, weight, top_k)
         ]
 
     # ── Search ────────────────────────────────────────────────────────────────
@@ -432,18 +386,13 @@ class IndexManager:
             return []
         qvec     = self.vectorizer.transform([query])
         raw      = cosine_similarity(qvec, self.matrix)[0]
-        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
-        boosted  = np.array([
-            raw[i] * boost_fn(self.chunks[i]["doc_name"])
-            for i in range(len(self.chunks))
-        ])
-        idx = boosted.argsort()[::-1][:top_k]
+        weight = self._weight_fn(use_boost)
         return [
             {**self.chunks[i],
-             "score":       float(boosted[i]),
-             "score_label": f"{boosted[i]*100:.0f}% ★" if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0 else f"{boosted[i]*100:.0f}%",
+             "score":       float(raw[i]),
+             "score_label": f"{raw[i]*100:.0f}%" + (f" ×{weight(i):g} ★" if weight(i) > 1.0 else ""),
              "mode":        "semantic"}
-            for i in idx if boosted[i] > 0
+            for i in authority.rank_order(raw, weight, top_k)
         ]
 
     @staticmethod
@@ -485,6 +434,17 @@ class IndexManager:
             variants.append(word[:-1])            # networks → network
         return variants
 
+    def _weight_fn(self, use_boost: bool):
+        """chunk index -> authority multiplier (1.0 everywhere when the boost is off).
+
+        Purpose: the weight that authority.rank_order divides each chunk's rank by (E11 b).
+        Spec:    docs/spec_exact_match_search_v2.md#E11
+        Tests:   test_authority.py::TestAppsUseRankBoost
+        """
+        if not use_boost:
+            return lambda i: 1.0
+        return lambda i: authority_boost(self.chunks[i]["doc_name"])
+
     def keyword_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         """Best chunk per document with every query term; phrase matches rank first.
 
@@ -495,27 +455,37 @@ class IndexManager:
         """
         if not self.loaded:
             return []
-        doc_best: dict = {}
+        best: dict = {}      # doc -> (phrase, hits, chunk index): best chunk per document
         for i, hits, phrase in self.exact.keyword_hits(query, self._STOP, self._stems):
-            c = self.chunks[i]
-            dn = c["doc_name"]
-            boost_val = authority_boost(dn) if use_boost else 1.0
-            score = hits * boost_val
-            tag = " phrase" if phrase else ""
-            label = f"{hits} hits{tag} ×{boost_val:g} ★" if boost_val > 1.0 else f"{hits} hits{tag}"
-            best = doc_best.get(dn)
-            if best is None or (phrase, score) > (best["_phrase"], best["score"]):
-                doc_best[dn] = {**c, "score": score, "score_label": label, "mode": "keyword",
-                                "_phrase": phrase}
-        out = sorted(doc_best.values(), key=lambda x: (x["_phrase"], x["score"]), reverse=True)
-        return [{k: v for k, v in r.items() if k != "_phrase"} for r in out[:top_k]]
+            dn = self.chunks[i]["doc_name"]
+            if dn not in best or (phrase, hits) > best[dn][:2]:
+                best[dn] = (phrase, hits, i)
+        out = []
+        for tier in (True, False):          # phrase matches first, then word-only matches
+            rows = [v for v in best.values() if v[0] is tier]
+            weight = lambda j: (authority_boost(self.chunks[rows[j][2]]["doc_name"])
+                                if use_boost else 1.0)
+            for j in authority.rank_order([r[1] for r in rows], weight):   # E11 b
+                phrase, hits, i = rows[j]
+                w = weight(j)
+                tag = " phrase" if phrase else ""
+                out.append({**self.chunks[i], "score": hits, "mode": "keyword",
+                            "score_label": f"{hits} hits{tag}" + (f" ×{w:g} ★" if w > 1.0 else "")})
+        return out[:top_k]
+
 
     def combined_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
-        sem = {r["id"]: r for r in self.semantic_search(query, top_k, use_boost=use_boost)}
-        kw  = {r["id"]: r for r in self.keyword_search(query, top_k, use_boost=use_boost)}
-        merged = {**kw, **sem}   # semantic wins on overlap
-        out = sorted(merged.values(), key=lambda x: x["score"], reverse=True)
-        return out[:top_k]
+        """Semantic and Keyword results interleaved by position (semantic first on a tie and
+        on overlap). Their scores are on different scales, so they are not compared."""
+        sem = self.semantic_search(query, top_k, use_boost=use_boost)
+        kw  = self.keyword_search(query, top_k, use_boost=use_boost)
+        out, seen = [], set()
+        for pair in zip(sem + [None] * len(kw), kw + [None] * len(sem)):
+            for r in pair:
+                if r is not None and r["id"] not in seen:
+                    seen.add(r["id"]); out.append(r)
+        sem_by_id = {r["id"]: r for r in sem}
+        return [sem_by_id.get(r["id"], r) for r in out][:top_k]
 
     def bm25_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         if not self.loaded or self.bm25 is None:
@@ -523,18 +493,14 @@ class IndexManager:
         tokens   = self._tokenize(query)
         if not tokens:
             return []
-        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
         raw      = self.bm25.get_scores(tokens)
-        boosted  = np.array([raw[i] * boost_fn(self.chunks[i]["doc_name"])
-                             for i in range(len(self.chunks))])
-        idx = boosted.argsort()[::-1][:top_k]
+        weight = self._weight_fn(use_boost)
         return [
             {**self.chunks[i],
-             "score":       float(boosted[i]),
-             "score_label": f"{boosted[i]:.2f} ★" if use_boost and authority_boost(self.chunks[i]["doc_name"]) > 1.0
-                            else f"{boosted[i]:.2f}",
+             "score":       float(raw[i]),
+             "score_label": f"{raw[i]:.2f}" + (f" ×{weight(i):g} ★" if weight(i) > 1.0 else ""),
              "mode":        "bm25"}
-            for i in idx if boosted[i] > 0
+            for i in authority.rank_order(raw, weight, top_k)
         ]
 
     def hybrid_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
@@ -550,33 +516,29 @@ class IndexManager:
         # Pull more candidates than needed so fusion has room to rerank
         pool = min(top_k * 4, len(self.chunks))
 
-        bm25_results  = self.bm25_search(query, pool, use_boost=use_boost)
-        embed_results = self.embedding_search(query, pool, use_boost=use_boost)
-
-        # Rank maps: chunk id → 0-based rank position
+        # Fuse the UNBOOSTED lists, then apply the authority boost once, on the fused
+        # ranks (spec E11 option b): boosting each list first counted it twice.
+        bm25_results  = self.bm25_search(query, pool, use_boost=False)
+        embed_results = self.embedding_search(query, pool, use_boost=False)
         bm25_rank  = {r["id"]: i for i, r in enumerate(bm25_results)}
         embed_rank = {r["id"]: i for i, r in enumerate(embed_results)}
-
-        # RRF with k=60 (standard constant — penalises low-ranked items smoothly)
-        K = 60
-        all_ids = set(bm25_rank) | set(embed_rank)
-        rrf = {cid: (1.0 / (K + bm25_rank[cid])  if cid in bm25_rank  else 0.0)
-                  + (1.0 / (K + embed_rank[cid]) if cid in embed_rank else 0.0)
-               for cid in all_ids}
-
-        top_ids = sorted(rrf, key=lambda x: rrf[x], reverse=True)[:top_k]
-
-        # Lookup table for chunk data (prefer embed result for display since it has score)
+        K = 60     # standard RRF constant
+        all_ids = sorted(set(bm25_rank) | set(embed_rank))
+        rrf = [(1.0 / (K + bm25_rank[cid])  if cid in bm25_rank  else 0.0)
+               + (1.0 / (K + embed_rank[cid]) if cid in embed_rank else 0.0)
+               for cid in all_ids]
         chunk_lookup = {r["id"]: r for r in embed_results + bm25_results}
         max_rrf = 2.0 / K   # theoretical max (rank-0 in both lists)
 
+        def weight(j):
+            return authority_boost(chunk_lookup[all_ids[j]]["doc_name"]) if use_boost else 1.0
+
         results = []
-        for cid in top_ids:
-            base = chunk_lookup[cid].copy()
-            pct  = rrf[cid] / max_rrf * 100
-            boosted_flag = use_boost and authority_boost(base["doc_name"]) > 1.0
-            base["score"]       = rrf[cid]
-            base["score_label"] = f"{pct:.0f}% ⬡" + (" ★" if boosted_flag else "")
+        for j in authority.rank_order(rrf, weight, top_k):
+            base = chunk_lookup[all_ids[j]].copy()
+            w    = weight(j)
+            base["score"]       = rrf[j]
+            base["score_label"] = f"{rrf[j] / max_rrf * 100:.0f}% ⬡" + (f" ×{w:g} ★" if w > 1.0 else "")
             base["mode"]        = "hybrid"
             results.append(base)
         return results
@@ -584,7 +546,8 @@ class IndexManager:
     def top_docs_search(self, query: str, top_chunks: int = 300,
                         top_docs: int = 30, use_boost: bool = True) -> list:
         """
-        Score documents by summing their top-3 chunk scores (× authority boost),
+        Score documents by summing their top-3 chunk scores (authority boost on the
+        document ranks, spec E11 b),
         then return the best single chunk from each document as the representative.
         Aggregating across chunks means a book chapter with 8 relevant passages
         beats a journal article with 1 concentrated paragraph.
@@ -594,7 +557,6 @@ class IndexManager:
 
         qvec     = self.vectorizer.transform([query])
         raw      = cosine_similarity(qvec, self.matrix)[0]
-        boost_fn = authority_boost if use_boost else (lambda _: 1.0)
 
         # Group all above-zero chunks by document
         doc_chunks: dict = {}
@@ -604,25 +566,26 @@ class IndexManager:
             dn = self.chunks[i]["doc_name"]
             doc_chunks.setdefault(dn, []).append((score, i))
 
-        # For each document: aggregate score = sum of top-3 raw chunk scores × boost
-        doc_scores: dict = {}
-        for dn, pairs in doc_chunks.items():
-            pairs.sort(reverse=True)
-            top3_sum  = sum(s for s, _ in pairs[:3])
-            agg_score = top3_sum * boost_fn(dn)
-            best_idx  = pairs[0][1]
-            label     = f"{agg_score*100:.0f}%"
-            if use_boost and authority_boost(dn) > 1.0:
-                label += " ★"
-            doc_scores[dn] = {
-                **self.chunks[best_idx],
-                "score":       agg_score,
-                "score_label": label,
-                "mode":        "semantic",
-            }
+        doc_names = list(doc_chunks)
+        best, agg = [], []
+        for dn in doc_names:
+            pairs = sorted(doc_chunks[dn], reverse=True)
+            agg.append(sum(s for s, _ in pairs[:3]))       # sum of the top-3 raw chunk scores
+            best.append(pairs[0][1])
 
-        out = sorted(doc_scores.values(), key=lambda x: x["score"], reverse=True)
-        return out[:top_docs]
+        def weight(j):
+            return authority_boost(doc_names[j]) if use_boost else 1.0
+
+        out = []
+        for j in authority.rank_order(agg, weight, top_docs):   # boost on document ranks (E11 b)
+            w = weight(j)
+            out.append({
+                **self.chunks[best[j]],
+                "score":       agg[j],
+                "score_label": f"{agg[j]*100:.0f}%" + (f" ×{w:g} ★" if w > 1.0 else ""),
+                "mode":        "semantic",
+            })
+        return out
 
     # ── Utility ───────────────────────────────────────────────────────────────
 
@@ -1111,7 +1074,7 @@ class App:
             "Search modes:\n\n"
             "• Top Docs (recommended) — scores and ranks entire documents by "
             "aggregating their best matching passages. Primary sources (FTCP book "
-            "chapters, Bowen/Kerr tapes) are boosted. One result per document. "
+            "chapters, Bowen tapes, Kerr and Papero) are boosted. One result per document. "
             "Best for 'what documents cover X' queries.\n\n"
             "• Semantic (TF-IDF) — finds passages that are conceptually similar "
             "to your query using word-frequency analysis. Good for broad concepts. "
@@ -1165,7 +1128,7 @@ class App:
                         variable=self._use_boost).pack(side="left")
         help_btn(boost_row,
             "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
-            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            "Bowen 3×, Kerr and Papero 2×, FSJ articles 1.3×, other named theorists 1.15×. The multiplier moves a result up the ranking (a 3× result in 30th place ranks with an unboosted 10th); it does not multiply the score.",
             self._bg).pack(side="left", padx=(2, 0))
 
         ttk.Separator(lf).pack(fill="x", pady=6)
@@ -1891,7 +1854,7 @@ class App:
             "How documents are retrieved and ranked:\n\n"
             "• top-docs (recommended) — fetches 300 chunks, scores each document by "
             "aggregating its best chunks, then picks the top N documents. "
-            "Primary sources (FTCP, tapes) are boosted. Best for most queries.\n\n"
+            "Bowen, Kerr and Papero are boosted. Best for most queries.\n\n"
             "• semantic — TF-IDF cosine similarity. Good for conceptual queries.\n\n"
             "• keyword — counts exact word matches. Good for proper names or "
             "specific terms not captured by TF-IDF.\n\n"
@@ -1903,7 +1866,7 @@ class App:
                         variable=self._rpt_use_boost).pack(side="left")
         help_btn(boost_r2,
             "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
-            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            "Bowen 3×, Kerr and Papero 2×, FSJ articles 1.3×, other named theorists 1.15×. The multiplier moves a result up the ranking (a 3× result in 30th place ranks with an unboosted 10th); it does not multiply the score.",
             self._bg).pack(side="left", padx=(2, 0))
 
         # Row 3 — Target length + chunks per source
@@ -2557,7 +2520,7 @@ Use Markdown headings (##, ###), bullet lists where appropriate, and **bold** fo
         ttk.Checkbutton(boost_ctrl, text="Boost", variable=self._use_boost).pack(side="left")
         help_btn(boost_ctrl,
             "This prioritizes Bowen, Kerr, Papero as a source, but does not eliminate other sources.\n\n"
-            "Primary sources (FTCP, tapes) ×3, FSJ articles ×1.3, other named theorists ×1.15.",
+            "Bowen 3×, Kerr and Papero 2×, FSJ articles 1.3×, other named theorists 1.15×. The multiplier moves a result up the ranking (a 3× result in 30th place ranks with an unboosted 10th); it does not multiply the score.",
             self._bg).pack(side="left", padx=(2, 0))
         ttk.Label(ctrl, text="  Author:").pack(side="left")
         ttk.Combobox(ctrl, textvariable=self._author_filter,

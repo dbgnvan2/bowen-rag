@@ -39,6 +39,7 @@ jobs:
             --add-data "rag-document-search/scripts:rag-document-search/scripts" \
             --add-data "rag-document-search/references:rag-document-search/references" \
             --add-data "process_transcripts.py:." \
+            --add-data "question_frames.yml:." \
             --hidden-import scipy.sparse \
             --hidden-import scipy._lib.messagestream \
             --hidden-import sklearn.feature_extraction.text \

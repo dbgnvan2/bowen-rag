@@ -11,8 +11,10 @@ Note: build_index collapses single newlines inside a paragraph to a space, so th
 Run: python3 -m unittest test_exact_match -v
 """
 import ast
+import contextlib
 import copy
 import hashlib
+import io
 import json
 import os
 import re
@@ -319,15 +321,41 @@ class TestE6aPhrases(unittest.TestCase):
                          (["emotional programming"], "short-query"))
         self.assertEqual(em.phrases_for("  emotional programming?! "),
                          (["emotional programming"], "short-query"))
-        # the rule is literal: a short question is checked whole, frame words included
-        self.assertEqual(em.phrases_for("What is emotional programming?"),
+
+    def test_e6a_question_frame_stripped(self):
+        """Dave, 2026-11-01: question words (question_frames.yml) are removed first, so the
+        default experiment question checks the term, not the whole question."""
+        cases = {
+            "What is emotional programming?": "emotional programming",
+            "What does Bowen mean by differentiation of self?": "differentiation of self",
+            "define fusion": "fusion",
+            "What is the emotional system?": "emotional system",
+            "What does triangle mean?": "triangle",
+            "Tell me about nodal events": "nodal events",
+        }
+        for q, term in cases.items():
+            self.assertEqual(em.phrases_for(q), ([term], "question-term"), q)
+        # term words are never frame words; a question that is only frame words stays whole
+        self.assertEqual(em.phrases_for("emotional process"), (["emotional process"], "short-query"))
+        self.assertEqual(em.phrases_for("What is?"), (["What is"], "short-query"))
+        # frames are whole words: "whatever" is not "what"; "Theme" is not "the"
+        self.assertEqual(em.phrases_for("Theme of anxiety"), (["Theme of anxiety"], "short-query"))
+
+    def test_e6a_frames_file_missing_is_reported(self):
+        em._FRAMES_CACHE.pop("/no/such/question_frames.yml", None)
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            frames = em.load_question_frames(Path("/no/such/question_frames.yml"))
+        self.assertIn("could not load", err.getvalue())
+        self.assertEqual(em.phrases_for("What is emotional programming?", frames),
                          (["What is emotional programming"], "short-query"))
+        em._FRAMES_CACHE.pop("/no/such/question_frames.yml", None)
 
     def test_e6a_long_query_none(self):
         self.assertEqual(em.phrases_for("How does Bowen describe the process of emotional "
                                         "programming across generations?"), ([], "none"))
         self.assertEqual(em.phrases_for("?!"), ([], "none"))
-        self.assertEqual(em.phrases_for('a "  " b'), (["a \"  \" b"], "short-query"))
+        self.assertEqual(em.phrases_for('x "  " b'), (['x "  " b'], "short-query"))
 
 
 # ── E6 ────────────────────────────────────────────────────────────────────────
@@ -388,6 +416,11 @@ class TestE6Union(unittest.TestCase):
         out, phrases, reason, pres = em.exact_guard(Idx(), "emotional programming",
                                                     [CHUNKS[2], CHUNKS[6]], k=4)
         self.assertEqual((phrases, reason), (["emotional programming"], "short-query"))
+        # the question form now reaches the same term (frame words removed)
+        out_q, phrases_q, reason_q, _ = em.exact_guard(Idx(), "What is emotional programming?",
+                                                       [CHUNKS[2], CHUNKS[6]], k=4)
+        self.assertEqual((phrases_q, reason_q), (["emotional programming"], "question-term"))
+        self.assertEqual(sum(1 for c in out_q if self.contains(c)), 2)
         self.assertEqual(len(out), 4)
         self.assertEqual(sum(1 for c in out if self.contains(c)), 2)     # budget = 4 // 2
         self.assertTrue(pres["emotional programming"]["found"])
@@ -747,6 +780,16 @@ class TestE10Keyword(FixtureIndex):
             idx.keyword_search("emotional programming", 10, use_boost=True)
             self.assertEqual(chunks, _E10_CHUNKS, name)
 
+
+
+class TestE8QuestionTerm(unittest.TestCase):
+    def test_e8_absent_question_term_wording(self):
+        ix = em.ExactIndex(CHUNKS)
+        block = em.verification_block({"nodal events": ix.presence("nodal events")},
+                                      [CHUNKS[0]], "question-term")
+        self.assertIn('"nodal events" (the question with its question words removed): does not '
+                      "occur as a whole word or phrase anywhere in the indexed corpus", block)
+        self.assertIn("0 of the 1 excerpts provided contain it.", block)
 
 # ── Carried over from the literal_search.py prototype ─────────────────────────
 class TestCarriedOver(unittest.TestCase):

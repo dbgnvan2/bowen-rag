@@ -1,0 +1,48 @@
+# Question words removed before a short, unquoted question is checked for an exact match
+# (spec E6a; exact_match.phrases_for). Editorial content: edit here, not in code.
+#
+# Only when a question has no "quoted" phrase. `leading` entries are removed from the
+# start of the question and `trailing` entries from the end, as whole words, case-
+# insensitively, longest first, repeatedly. What remains is checked as one phrase if it
+# has at most 6 words. Example: "What is emotional programming?" -> "emotional programming".
+#
+# Keep this list to framing words. Do not add words that can be part of a Bowen term
+# ("emotional", "family", "process"), or a term would lose a word before the check.
+# Quoting a term ("...") always bypasses this list.
+
+leading:
+  - what is meant by
+  - what is the meaning of
+  - what is the definition of
+  - what does bowen mean by
+  - what did bowen mean by
+  - what does kerr mean by
+  - what does papero mean by
+  - what do you mean by
+  - what is
+  - what are
+  - what does
+  - what do
+  - what did
+  - what's
+  - whats
+  - can you explain
+  - please explain
+  - explain
+  - define
+  - describe
+  - tell me about
+  - the definition of
+  - the meaning of
+  - definition of
+  - meaning of
+  - a
+  - an
+  - the
+
+trailing:
+  - mean
+  - means
+  - in bowen theory
+  - according to bowen
+  - according to kerr

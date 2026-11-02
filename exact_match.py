@@ -17,7 +17,9 @@ from __future__ import annotations
 import os
 import re
 import string
+import sys
 import unicodedata
+from pathlib import Path
 
 MODES = ("word", "substring", "regex")
 
@@ -253,17 +255,73 @@ _QUOTED = re.compile(r'["\u201c]([^"\u201c\u201d]+)["\u201d]')
 _EDGE = string.whitespace + string.punctuation + "\u2018\u2019\u201c\u201d\u2026\u2013\u2014\u00bf\u00a1"
 
 
-def phrases_for(query: str) -> tuple[list[str], str]:
+QUESTION_FRAMES_FILE = Path(__file__).resolve().parent / "question_frames.yml"
+_FRAMES_CACHE: dict = {}
+
+
+def load_question_frames(path: Path = QUESTION_FRAMES_FILE) -> tuple[list, list]:
+    """(leading, trailing) question-frame word tuples from question_frames.yml, longest
+    first. A missing or unreadable file is reported on stderr and strips nothing.
+
+    Spec:  docs/spec_exact_match_search_v2.md#E6a (frame stripping, Dave 2026-11-01)
+    Tests: test_exact_match.py::TestE6aPhrases::test_e6a_frames_file_missing_is_reported
+    """
+    key = str(path)
+    if key in _FRAMES_CACHE:
+        return _FRAMES_CACHE[key]
+    try:
+        import yaml
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+        frames = tuple(
+            sorted({tuple(normalize(str(f)).split()) for f in data.get(side) or []} - {()},
+                   key=len, reverse=True)
+            for side in ("leading", "trailing"))
+    except Exception as e:
+        print(f"WARNING: could not load {path} ({e}); short questions are checked "
+              "whole, with no question words removed.", file=sys.stderr)
+        frames = ((), ())
+    _FRAMES_CACHE[key] = frames
+    return frames
+
+
+def strip_question_frame(text: str, frames=None) -> str:
+    """`text` with leading/trailing question-frame words removed (whole words, repeatedly).
+
+    Purpose: "What is emotional programming?" -> "emotional programming".
+    Spec:    docs/spec_exact_match_search_v2.md#E6a
+    Tests:   test_exact_match.py::TestE6aPhrases::test_e6a_question_frame_stripped
+    """
+    leading, trailing = frames if frames is not None else load_question_frames()
+    words = text.split()
+    norm = [normalize(w.strip(_EDGE)) for w in words]
+    a, b = 0, len(words)
+    changed = True
+    while changed and a < b:
+        changed = False
+        for f in leading:
+            if tuple(norm[a:a + len(f)]) == f and a + len(f) < b:
+                a += len(f); changed = True; break
+        for f in trailing:
+            if tuple(norm[b - len(f):b]) == f and b - len(f) > a:
+                b -= len(f); changed = True; break
+    if (a, b) == (0, len(words)):
+        return text.strip(_EDGE)            # nothing removed: keep the text as typed
+    return " ".join(words[a:b]).strip(_EDGE)
+
+
+def phrases_for(query: str, frames=None) -> tuple[list[str], str]:
     """The phrases to check exactly for a query, and why.
 
     Purpose: a deterministic rule for which strings get an exact-match check.
     Spec:    docs/spec_exact_match_search_v2.md#E6a
     Tests:   test_exact_match.py::TestE6aPhrases
 
-    (1) every "…" / “…” quoted span -> reason "quoted"; else (2) the whole query,
-    stripped of surrounding punctuation, if it has at most MAX_SHORT_QUERY_WORDS words
-    -> "short-query"; else (3) nothing -> "none". Duplicates (after normalising) and
-    spans that normalise to nothing are dropped.
+    (1) every "…" / “…” quoted span -> reason "quoted"; else (2) the query stripped of
+    surrounding punctuation and of question-frame words (question_frames.yml: "What is",
+    "define", a trailing "mean", ...), if at most MAX_SHORT_QUERY_WORDS words remain ->
+    "question-term" when frame words were removed, "short-query" when none were;
+    else (3) nothing -> "none". Duplicates (after normalising) and spans that normalise
+    to nothing are dropped.
     """
     def dedupe(items):
         seen, out = set(), []
@@ -278,8 +336,9 @@ def phrases_for(query: str) -> tuple[list[str], str]:
     if quoted:
         return quoted, "quoted"
     whole = query.strip(_EDGE)
-    if whole and len(whole.split()) <= MAX_SHORT_QUERY_WORDS and normalize(whole):
-        return [whole], "short-query"
+    term = strip_question_frame(whole, frames)
+    if term and len(term.split()) <= MAX_SHORT_QUERY_WORDS and normalize(term):
+        return [term], ("short-query" if normalize(term) == normalize(whole) else "question-term")
     return [], "none"
 
 
@@ -415,6 +474,11 @@ def verification_block(presence_by_phrase: dict, provided: list, reason: str,
                              "does not occur verbatim in the indexed corpus. This says "
                              "nothing about the individual words or any shorter term in it; "
                              "no shorter term was checked. To have a term checked, put it in "
+                             f"double quotes. {in_sent}{loose}")
+            elif reason == "question-term":
+                lines.append(f'- "{phrase}" (the question with its question words removed): '
+                             "does not occur as a whole word or phrase anywhere in the "
+                             "indexed corpus. To have a different term checked, put it in "
                              f"double quotes. {in_sent}{loose}")
             else:
                 lines.append(f'- "{phrase}": does not occur as a whole word or phrase '

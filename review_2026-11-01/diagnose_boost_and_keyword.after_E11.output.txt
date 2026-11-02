@@ -1,0 +1,68 @@
+Authority multiplier of each document containing the phrase:
+  x1.0  14.2 galloway How Emotions Are Made
+  x2.0  Bowen Theory Secrets_Chapter04_Patterns_of_Emotional_Functioning
+  x2.0  Bowen Theory Secrets_Chapter06_Emotional_Regression
+  x2.0  Bowen Theory Secrets_Chapter09_Emotional_Programming
+  x2.0  Bowen Theory Secrets_Chapter10_Chronic_Anxiety
+  x2.0  Bowen Theory Secrets_Chapter11_The_Multigenerational_Family_Organism
+  x2.0  Bowen Theory Secrets_Chapter14_Societal_Emotional_Process
+  x2.0  Bowen Theory Secrets_Chapter15_Key_Ingredients_in_the_Process_of_Differentiation
+  x2.0  Bowen Theory Secrets_Chapter16_Personal_Vignettes_of_the_Process_of_Differentiation
+  x2.0  Bowen Theory Secrets_Chapter19_The_Unabomber_and_His_Family
+  x2.0  Bowen Theory Secrets_Chapter20_Gary_Gilmore_and_His_Family
+  x2.0  Bowen Theory Secrets_Chapter21_Adam_Lanza_and_His_Family
+  x2.0  Bowen Theory Secrets_Epilogue_Applying_Bowen_Theory_to_My_Own_Family
+  x2.0  Bowen Theory Secrets_Introduction_Introduction
+  x2.0  FSJ 13.1 Kerr How to Tame a Fox
+  x1.3  FSJ 14.2 Galloway How Emotions Are Made
+  x1.3  FSJ 15.2 Klever Divergent Spouse Functioning
+  x2.0  FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+  x2.0  FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+  x2.0  FSJ 9.1 Kerr FROM THE EDITOR
+  x3.0  FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science
+  x1.15 Family Therapy Style Art and Theory Guerin  no date
+
+BM25 boost=True k=12 — the 12 winners:
+    10.77 x2.0  emotional=  5 programm= 7 phrase=YES Bowen Theory Secrets_Chapter09_Emotional_Programming
+    10.76 x2.0  emotional=  3 programm= 4 phrase=YES FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+    10.15 x2.0  emotional=  4 programm= 4 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+     9.68 x2.0  emotional=  7 programm= 5 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+     9.51 x2.0  emotional=  5 programm= 5 phrase=YES Bowen Theory Secrets_Chapter09_Emotional_Programming
+     9.51 x2.0  emotional=  5 programm= 3 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+     9.29 x2.0  emotional=  3 programm= 5 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+     9.22 x2.0  emotional=  2 programm= 5 phrase=YES FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+     8.74 x3.0  emotional=  3 programm= 3 phrase=YES FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science
+     9.01 x2.0  emotional=  3 programm= 4 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-175
+     9.01 x2.0  emotional=  3 programm= 4 phrase=YES FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+     8.86 x2.0  emotional=  6 programm= 3 phrase=YES FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+
+  best raw BM25 among phrase chunks: 10.77 (doc Bowen Theory Secrets_Chapter09_Emotional_Programmi, x2.0)
+  12th boosted score: 8.86
+  rank of the best phrase chunk in the BOOSTED BM25 list: 4
+
+KEYWORD boost=True k=15 — winners:
+  12 hits phrase ×2 ★ emotional=  5 programm= 7 phrase=YES Bowen Theory Secrets_Chapter09_Emotional_Programming
+  12 hits phrase ×2 ★ emotional=  7 programm= 5 phrase=YES FSJ 4.2 (3) Kerr, M. Bowen Theory and Evo Theory 119-17
+  10 hits phrase ×2 ★ emotional=  8 programm= 2 phrase=YES Bowen Theory Secrets_Chapter06_Emotional_Regression
+  10 hits phrase ×2 ★ emotional=  7 programm= 3 phrase=YES FSJ 4.2 Kerr Bowen Theory and Evolutionary Theory
+  6 hits phrase ×3 ★ emotional=  3 programm= 3 phrase=YES FSJ 9.2 Bowen Subjectivity, Homo Sapiens, and Science
+  9 hits phrase ×2 ★ emotional=  6 programm= 3 phrase=YES Bowen Theory Secrets_Chapter11_The_Multigenerational_Fa
+  5 hits phrase ×2 ★ emotional=  4 programm= 1 phrase=YES Bowen Theory Secrets_Chapter04_Patterns_of_Emotional_Fu
+  9 hits phrase      emotional=  7 programm= 2 phrase=YES 14.2 galloway How Emotions Are Made
+  5 hits phrase ×2 ★ emotional=  4 programm= 1 phrase=YES Bowen Theory Secrets_Chapter19_The_Unabomber_and_His_Fa
+  7 hits phrase ×1.3 ★ emotional=  5 programm= 2 phrase=YES FSJ 14.2 Galloway How Emotions Are Made
+  4 hits phrase ×2 ★ emotional=  2 programm= 2 phrase=YES Bowen Theory Secrets_Chapter16_Personal_Vignettes_of_th
+  4 hits phrase ×2 ★ emotional=  3 programm= 1 phrase=YES Bowen Theory Secrets_Introduction_Introduction
+  4 hits phrase ×2 ★ emotional=  3 programm= 1 phrase=YES FSJ 13.1 Kerr How to Tame a Fox
+  4 hits phrase ×2 ★ emotional=  3 programm= 1 phrase=YES FSJ 9.1 Kerr FROM THE EDITOR
+  3 hits phrase ×2 ★ emotional=  1 programm= 2 phrase=YES Bowen Theory Secrets_Chapter14_Societal_Emotional_Proce
+
+keyword_search terms for 'What is emotional programming?' -> ['emotional', 'programming?'] | stems of last: ['programming?']
+
+SEMANTIC boost=True k=15 — non-phrase winners:
+
+TOP-DOCS boost=True k=15 — non-phrase winners:
+  40% ×3 ★   Bowen Basic Series Tape 5 SYMPTOM DEVELOPMENT
+  28% ×2 ★   Family Evaluation_Chapter08_Multigenerational_Emotional_Proc
+
+corpus counts: 'emotional'=12,769  'programming'=171  chunks with phrase=66

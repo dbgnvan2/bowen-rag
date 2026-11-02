@@ -75,7 +75,7 @@ Choose the mode that matches how you are thinking about your question.
 
 ### Authority boost
 
-The **Authority boost** checkbox prioritizes Bowen, Kerr, and Papero as sources, but does **not** eliminate other sources. It multiplies scores for primary sources before ranking. This means a passage from a Bowen lecture tape or the Bowen-Kerr interview series ranks above an equivalent passage from a secondary paper, all else being equal.
+The **Authority boost** checkbox prioritizes Bowen, Kerr, and Papero as sources, but does **not** eliminate other sources. It moves results from those sources up the ranking: a passage from a Bowen lecture tape ranks above a passage from a secondary paper that matches about as well, but not above one that matches the query much better.
 
 **When to leave it on (default):** Most research — you want primary Bowen and Kerr material to surface first.
 
@@ -154,9 +154,9 @@ Every AI response shows a **Sources** expander beneath it. Expand it to see whic
 
 Retrieval returns the top passages by score, so a term can be in the corpus and still be missing from the passages the AI receives. Before each Chat answer and each Report, the app scans **every indexed passage** for the term and shows the result above the answer as an **EXACT-MATCH VERIFICATION** note, for example: *"emotional programming" occurs 91 times in 65 passages across 22 documents … 6 of the 32 excerpts provided contain it.* This count is computed by the program, not judged by the AI.
 
-What the app checks: every phrase in "double quotes"; if there are none, the whole question when it is six words or fewer. When the term is in the corpus but in none of the retrieved passages, up to 5 passages that contain it are added to what the AI receives (staged Report chunks are never changed; the note says so).
+What the app checks: every phrase in "double quotes"; if there are none, the question with its question words removed ("What is", "What does Bowen mean by", "define", a trailing "mean" — the list is in `question_frames.yml`), when six words or fewer remain. *What is emotional programming?* is checked as "emotional programming". If fewer than 5 of the retrieved passages contain the term, the app adds passages that do (best first) until 5 do, dropping the lowest-ranked passages without it so the number of passages stays the same. Staged Report chunks are never changed; the note says so.
 
-**Put the term in quotes.** A question such as *What is emotional programming?* is checked as the whole phrase "What is emotional programming", which does not occur anywhere, so nothing is added and the note says the question was not found as written. Ask *What is "emotional programming"?* instead.
+**When to use quotes.** Longer questions are not checked unless the term is quoted: *How does Bowen describe "emotional cutoff" in families?* Quotes also let you check exactly the term you mean when the question has other words around it.
 
 The AI then opens its answer by restating that count. If none of the excerpts it received contain the term, it says so and labels anything drawn from related wording as an inference. It is not allowed to say on its own that a term is absent from the corpus. This matters in Bowen theory, where "emotional contact" and "emotional connection" are not interchangeable.
 
@@ -264,14 +264,14 @@ Each search result shows a score badge indicating how well the result matched yo
 | Badge | Mode | What it means |
 |---|---|---|
 | `45%` | Top Docs | Aggregate similarity score across the best chunks for that document |
-| `45% ★` | Semantic (TF-IDF) | Cosine similarity; ★ means an authority boost was applied |
+| `45% ×3 ★` | Semantic (TF-IDF) | Cosine similarity; `×3 ★` means the authority boost moved it up |
 | `45% ⬡` | Hybrid | Reciprocal Rank Fusion (RRF) score; ⬡ identifies Hybrid mode |
-| `45% ⬡ ★` | Hybrid + boosted | RRF score with authority boost applied |
-| `45% ✦` | Embedding | Cosine similarity on sentence-transformer vectors |
-| `6 hits ×3 ★` | Keyword | Raw hit count × authority multiplier = effective rank score |
-| `3.42 ★` | BM25 | BM25 relevance score |
+| `45% ⬡ ×2 ★` | Hybrid + boosted | RRF score; the authority multiplier was applied to its rank |
+| `45% ×3 ✦` | Embedding | Cosine similarity on sentence-transformer vectors |
+| `6 hits phrase ×3 ★` | Keyword | Hit count; *phrase* = your words appear together; ×3 = authority multiplier |
+| `3.42 ×3 ★` | BM25 | BM25 relevance score |
 
-**The ★ and multiplier:** When authority boost is on, a result from a primary Bowen/Kerr source is multiplied by up to 3× before ranking. A result showing `3 hits ×3 ★` has an effective score of 9 and will rank above `6 hits` (score 6) from a non-primary source. This is intentional — primary sources should surface first. Turn off Authority boost in the search controls if you want raw scores only.
+**The ★ and multiplier:** the number is always the unboosted relevance. When the authority boost is on, the multiplier (×3 Bowen, ×2 Kerr and Papero, ×1.3, ×1.15) divides the result's place in the ranking: a ×3 result that is 30th by relevance is placed level with the 10th. So a boosted result can appear above one with a higher number. In Keyword mode, passages with your words together (*phrase*) always come before passages with the words apart. Turn off Authority boost to rank by relevance only.
 
 **The position badge:** Every result also shows a grey location badge — either a PDF page number (`p.5`) or a percentage through the document (`~33%`). This is not a score; it tells you where in the source document the chunk comes from.
 
@@ -431,28 +431,31 @@ In the Settings page, API keys are masked — only the last 6 characters are sho
 
 ## Authority Tiers
 
-Search results are multiplied by a source-authority factor before ranking. This ensures that primary Bowen and Kerr material surfaces above secondary commentary for equivalent query matches.
+The authority boost ranks Bowen first, Kerr second and Papero equal to Kerr, all three above any other source (decided 2026-11-01).
 
 | Multiplier | Sources |
 |---|---|
-| **3.0×** | Bowen lecture tapes, Bowen-Kerr interview series, *Family Therapy in Clinical Practice* chapters, Kerr primary texts |
-| **1.3×** | Family Systems Journal articles, Family Center Reports |
-| **1.15×** | Papero, Friedman, Fogarty, Guerin, Toman papers |
+| **3.0×** | Bowen: *Family Therapy in Clinical Practice* chapters, Bowen lecture tapes, Bowen-Kerr interview series (Bowen is the speaker), Bowen's FSJ articles, other Bowen papers |
+| **2.0×** | Kerr: *Family Evaluation*, *Bowen Theory's Secrets*, Kerr papers, lectures and FSJ articles. Papero: *Bowen Family Systems Theory* and his papers and FSJ articles |
+| **1.3×** | Other Family Systems Journal articles, Family Center Reports |
+| **1.15×** | Friedman, Fogarty, Guerin, Toman, Gilbert, Harrison |
 | **1.0×** | Everything else |
 
-**To customise:** Create `authority_tiers.yml` in the project root. The app loads this file at startup if it exists, overriding the defaults in the code. Format:
+**How the multiplier is applied.** It moves a result up the ranking; it does not multiply its score. A result in 30th place from a 3.0× source is placed level with the 10th unboosted result. Before 2026-11-01 the score was multiplied, and a weak match from a 3.0× source could push every strong match from an unboosted source out of the results (for "emotional programming", 0 of the top 12 BM25 results contained the phrase; now 12 of 12, and 10 of 12 even with the old tiers).
+
+**To change the tiers:** edit `authority_tiers.yml` in the project root and restart the app (no index rebuild). Each entry has either a `pattern` (part of the document's file name, any case) or a `regex` (a regular expression searched in the file name) and a `multiplier` of at least 1.0. The first matching entry wins, so put specific entries before general ones:
 
 ```yaml
 tiers:
-  - multiplier: 3.0
-    patterns: ["bowen_lecture", "kerr_interview", "ftcp_"]
-  - multiplier: 1.3
-    patterns: ["fsj_", "fcr_"]
-  - multiplier: 1.15
-    patterns: ["papero_", "friedman_", "fogarty_"]
+  - regex: "^(FSJ|Copy of) [\\d.]+\\.?\\s+(\\(\\d+\\)\\s+)?Bowen\\b"
+    multiplier: 3.0
+  - pattern: "Bowen Theory Secrets"
+    multiplier: 2.0
+  - pattern: "FSJ "
+    multiplier: 1.3
 ```
 
-The `patterns` values are matched against the document filename (without extension).
+The desktop app bundle does not include this file and uses the same list built into `authority.py`; a test fails if the two differ, so change both. A file that cannot be read is reported in the terminal and the built-in list is used.
 
 ---
 
