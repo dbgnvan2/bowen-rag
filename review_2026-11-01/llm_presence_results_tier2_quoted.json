@@ -1,0 +1,128 @@
+[
+  {
+    "condition": "chat/hybrid/k12/boost-on  (app default)",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 5,
+    "phrase_occurrences_in_sent_text": 20,
+    "model_claims_absent": true,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 13.9,
+    "usage": {
+      "input": 7621,
+      "output": 2519
+    },
+    "verdict": "FALSE NEGATIVE: claims absent, phrase was in the excerpts"
+  },
+  {
+    "condition": "chat/hybrid/k12/boost-off",
+    "page": "chat",
+    "mode": "hybrid",
+    "k": 12,
+    "boost": false,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 12,
+    "phrase_occurrences_in_sent_text": 34,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 13.0,
+    "usage": {
+      "input": 5734,
+      "output": 2770
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "chat/semantic/k12/boost-on",
+    "page": "chat",
+    "mode": "semantic",
+    "k": 12,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 12,
+    "chunks_containing_phrase": 9,
+    "phrase_occurrences_in_sent_text": 28,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 15.8,
+    "usage": {
+      "input": 6108,
+      "output": 3242
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "report/top-docs/k30/boost-on (default)",
+    "page": "report",
+    "mode": "top-docs",
+    "k": 30,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 17,
+    "phrase_occurrences_in_sent_text": 27,
+    "model_claims_absent": true,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 32.0,
+    "usage": {
+      "input": 8483,
+      "output": 6269
+    },
+    "verdict": "FALSE NEGATIVE: claims absent, phrase was in the excerpts"
+  },
+  {
+    "condition": "report/hybrid/k30/boost-on",
+    "page": "report",
+    "mode": "hybrid",
+    "k": 30,
+    "boost": true,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 5,
+    "phrase_occurrences_in_sent_text": 18,
+    "model_claims_absent": false,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 66.7,
+    "usage": {
+      "input": 9922,
+      "output": 11508
+    },
+    "verdict": "no absence claim; phrase was sent"
+  },
+  {
+    "condition": "report/hybrid/k30/boost-off",
+    "page": "report",
+    "mode": "hybrid",
+    "k": 30,
+    "boost": false,
+    "rep": 1,
+    "model": "deepseek-v4-flash",
+    "chunks_sent": 30,
+    "chunks_containing_phrase": 27,
+    "phrase_occurrences_in_sent_text": 49,
+    "model_claims_absent": true,
+    "warning_marker": false,
+    "absence_worded_as_corpus": false,
+    "seconds": 42.6,
+    "usage": {
+      "input": 8609,
+      "output": 7693
+    },
+    "verdict": "FALSE NEGATIVE: claims absent, phrase was in the excerpts"
+  }
+]

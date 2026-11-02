@@ -136,3 +136,33 @@ The two questions:
 2. **The model never claimed absence when the phrase was in its excerpts** (0 of 7 replies in conditions 2–6). In condition 5, with only 3 of 30 excerpts containing it, it located those three and cited them by number. In the 7 replies that had the phrase, Rule-7 matching was correct every time.
 
 What this changes: B3's mechanism is confirmed (a true statement about the excerpts is read as a statement about the corpus); B3's secondary concern, that the model is an unreliable substring matcher, was not observed at this sample size (7 replies, one model). The fix order stands — retrieval (B1, M1) decides what the model sees, and the absence wording must come from code that scanned the whole index (E8). Seven replies do not establish reliability; the pipeline still must not depend on it.
+
+## Addendum 2026-11-01 (c) — experiment re-run after Tier 2 (exact-match guard, new Rule 7)
+
+`llm_presence_experiment.py --provider deepseek --reps 1 --words 500`, now building messages with the app's pipeline (`exact_guard`, `build_chat_message`, `build_report_prompt`). Results in `review_2026-11-01/llm_presence_results_tier2.json` and `…_tier2_quoted.json`; replies in `llm_presence_responses_tier2*/` (not committed: they quote the corpus). "sent containing" counts chunks, "occ" counts occurrences in the excerpt text sent (Chat includes the ±1 neighbours). The script's verdict column is a regex; every match was read by hand (last column).
+
+Default question `What is emotional programming?`:
+
+| Condition | sent containing | occ | regex verdict | hand reading |
+|---|---|---|---|---|
+| chat hybrid k12 boost on (app default) | 0 | 0 | absent (correct) | "does not appear in the excerpts provided" — true; no corpus claim |
+| chat hybrid k12 boost off | 12 | 34 | no claim | — |
+| chat semantic k12 boost on | 9 | 28 | no claim | — |
+| report top-docs k30 boost on (default) | 17 | 27 | no claim | — |
+| report hybrid k30 boost on | 3 | 10 | false negative | "do not contain a single, formal, standalone definition" — not an absence claim |
+| report hybrid k30 boost off | 28 | 51 | false negative | says the whole question "What is emotional programming" is not in the excerpts — true |
+
+Condition 1 still sends 0 containing chunks: E6a checks a short unquoted question as one phrase, "What is emotional programming", which occurs nowhere, so the union does not fire. This is a spec gap (see the Tier 2 report), not a code fault.
+
+Quoted question `What is "emotional programming"?`:
+
+| Condition | sent containing | occ | regex verdict | hand reading |
+|---|---|---|---|---|
+| chat hybrid k12 boost on (app default) | 5 | 20 | false negative | "do not contain a single formal definition sentence" — not an absence claim; reply opens with the block's count (91 / 65 / 22, 6 of 32 excerpts) |
+| chat hybrid k12 boost off | 12 | 34 | no claim | — |
+| chat semantic k12 boost on | 9 | 28 | no claim | — |
+| report top-docs k30 boost on (default) | 17 | 27 | false negative | "do not contain information on these points" (named gaps) — not an absence claim |
+| report hybrid k30 boost on | 5 | 18 | no claim | — |
+| report hybrid k30 boost off | 27 | 49 | false negative | "do not contain a single agreed formal definition" — not an absence claim |
+
+Result: with the term quoted, the app default Chat condition now sends 5 containing chunks (was 0) and the model makes no absence claim. In 12 replies, no reply claims the term is absent from the corpus or from excerpts that contain it. One rep per condition; this is a spot check, not a rate.
