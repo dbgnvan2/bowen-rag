@@ -1,0 +1,85 @@
+# report/top-docs/k30/boost-on (default) rep 1
+
+sent: 30 chunks, 17 contain the phrase, 27 occurrences in the sent text
+
+---
+
+**Exact-match verification finding:** the system reports that the exact term "emotional programming" occurs 91 times in 65 passages across 22 documents of the indexed corpus, and that 17 of the 30 excerpts provided here contain it.
+
+---
+
+### 1. Executive Summary
+
+Across the excerpts, emotional programming is presented as a multigenerational transmission phenomenon that operates through relationships and learning rather than through genes: "The phenomenon of emotional programming occurs through the transmission of information across generations in a family by relationships and learning, not genes" [[4]]. Kerr describes it as "an important process to consider for understanding the transmission of information across generations" and suggests it "may also provide a link between role differentiation and level of differentiation" [[2]]. The concept is distinguished from behavioral transmission, which "usually refers to the content of the information transmitted across generations (such as a specific skill or belief)" whereas "emotional programming refers to a process between the generations" [[1]]; both, however, "involve learning and relationships" [[1]], and programming is described as "the basis for a behavioral inheritance system that seems as precise and predictable in the transmission of information across generations as the genetic inheritance system" [[1]].
+
+The most explicit definition offered in the excerpts concerns the parent–child relationship: "Emotional programming refers to the specific effects that the nature of the parents' interactions with a child during development have on the child's ability to separate emotionally and develop a self" [[7]]. The programming "results from the verbal, nonverbal, and behavioral interactions that occur within and between the generations," with "the most intense programming" occurring "in a person's parental triangle during development," though siblings and other family members also matter; people "are not conscious of most of the emotional programming that occurs," yet it "affects myriad automatic behaviors that govern much of people's lives, for better and for worse" [[4]].
+
+The excerpts place emotional programming among three signature Bowen concepts — paired with emotional regression and emotional objectivity — described as "the three Es of Bowen theory," each "unique to Bowen theory" [[19]]. It is linked to emotional fusion in the multigenerational transmission process [[27]], to the family projection process and the targeting of a child [[15]], to triangles [[4, 17]], to symptom development [[3]], and to the level of differentiation of self [[2, 7, 14]]. Clinical and applied material includes an account of a mother's "heightened sensitivity to the feelings of others" and a brother's dependency [[8]], the programming of "a heightened need for attention in the child" [[21]], and emotional programming carried by trainees into training contexts [[13]]. The excerpts also flag limits: research in epigenetics "is at too early a stage to form firm conclusions about such a process" [[4]], and the "exact ways" in which "programming" of anxiety levels occurs "are not well defined" [[5]].
+
+---
+
+### 2. Full Report
+
+#### 1. Introduction & Definition
+
+The excerpts provide more than one formulation of emotional programming. The most definitional statement comes from the FSJ article on subjectivity and science: "Emotional programming refers to the specific effects that the nature of the parents' interactions with a child during development have on the child's ability to separate emotionally and develop a self" [[7]]. A process-oriented formulation appears in *Bowen Theory Secrets*, which states that the phenomenon "occurs through the transmission of information across generations in a family by relationships and learning, not genes" [[4]].
+
+Kerr's evolutionary-theory article distinguishes emotional programming from behavioral transmission: "Behavioral transmission and emotional programming both involve learning and relationships, but behavioral transmission usually refers to the content of the information transmitted across generations (such as a specific skill or belief) and emotional programming refers to a process between the generations" [[1]]. The same passage states that "programming is the basis for a behavioral inheritance system that seems as precise and predictable in the transmission of information across generations as the genetic inheritance system" [[1]]. Note that these two excerpts place the emphasis differently — [[1]] calls emotional programming "a process between the generations," while [[7]] calls it "the specific effects" of parental interactions on the child's development. The excerpts do not resolve this difference in emphasis.
+
+Kerr also identifies emotional programming as the first of "three phenomena or emotional processes described by Bowen theory" to be discussed, alongside emotional regression and individuality/togetherness [[2]].
+
+#### 2. Theoretical Foundations
+
+The excerpts locate emotional programming's distinctiveness in its terminology. *Bowen Theory Secrets* groups emotional regression, emotional objectivity, and emotional programming as "the three Es of Bowen theory," asserting that "each concept is unique to Bowen theory. No other theory in psychology or biology has anything comparable" and that "the terms regression, objectivity, and programming are used in other bodies of knowledge, but not in the same way Bowen theory uses them"; "placing the term emotional in front of each term anchors them to the bridge—the emotional system—that Bowen theory constructs to link human behavior to evolution and the behavior of other species" [[19]].
+
+An evolutionary connection is drawn explicitly in the account of Belyaev's fox domestication: the domestication of the foxes "involved both changes in gene functioning and in learning, both of which derived from their relationship interaction with human beings—or what Bowen theory refers to as emotional programming" [[18]]. The excerpts also connect the concept to epigenetics but cautiously: "the exploding field of epigenetics, which examines the interplay between the environment and the switching off and on of genes, opens the door to studying the interaction between emotional programming and gene expression. The research in this field is at too early a stage to form firm conclusions about such a process" [[4]]. Related wording appears in Noone's discussion of "epigenetic programming of maternal behaviors" [[20]]; this is the phrase "epigenetic programming," not the exact term "emotional programming," and is reported here as related wording only.
+
+Murray Bowen is quoted in connection with the concept: "That which was created in a relationship [emotional programming in the relationship with his mother] can be fixed in a relationship [in the relationship with his wife]" [[16]].
+
+#### 3. Key Dimensions
+
+The excerpts identify several distinct features:
+
+- **Mechanism — relationships and learning, not genes; verbal, nonverbal, and behavioral interactions** [[4]]; behavioral transmission versus programming as process [[1]].
+- **Site of intensity — the parental triangle during development**, with siblings and other family members also influential [[4]].
+- **Consciousness — low:** "People are not conscious of most of the emotional programming that occurs" [[4]].
+- **Effects — automatic behaviors** governing much of people's lives "for better and for worse," with automatic responses having "interconnected emotional, feeling, and subjective cognitive components" [[4]].
+- **Content of the parent–child programming — reactivity to four "social cues":** "parental attention, approval, expectations, and distress" [[7]]. The more parents focus on a child out of their own needs and fears, "the more the child focuses automatically on the parents"; this "reciprocal and ongoing process, which can be harmonious or contentious, heightens the child's reactivity" to those cues [[7]].
+- **Constraint on self-development:** anxiety-driven parental overinvolvement "constrains the child's ability to formulate thoughts, opinions, and ideas on their own" [[7]].
+- **Physiological level:** the process "involves cortical and subcortical processes" [[21]].
+- **Biological/psychological programming of anxiety level (related wording):** people "can be 'programmed' on biological and psychological levels to have a certain level of anxiety," with "some 'programming' ... in the womb" and "most of it" occurring "while children are growing up" [[5]]. This excerpt uses "programmed"/"programming" in quotation marks, not the exact term "emotional programming."
+
+#### 4. Relationship to Other Bowen Concepts
+
+- **Multigenerational transmission process:** "The development of a child's basic level is promoted or constrained by the degree of emotional fusion that exists between parents and child and the associated emotional programming that occurs within the fusion" [[27]]. Emotional programming is described as what each individual brings "from his or her experience in the multigenerational family into his or her nuclear family, such as projecting versus absorbing tension in the triangle" [[17]]. A diagram's "shower of dots" is said to symbolize "an emotional process or emotional field that flows down the generations" [[8]].
+- **Differentiation of self:** emotional programming may "provide a link between role differentiation and level of differentiation" [[2]]; it bears on "the child's ability to separate emotionally and develop a self" [[7]]; Wanda's "emotional programming in her functional oldest position" is discussed alongside an estimate of the family's "overall level of differentiation of self" [[14]].
+- **Nuclear family emotional process / family projection:** "The child most targeted by this process inherits the parents' immaturities through what Bowen theory terms emotional programming" [[15]].
+- **Symptom development:** symptoms are said to have to do with "the kind of programming that went into these two people" and "the programming from the past" [[3]].
+- **Chronic anxiety:** chronic anxiety as a relationship problem, with emotional programming located in the relationship with the mother [[16]].
+- **Emotional regression and emotional objectivity:** grouped with emotional programming as the "three Es" [[19]].
+- **Triangles:** the parental triangle as the site of "the most intense programming" [[4]]; triangle functioning (projecting versus absorbing tension) as an example of what is brought into the nuclear family [[17]].
+
+#### 5. Clinical Presentation
+
+The excerpts describe emotional programming appearing as: a mother's "heightened sensitivity to the feelings of others and feelings of guilt if she could not find ways to relieve the distress of others," which had "a strong impact on all her children, but especially the one with whom she was most fused," programming into that brother "a very strong dependency on our mother to help him to manage his feeling states, which is part of what erodes people's 'self'" [[8]]. When "a mother invests a lot in her kids in an anxious way, the kids focus back on her in a reactive way," which "programs, for example, a heightened need for attention in the child"; parent and child "become entangled in each other's emotions," the child "becomes addicted to attention," and the child's "sense of emotional well-being becomes more dependent than it would otherwise have been on what the mother does and says," such that "the child's well-being becomes excessively regulated by the relationship, and that process transfers into other relationships" [[21]].
+
+Programmed responses may range "from over-compliance to counter-positioning," varying "throughout the life cycle of the individual and his family" [[13]]. Where parents' anxious interactions with a focused-on child range "from unsureness and passivity to being overly certain and dogmatic," "one or more children may develop less maturity than the parents through this relationship transmission" [[15]]. Heightened reactivity to approval, coupled with unsureness about one's own ideas — "or the reactive opposite, which is arrogance" — is described as a consequence [[7]]. Wanda's programming in a functional oldest position "contributed to an attitude that, when she had her own family, she would do absolutely everything she could to shape a family life that would make things turn out right for her children" [[14]].
+
+#### 6. Clinical Implications & Therapeutic Approach
+
+The excerpts contain relatively little explicit therapeutic prescription specific to emotional programming. What is present: Bowen's quoted statement that what "was created in a relationship [emotional programming in the relationship with his mother] can be fixed in a relationship," with the observation that the success of a Bowen-theory-based approach "depends being able to change in relationship to important others in the real world" [[16]]. The Guerin excerpt applies the concept to professional training: emotional programming is what mental health professionals "bring into a training context," where trainees receive signals that "all those pre-programmed, natural behaviors are to be left behind" and a "new set of behaviors learned," a "new programming" that "will allow the trainee to do it the 'right way'" [[13]]. Galloway's excerpts state that Bowen theory posits "that the individual learns how to function in the family via emotional processes and programming," that "'how to function' is used as one's goals," and that the theory of constructed emotion "offers some interesting ideas with respect to the concept of multigenerational transmission process and emotional programming, even though it misses the important idea of how, what, and when does one learn about how they should function in their family" [[6, 9]].
+
+#### 7. Direct Quotations & Illustrations
+
+- "programming is the basis for a behavioral inheritance system that seems as precise and predictable in the transmission of information across generations as the genetic inheritance system" [[1]].
+- "The phenomenon of emotional programming occurs through the transmission of information across generations in a family by relationships and learning, not genes" [[4]].
+- "Emotional programming refers to the specific effects that the nature of the parents' interactions with a child during development have on the child's ability to separate emotionally and develop a self" [[7]].
+- "the legacy for Mother of this emotionally intense interactive process was emotional programming of a heightened sensitivity to the feelings of others and feelings of guilt if she could not find ways to relieve the distress of others" [[8]].
+- "The child most targeted by this process inherits the parents' immaturities through what Bowen theory terms emotional programming" [[15]].
+- "This programs, for example, a heightened need for attention in the child. Parent and child become entangled in each other's emotions" [[21]].
+- "the domestication of the foxes involved both changes in gene functioning and in learning, both of which derived from their relationship interaction with human beings—or what Bowen theory refers to as emotional programming" [[18]].
+- "each individual brings emotional programming or automatic ways of perceiving, feeling, and behaving from his or her experience in the multigenerational family into his or her nuclear family, such as projecting versus absorbing tension in the triangle" [[17]].
+
+#### 8. Gaps & Limitations
+
+Several limits are explicit in the excerpts themselves. The exact ways in which "programming" of anxiety levels occurs "are not well defined" [[5]]. Epigenetic research is "at too early a stage to form firm conclusions" about the interaction between emotional programming and gene expression [[4]]. Kerr states that Bowen theory "is less specific about whether chronic anxiety and patterns of emotional functioning are transmitted across generations," noting that "[m]any Bowen theorists believe they are" [[27]]. Beyond these statements, the excerpts do not address: any measurement or assessment procedure for emotional programming; a step-by-step clinical protocol targeting it; the specific conditions under which programming can be reversed; or any account of the precise neurophysiological mechanisms beyond the reference to "cortical and subcortical processes" [[21]]. The provided sources do not contain information on these points. Related wording in [[3]], [[10]], [[12]], [[22]], [[28]], and [[20]] uses "programming" or "programmed" without the modifier "emotional," and has been reported above as related wording rather than as statements about the exact term.
