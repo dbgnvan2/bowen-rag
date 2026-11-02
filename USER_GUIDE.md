@@ -63,7 +63,7 @@ Choose the mode that matches how you are thinking about your question.
 |---|---|---|
 | **Top Docs** | Most queries — broad topics, concepts, questions about the theory | Aggregates chunk scores per document and returns the best match per source. Avoids returning five chunks from the same document and gives a wider view across the corpus. Best default. |
 | **Semantic (TF-IDF)** | When you want Bowen's precise vocabulary to drive matching | Matches your query terms against all chunks using TF-IDF cosine similarity. Fast and exact-vocabulary. Use when you know Bowen uses a specific word and want passages that contain it. |
-| **Keyword** | Proper names, exact phrases, specific technical terms | Counts exact word occurrences with simple stemming. Reliable for names ("Papero", "Kerr"), diagnostic terms, or short phrases. Use quoted phrases (`"multigenerational transmission"`) to require an exact string. |
+| **Keyword** | Proper names, exact phrases, specific technical terms | Every word must be present; counts word occurrences with simple stemming, and passages with your words together as a phrase come first. Reliable for names ("Papero", "Kerr"), diagnostic terms, or short phrases. Use quoted phrases (`"multigenerational transmission"`) to require an exact string. See [Quoted phrase search](#quoted-phrase-search-keyword-mode). |
 | **Both** | When you are unsure whether vocabulary will match | Merges Semantic and Keyword results. Broader than either alone, but the combined score scale can be uneven — try Top Docs first. |
 | **Embedding** | Conceptual questions where your phrasing may differ from the source | Uses a sentence-transformer neural model (`all-MiniLM-L6-v2`) to find passages that are *semantically similar* even if the exact words don't match. A query about "emotional autonomy" will find passages about "differentiation of self". Requires the embedding index to be built. |
 | **Hybrid** | Highest-quality results for complex questions | Combines BM25 (vocabulary-based) and Embedding (semantic) using Reciprocal Rank Fusion. Best overall quality for nuanced research questions. Requires the embedding index. |
@@ -91,10 +91,10 @@ The author filter dropdown narrows results to a single author's documents. Use i
 
 ### Quoted phrase search (Keyword mode)
 
-In Keyword mode, wrapping a phrase in double quotes requires that exact phrase to be present in the chunk:
+In Keyword mode every word you type must be in the passage (words of two letters or fewer and common words such as "what", "family" and "theory" are ignored). Punctuation is ignored, so `programming?` matches "programming".
 
-- `emotional cutoff` — finds chunks containing both words, anywhere
-- `"emotional cutoff"` — finds chunks containing the exact phrase; phrase hits are weighted 3× over individual word hits
+- `emotional cutoff` — finds passages containing both words. Passages where they appear together as the phrase "emotional cutoff" are listed first and marked **phrase**; passages with the two words apart come after them, even if they mention the words more often.
+- `"emotional cutoff"` — finds only passages containing the exact phrase, as whole words (`"self"` does not match "yourself"). Line breaks and curly quotes in the source do not prevent a match. Phrase hits count 3× over individual word hits.
 
 Mix quoted and unquoted terms: `"emotional cutoff" differentiation` finds chunks containing the exact phrase plus the word "differentiation".
 

@@ -439,48 +439,29 @@ class IndexManager:
         return variants
 
     def keyword_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
+        """Best chunk per document with every query term; phrase matches rank first.
+
+        Purpose: Keyword mode (spec E10): punctuation-safe tokens, AND over the terms, the
+            unquoted terms tried as a phrase first; matching on the normalised text.
+        Spec:    docs/spec_exact_match_search_v2.md#E10
+        Tests:   test_exact_match.py::TestE10Keyword
+        """
         if not self.loaded:
             return []
-
-        # Extract quoted phrases ("exact phrase") and remaining individual words
-        phrases   = [p.lower() for p in re.findall(r'"([^"]+)"', query)]
-        remainder = re.sub(r'"[^"]+"', '', query)
-        raw_terms = [t.lower() for t in remainder.split()
-                     if len(t) > 2 and t.lower() not in self._STOP]
-
-        if not phrases and not raw_terms:
-            return []
-
-        term_sets = [set(self._stems(t)) for t in raw_terms]
-        boost_fn  = authority_boost if use_boost else (lambda _: 1.0)
         doc_best: dict = {}
-
-        for c in self.chunks:
-            tl = c["text"].lower()
-
-            # Quoted phrases must all be present — skip chunk if any are absent
-            if any(tl.count(p) == 0 for p in phrases):
-                continue
-            phrase_hits = sum(tl.count(p) * 3 for p in phrases)  # weight phrases 3×
-
-            word_hits = sum(max(tl.count(v) for v in variants) for variants in term_sets)
-            hits = phrase_hits + word_hits
-            if hits == 0:
-                continue
-
-            dn    = c["doc_name"]
+        for i, hits, phrase in self.exact.keyword_hits(query, self._STOP, self._stems):
+            c = self.chunks[i]
+            dn = c["doc_name"]
             boost_val = authority_boost(dn) if use_boost else 1.0
             score = hits * boost_val
-            tag   = " phrase" if phrases else ""
-            if boost_val > 1.0:
-                label = f"{hits} hits{tag} ×{boost_val:g} ★"
-            else:
-                label = f"{hits} hits{tag}"
-            if dn not in doc_best or score > doc_best[dn]["score"]:
-                doc_best[dn] = {**c, "score": score, "score_label": label, "mode": "keyword"}
-
-        out = sorted(doc_best.values(), key=lambda x: x["score"], reverse=True)
-        return out[:top_k]
+            tag = " phrase" if phrase else ""
+            label = f"{hits} hits{tag} ×{boost_val:g} ★" if boost_val > 1.0 else f"{hits} hits{tag}"
+            best = doc_best.get(dn)
+            if best is None or (phrase, score) > (best["_phrase"], best["score"]):
+                doc_best[dn] = {**c, "score": score, "score_label": label, "mode": "keyword",
+                                "_phrase": phrase}
+        out = sorted(doc_best.values(), key=lambda x: (x["_phrase"], x["score"]), reverse=True)
+        return [{k: v for k, v in r.items() if k != "_phrase"} for r in out[:top_k]]
 
     def combined_search(self, query: str, top_k: int, use_boost: bool = True) -> list:
         sem = {r["id"]: r for r in self.semantic_search(query, top_k, use_boost=use_boost)}

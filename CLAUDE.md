@@ -227,7 +227,7 @@ Key helper functions in `streamlit_app.py`:
 |---|---|---|
 | Top Docs | `top_docs_search` | Aggregates chunk scores per document; best single chunk per doc returned. Best for most queries. |
 | Semantic (TF-IDF) | `semantic_search` | Cosine similarity on TF-IDF vectors. Fast, exact-vocabulary matching. |
-| Keyword | `keyword_search` | Counts exact word matches with simple stemming. Good for names and specific terms. |
+| Keyword | `keyword_search` | Every unquoted term must be present (AND; tokens from `exact_match.keyword_terms`, so punctuation never sticks to a term), counted with simple stemming; chunks containing the unquoted terms as one phrase rank first (label "phrase"); "quoted" phrases must be present as whole words on the normalised text. One chunk per document. Matching is `ExactIndex.keyword_hits`, shared by both apps (spec E10). Good for names and specific terms. |
 | Both | `combined_search` | Merges semantic and keyword results. |
 | Embedding | `embedding_search` | Cosine similarity on sentence-transformer vectors. Finds conceptual matches regardless of exact wording. Requires `embed_matrix.npy`. |
 | Hybrid | `hybrid_search` | Reciprocal Rank Fusion (RRF, K=60) of BM25 and Embedding results. Best overall quality. Requires `embed_matrix.npy`. |

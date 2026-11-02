@@ -185,6 +185,67 @@ class ExactIndex:
             "corpus_chunks": len(self.chunks),
         }
 
+    def keyword_hits(self, query: str, stop, stems) -> list[tuple[int, int, bool]]:
+        """(chunk_index, hits, phrase) for Keyword mode: every chunk that has all the terms.
+
+        Purpose: Keyword mode's matching, on the normalised text, shared by both apps.
+        Spec:    docs/spec_exact_match_search_v2.md#E10
+        Tests:   test_exact_match.py::TestE10Keyword
+
+        Every "quoted" phrase must occur (whole-word, as in ExactIndex.scan) and counts 3x.
+        Every unquoted term must occur (AND), counted by its `stems` variants as substrings
+        (the old Keyword counting). `phrase` is True when the chunk contains a quoted phrase
+        or the unquoted terms as one phrase (keyword_terms); callers rank those first.
+        """
+        quoted, phrase, terms = keyword_terms(query, stop)
+        if not quoted and not terms:
+            return []
+        candidates = None
+        quoted_hits: dict = {}
+        for q in quoted:
+            found = dict(self.scan(q))
+            candidates = set(found) if candidates is None else candidates & set(found)
+            for i, n in found.items():
+                quoted_hits[i] = quoted_hits.get(i, 0) + 3 * n
+        in_phrase = {i for i, _ in self.scan(phrase)} if phrase else set()
+        term_sets = [set(stems(t)) for t in terms]
+        out = []
+        for i in (sorted(candidates) if candidates is not None else range(len(self.chunks))):
+            t = self._scan_texts[i]
+            counts = [max(t.count(v) for v in variants) for variants in term_sets]
+            if not all(counts):
+                continue
+            hits = quoted_hits.get(i, 0) + sum(counts)
+            if hits:
+                out.append((i, hits, bool(quoted) or i in in_phrase))
+        return out
+
+
+_TOKEN = re.compile(r"[\w'-]+")
+
+
+def keyword_terms(query: str, stop) -> tuple[list[str], str | None, list[str]]:
+    """(quoted phrases, unquoted phrase or None, unquoted terms) for Keyword mode.
+
+    Purpose: tokenise so punctuation never sticks to a term ("programming?" -> "programming").
+    Spec:    docs/spec_exact_match_search_v2.md#E10
+    Tests:   test_exact_match.py::TestE10Keyword::test_e10_punctuation_stripped
+
+    Tokens are re.findall(r"[\\w'-]+") with leading/trailing apostrophes and hyphens
+    stripped (so 'programmed' in single quotes is the word). Terms are the tokens longer
+    than 2 characters that are not in `stop`. The unquoted phrase is the run of tokens from
+    the first term to the last, when it spans two or more tokens: "What is emotional
+    programming?" -> "emotional programming"; "differentiation of self" keeps "of".
+    """
+    quoted = [q for q in (normalize(m) for m in _QUOTED.findall(query)) if q]
+    remainder = _QUOTED.sub(" ", query)
+    tokens = [t.strip("'-") for t in _TOKEN.findall(normalize(remainder))]
+    tokens = [t for t in tokens if t]
+    keep = [i for i, t in enumerate(tokens) if len(t) > 2 and t not in stop]
+    terms = [tokens[i] for i in keep]
+    phrase = " ".join(tokens[keep[0]:keep[-1] + 1]) if keep and keep[-1] > keep[0] else None
+    return quoted, phrase, terms
+
 
 # ── Retrieval guarantee and prompt guard (spec E6a, E6, E8) ───────────────────
 

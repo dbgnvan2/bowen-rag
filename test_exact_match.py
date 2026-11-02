@@ -668,6 +668,86 @@ class TestE8Verification(FixtureIndex):
         self.assertFalse(streamlit_app._is_superseded_system_prompt(old + " (edited)"))
 
 
+# ── E10 ───────────────────────────────────────────────────────────────────────
+# Doc "spread" mentions both words many times but never side by side; doc "exact" has the
+# phrase once. Old OR-scoring of raw counts ranked "spread" first.
+_E10_CHUNKS = [
+    _chunk(0, "spread", "Emotional reactivity. " * 6 + "Programming of computers. " * 6),
+    _chunk(1, "exact", "Kerr calls it emotional programming."),
+    _chunk(2, "other", "Programming languages only."),
+]
+
+
+def _manager_on(cls, chunks):
+    """An IndexManager with only the fields keyword_search reads (no index files)."""
+    import exact_match
+    m = cls()
+    m.chunks = chunks
+    m.exact = exact_match.ExactIndex(chunks)
+    m.loaded = True
+    return m
+
+
+class TestE10Keyword(FixtureIndex):
+    def test_e10_punctuation_stripped(self):
+        """'programming?' used to be one token that matched nothing."""
+        stop = frozenset({"what"})
+        self.assertEqual(em.keyword_terms("What is programming?", stop),
+                         ([], None, ["programming"]))
+        self.assertEqual(em.keyword_terms("'programmed' anxiety, self-differentiation!", stop)[2],
+                         ["programmed", "anxiety", "self-differentiation"])
+        for name, idx in self.loaded():
+            docs = {r["doc_name"] for r in idx.keyword_search("programming?", 10, use_boost=False)}
+            self.assertEqual(docs, {"kerr_book", "scan_doc"}, name)
+
+    def test_e10_all_terms_required(self):
+        """'differentiation' (diff_doc) and 'yourself' (self_doc) never share a chunk:
+        OR-scoring returned both documents; AND returns nothing."""
+        for name, idx in self.loaded():
+            self.assertEqual(idx.keyword_search("differentiation yourself", 10, use_boost=False),
+                             [], name)
+            got = idx.keyword_search("differentiated head", 10, use_boost=False)
+            self.assertEqual([r["doc_name"] for r in got], ["diff_doc"], name)
+            self.assertIn("clear head", got[0]["text"], name)
+
+    def test_e10_unquoted_phrase_first(self):
+        for name, cls in managers(self):
+            idx = _manager_on(cls, copy.deepcopy(_E10_CHUNKS))
+            got = idx.keyword_search("What is emotional programming?", 10, use_boost=False)
+            self.assertEqual([r["doc_name"] for r in got], ["exact", "spread"], name)
+            self.assertIn("phrase", got[0]["score_label"], name)
+            self.assertNotIn("phrase", got[1]["score_label"], name)
+            self.assertGreater(got[1]["score"], got[0]["score"], name)   # raw count lost
+            self.assertNotIn("_phrase", got[0], name)
+
+    def test_e10_unquoted_phrase_keeps_interior_words(self):
+        stop = frozenset({"what"})
+        self.assertEqual(em.keyword_terms("What is differentiation of self?", stop)[1],
+                         "differentiation of self")
+        self.assertIsNone(em.keyword_terms("programming", stop)[1])
+
+    def test_e10_quoted_phrase_on_normalised_text_whole_words(self):
+        """Quoted phrases match across a line break and curly quotes (E0), and as whole
+        words: "self" no longer matches "yourself"/"selfish"."""
+        for name, idx in self.loaded():
+            docs = {r["doc_name"] for r in idx.keyword_search('\u201cself\u201d', 10, use_boost=False)}
+            self.assertEqual(docs, {"diff_doc", "kerr_book", "self_doc"}, name)
+            hit_ids = {i for i, _, _ in idx.exact.keyword_hits('"self"', idx._STOP, idx._stems)}
+            yourself = [c["id"] for c in idx.chunks if c["text"].startswith("Look after yourself")]
+            self.assertEqual(len(yourself), 1, name)
+            self.assertNotIn(yourself[0], hit_ids, name)          # "yourself", "selfish"
+        ix = em.ExactIndex([_chunk(0, "C", "emotional\nprogramming here")])
+        self.assertEqual(ix.keyword_hits('"emotional programming"', frozenset(), lambda w: [w]),
+                         [(0, 3, True)])
+
+    def test_e10_chunks_not_mutated(self):
+        for name, cls in managers(self):
+            chunks = copy.deepcopy(_E10_CHUNKS)
+            idx = _manager_on(cls, chunks)
+            idx.keyword_search("emotional programming", 10, use_boost=True)
+            self.assertEqual(chunks, _E10_CHUNKS, name)
+
+
 # ── Carried over from the literal_search.py prototype ─────────────────────────
 class TestCarriedOver(unittest.TestCase):
     def test_highlight(self):
