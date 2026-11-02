@@ -158,7 +158,7 @@ python3 test_skill.py   # runs 3 sample queries; writes results to test_results.
 
 `rag-document-search/scripts/semantic_search.py` is a plain TF-IDF command-line search (`python3 scripts/semantic_search.py references/ "query" 5`). It stops with a "rebuild the index" error if the index files disagree. It has no authority boost and no embedding/hybrid mode, so its ranking differs from the apps.
 
-The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency test_ocr_scans test_extract_headers` (the original citations tests also run with `python3 test_citations.py`).
+The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency test_ocr_scans test_extract_headers test_exact_match` (the original citations tests also run with `python3 test_citations.py`).
 
 ## Building the macOS app
 
@@ -235,6 +235,10 @@ Key helper functions in `streamlit_app.py`:
 ### Search ranking
 
 Raw similarity scores are boosted by `authority_boost()` before ranking. The multipliers are defined in `AUTHORITY_TIERS` (top of `bowen_rag_gui.py` and `streamlit_app.py`, also overridable via `authority_tiers.yml`) — primary Bowen/Kerr sources get 3.0×, Family Systems Journal articles 1.3×, other named theorists 1.15×. This is editorial content; keep it in the config files rather than hardcoding elsewhere.
+
+### Exact match (`exact_match.py`)
+
+Spec `docs/spec_exact_match_search_v2.md` (E0–E13), plan `docs/implementation_plan_exact_match_2026-11-01.md`, evidence `REVIEW-bowen_rag-2026-11-01-literal-search.md`. The ranking modes return a top-k and cannot prove that a term is absent; `exact_match.ExactIndex` scans the chunk text itself. Both `IndexManager` classes build `self.exact = exact_match.ExactIndex(self.chunks)` in `load()` (about 1.3 s for 14,083 chunks; `test_index_consistency.py` pins that both do) and delegate `exact_search(needle, mode, case)` (every containing chunk, no top-k, no boost) and `exact_presence(...)` (whole-corpus counts per document, locators, OCR flag). Text is normalised once on both sides (NFKC, soft hyphens, `word-\nword` re-joined, curly quotes/dashes to ASCII, whitespace collapsed). Modes: `word` (default; alphanumeric boundaries, so "self" does not match "yourself" and hyphens/apostrophes are boundaries), `substring`, `regex` (a bad pattern raises). In `word` mode the presence result also carries the `loose_*` substring counts, so a lost space ("thatemotional programming") shows as a loose hit instead of a clean zero. Known gap: `build_index.py` already turned line-end hyphenation into "emo- tional" (hyphen + space, ~9,000 in the index), which the normaliser does not re-join, so such occurrences are missed by every mode (4 for "emotional programming"). Tests: `test_exact_match.py`.
 
 ### DeepSeek integration
 

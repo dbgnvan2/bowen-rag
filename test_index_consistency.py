@@ -56,6 +56,33 @@ class TestSettingsPinned(unittest.TestCase):
                 self.assertEqual(kwargs, B.TFIDF_PARAMS, path)
 
 
+def index_manager_class(path):
+    tree = ast.parse((ROOT / path).read_text())
+    return next(n for n in ast.walk(tree)
+                if isinstance(n, ast.ClassDef) and n.name == "IndexManager")
+
+
+class TestExactIndexPinned(unittest.TestCase):
+    def test_idx_both_apps_build_exact_index(self):
+        """Spec E0: both IndexManager classes build exact_match.ExactIndex(self.chunks) in
+        load() and delegate exact_search / exact_presence to it (the GUI does not import
+        streamlit_app, so each class must do it itself)."""
+        for path in ("streamlit_app.py", "bowen_rag_gui.py"):
+            cls = index_manager_class(path)
+            methods = {n.name: n for n in cls.body if isinstance(n, ast.FunctionDef)}
+            for name in ("exact_search", "exact_presence"):
+                self.assertIn(name, methods, f"{path}: IndexManager.{name} missing")
+                calls = [ast.unparse(c.func) for c in ast.walk(methods[name])
+                         if isinstance(c, ast.Call)]
+                self.assertTrue(any(c.startswith("self.exact.") for c in calls),
+                                f"{path}: {name} does not delegate to self.exact")
+            builds = [n for n in ast.walk(methods["load"])
+                      if isinstance(n, ast.Assign)
+                      and ast.unparse(n.targets[0]) == "self.exact"
+                      and ast.unparse(n.value) == "exact_match.ExactIndex(self.chunks)"]
+            self.assertEqual(len(builds), 1, f"{path}: load() must build ExactIndex(self.chunks)")
+
+
 class TestLoadersFailLoudly(unittest.TestCase):
     def setUp(self):
         self._s = tempfile.TemporaryDirectory(); self._o = tempfile.TemporaryDirectory()

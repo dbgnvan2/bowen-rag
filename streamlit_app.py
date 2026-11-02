@@ -12,6 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import citations
+import exact_match
 import index_fingerprint
 import usage_limit
 
@@ -276,6 +277,7 @@ class IndexManager:
         self.embed_matrix = None
         self.embed_model  = None
         self.loaded       = False
+        self.exact        = None   # exact_match.ExactIndex, built in load()
 
     def load(self, refs_dir: Path = REFS_DIR) -> dict:
         meta_path  = refs_dir / "chunk_metadata.json"
@@ -313,6 +315,7 @@ class IndexManager:
         self._doc_chunk_ids: dict = {}
         for i, c in enumerate(self.chunks):
             self._doc_chunk_ids.setdefault(c["doc_name"], []).append(i)
+        self.exact = exact_match.ExactIndex(self.chunks)   # normalised copy for exact match
 
         docs = len(set(c["doc_name"] for c in self.chunks))
 
@@ -327,6 +330,21 @@ class IndexManager:
 
         return {"chunks": len(self.chunks), "documents": docs,
                 "embeddings": self.embed_matrix is not None}
+
+    # ── Exact match (delegates to exact_match.py; spec E1/E5) ────────────────
+
+    def exact_search(self, needle: str, mode: str = "word", case: bool = False) -> list:
+        """Every chunk containing `needle` (no top_k, no boost). See exact_match.ExactIndex.search."""
+        if self.exact is None:
+            raise RuntimeError("Index not loaded: an exact-match search cannot run.")
+        return self.exact.search(needle, mode=mode, case=case)
+
+    def exact_presence(self, needle: str, mode: str = "word", case: bool = False) -> dict:
+        """Whole-corpus counts for `needle`. See exact_match.ExactIndex.presence."""
+        if self.exact is None:
+            raise RuntimeError("Index not loaded: an exact-match check cannot run.")
+        return self.exact.presence(needle, mode=mode, case=case,
+                                   locator_fn=citations.passage_locator)
 
     def _check_index_in_sync(self, refs_dir: Path):
         """Fail loudly if the saved index files disagree, instead of ranking wrong chunks."""
