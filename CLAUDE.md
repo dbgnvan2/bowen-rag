@@ -158,7 +158,9 @@ python3 test_skill.py   # runs 3 sample queries; writes results to test_results.
 
 `rag-document-search/scripts/semantic_search.py` is a plain TF-IDF command-line search (`python3 scripts/semantic_search.py references/ "query" 5`). It stops with a "rebuild the index" error if the index files disagree. It has no authority boost and no embedding/hybrid mode, so its ranking differs from the apps.
 
-The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency test_ocr_scans test_extract_headers test_exact_match test_authority` (the original citations tests also run with `python3 test_citations.py`).
+The unit tests run with `python3 -m unittest test_citations test_seed_sources test_sources_data test_report_export test_usage_limit test_llm_stream_limits test_build_index test_semantic_search test_index_consistency test_ocr_scans test_extract_headers test_exact_match test_authority test_known_terms` (the original citations tests also run with `python3 test_citations.py`). GitHub Actions runs the same line on every push (`.github/workflows/tests.yml`, Python 3.11 and 3.12, dependencies from `requirements-build.txt`); `test_index_consistency.py` fails if this line or the workflow leaves out a `test_*.py` file. The shipped index is in git, so the corpus-gated tests (those that skip when `rag-document-search/references/` is absent) also run in CI; the first embedding search there downloads `all-MiniLM-L6-v2` from Hugging Face.
+
+**Known-terms regression** (`test_known_terms.py`, spec E12): `tests/known_terms.yml` lists 19 Bowen terms with the number of documents that contained each one on 2026-11-01 (substring match) and a minimum of 90 % of that, plus one phrase that must be absent. The tests check the minimums and that every Chat/Report retrieval mode at k=12 and k=30, after `exact_match.exact_guard`, hands the model at least one passage containing the term. Run it after every index rebuild; if documents were removed on purpose, update the counts.
 
 ## Building the macOS app
 

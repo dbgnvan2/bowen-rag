@@ -25,11 +25,18 @@ Purpose: turn individual bug fixes into a reusable theory of how this project fa
 - 2026-10-02: build_index.py exits 0 when files were skipped (2 blank scans, Freeman and Nel, have no text to OCR; a scripted rebuild will not notice) (P2). The skipped files are listed in the build output.
 - 2026-10-02: OCR chunks have no PDF page (page is null) and the OCR flag is not shown in the desktop GUI; OCR text sits in gitignored source_files/ (only the drive copy has it) (P6). build_index warns when the manifest's .txt is absent. ocr_manifest.yml is written only after all PDFs finish.
 
+- 2026-11-01: exact match normalises line breaks and "-\n" hyphenation but not a hyphen followed by a space ("emo- tional"), so 4 occurrences of "emotional" phrases are not found (P6). Authority tiers name three FSJ files by "Kerr" alone (Hidden Valley Road, How to Tame a Fox, John Williams Stoner) and treat them as Michael Kerr; not verified.
+
 ## Misses
 (none recorded)
 
 ## Fix log
 Format: Issue -> Root cause (Pn) -> What would have caught it -> Fix -> Rule. Newest first.
+
+- 2026-11-01 "What is emotional programming?" answered as if the term were not in the corpus (review_2026-11-01; spec docs/spec_exact_match_search_v2.md)
+  - The authority boost multiplied similarity scores. Scores sit in a narrow band, so weak chunks from x3 documents outranked strong unboosted ones: BM25 at the Chat default (k=12) returned 0 of the 66 chunks containing the phrase (the best one at rank 25) (P7: over-weighted scoring proxy) -> an adversarial test with strong unboosted matches and many weak boosted ones -> the boost now divides the rank (`authority.rank_order`; a x3 chunk at rank 30 ties an unboosted rank 10); BM25 now returns 12/12 -> a boost must reorder comparable results, never remove the most relevant ones; test it against an input where the boosted items are weak.
+  - Keyword mode kept punctuation in its terms ("programming?") and needed only some terms to match, so a question matched on its stop words and the phrase chunks were not first (P2: the failed term was dropped with no sign) -> a test that feeds the query as users type it, with "?" and quotes -> terms are tokenised on letters/digits/'/-, every term is required, phrase matches rank first; question words ("what is") are stripped from the checked phrase (`question_frames.yml`) -> test the input shape users type, not the cleaned shape.
+  - Whether a term is in the corpus was left to the model, which judged it from the 12 excerpts it was given; those held none of the 66 containing passages, so it reported the term missing (P6: a "not found" taken from a partial view) -> asking "how many documents contain X?" of the index and comparing with what the model received -> `exact_match.exact_guard` counts the phrase over the whole index, adds up to 5 containing passages within k, and the prompt carries a verification block with the real counts; `test_known_terms.py` checks 19 known terms reach the model in every mode -> a negative ("not in the sources") must be computed over the whole corpus by code, not inferred by the model from a sample.
 
 - 2026-10-02 found by checking a live Railway report ("Erosion of Theory") against the corpus
   - 1,875 chunks held ﬁ/ﬂ ligatures and 1,373 held soft hyphens inside words: "define" did not match "deﬁne" in keyword/BM25 search, and the PDF export printed "deIne" (P7: text that looks right but does not match) -> a corpus scan for non-ASCII artefacts -> `clean_text` at read time, tested.

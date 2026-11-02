@@ -151,14 +151,37 @@ def _corpus_has_bts():
 class TestE11Corpus(unittest.TestCase):
     def test_e11_boost_never_removes_all_literal_hits(self):
         """BM25 at the Chat default (k=12, boost on) returned 0 chunks containing
-        'emotional programming' before E11; it must return at least one."""
+        'emotional programming' before E11; it must return at least one. For every known
+        term (tests/known_terms.yml): whenever a mode's top 12 without the boost holds a
+        chunk containing the term, the boosted top 12 holds one too (no exact-match guard)."""
+        import exact_match as em
         import streamlit_app
-        idx = streamlit_app.IndexManager(); idx.load()
+        from test_known_terms import load_known_terms
+        idx = streamlit_app.IndexManager(); idx.load(REFS)
         rx = re.compile(r"emotional\s+programming", re.I)
         for mode in ("bm25_search", "semantic_search"):
             got = getattr(idx, mode)("What is emotional programming?", 12, use_boost=True)
             self.assertGreaterEqual(sum(1 for c in got if rx.search(c["text"])), 1, mode)
-
+        modes = ["bm25_search", "semantic_search", "keyword_search", "top_docs_search"]
+        if idx.embed_matrix is not None:
+            modes += ["embedding_search", "hybrid_search"]
+        failures = []
+        for t in load_known_terms():
+            if "max_docs" in t:
+                continue
+            phrases, _ = em.phrases_for(t["term"])
+            q = f"What is {t['term']}?"
+            for mode in modes:
+                def run(boost):
+                    if mode == "top_docs_search":
+                        res = idx.top_docs_search(q, top_chunks=300, top_docs=12, use_boost=boost)
+                    else:
+                        res = getattr(idx, mode)(q, 12, use_boost=boost)
+                    return sum(1 for c in res if any(em.count_matches(c["text"], p) for p in phrases))
+                off = run(False)
+                if off and not run(True):
+                    failures.append(f"{mode} {q!r}: {off} without the boost, 0 with it")
+        self.assertEqual(failures, [])
 
 if __name__ == "__main__":
     unittest.main()

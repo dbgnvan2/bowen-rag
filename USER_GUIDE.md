@@ -347,6 +347,8 @@ The build lists anything it could not index instead of skipping it quietly. **Sc
 
 You can also rebuild from the **Desktop GUI**: Index tab → Rebuild Index. The web app's Index page only shows statistics; rebuild locally and commit the updated `references/` files.
 
+After a rebuild, run `python3 -m unittest test_known_terms`. It checks that about 20 Bowen terms listed in `tests/known_terms.yml` are still found in at least the expected number of documents, and that every search mode, after the exact-match check, gives the model at least one passage containing each term. If a term now fails because documents were deliberately removed, update its counts in that file (the file explains how).
+
 ---
 
 ## Building the Embedding Index
@@ -608,3 +610,5 @@ python3 test_skill.py   # runs 3 sample queries; writes results to test_results.
 ```
 
 Use after rebuilding the index to confirm the search engine is returning sensible results.
+
+The unit tests (the command is in `CLAUDE.md`) include the known-terms check above. GitHub runs the same command on every push (`.github/workflows/tests.yml`, Python 3.11 and 3.12); a test file that is not in that command makes the suite fail.

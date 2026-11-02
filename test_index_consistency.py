@@ -193,5 +193,20 @@ class TestLoadersFailLoudly(unittest.TestCase):
                 cls().load(self.out)
 
 
+class TestSuiteListed(unittest.TestCase):
+    def test_e12_every_test_file_is_in_the_test_line_and_ci(self):
+        """CLAUDE.md's unittest line and .github/workflows/tests.yml name every test_*.py
+        file, so a new test file cannot be left out of CI (spec E12)."""
+        import re
+        files = {p.stem for p in ROOT.glob("test_*.py")}
+        claude = (ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+        line = next(l for l in claude.splitlines() if "python3 -m unittest test_" in l)
+        ci = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        ci_run = ci[ci.index("python3 -m unittest"):]
+        for name, text in (("CLAUDE.md", line), ("tests.yml", ci_run)):
+            listed = set(re.findall(r"\btest_\w+", text))
+            self.assertEqual(files - listed, set(), f"{name} leaves out")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,31 @@
+# Known Bowen terms and the minimum number of documents that must contain each one.
+# Spec: docs/spec_exact_match_search_v2.md#E12. Tests: test_known_terms.py.
+#
+# Seeded 2026-11-01 from review_2026-11-01/measure_literal.output.txt (index of 14,083
+# chunks). measured_docs = documents containing the term in substring mode (case-
+# insensitive, so 'nodal event' also counts 'nodal events'). min_docs = floor(0.9 x
+# measured_docs), so a small corpus edit does not fail the test; a larger drop does.
+# A term with max_docs must occur in at most that many documents (negative case).
+# Add a term: run idx.exact_presence(term, mode='substring')['doc_count'] on the
+# shipped index and enter that count with min_docs = floor(0.9 x count).
+terms:
+  - {term: "emotional programming", measured_docs: 22, min_docs: 19}
+  - {term: "emotional contact", measured_docs: 72, min_docs: 64}
+  - {term: "emotional connection", measured_docs: 18, min_docs: 16}
+  - {term: "nodal events", measured_docs: 18, min_docs: 16}
+  - {term: "nodal event", measured_docs: 23, min_docs: 20}
+  - {term: "multigenerational transmission process", measured_docs: 52, min_docs: 46}
+  - {term: "societal regression", measured_docs: 49, min_docs: 44}
+  - {term: "emotional cutoff", measured_docs: 74, min_docs: 66}
+  - {term: "I-position", measured_docs: 11, min_docs: 9}
+  - {term: "differentiation of self scale", measured_docs: 15, min_docs: 13}
+  - {term: "basic self", measured_docs: 13, min_docs: 11}
+  - {term: "pseudo-self", measured_docs: 48, min_docs: 43}
+  - {term: "pseudo self", measured_docs: 10, min_docs: 9}
+  - {term: "the family projection process", measured_docs: 59, min_docs: 53}
+  - {term: "undifferentiated family ego mass", measured_docs: 25, min_docs: 22}
+  - {term: "overfunctioning", measured_docs: 74, min_docs: 66}
+  - {term: "emotional regression", measured_docs: 20, min_docs: 18}
+  - {term: "emotional shock wave", measured_docs: 11, min_docs: 9}
+  - {term: "sibling position", measured_docs: 71, min_docs: 63}
+  - {term: "this phrase is not in the corpus", max_docs: 0}

@@ -1,0 +1,35 @@
+# Runs the unit test suite on a blank machine on every push and pull request.
+# The test list is the one in CLAUDE.md; test_index_consistency.py fails if either list
+# leaves out a test_*.py file. The shipped index (rag-document-search/references/) is in
+# git, so the corpus-gated tests run here too. The embedding model (all-MiniLM-L6-v2,
+# ~90 MB) is downloaded from Hugging Face on the first embedding search.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-build.txt
+
+      - name: Run the test suite
+        run: >
+          python3 -m unittest test_citations test_seed_sources test_sources_data
+          test_report_export test_usage_limit test_llm_stream_limits test_build_index
+          test_semantic_search test_index_consistency test_ocr_scans test_extract_headers
+          test_exact_match test_authority test_known_terms -v
